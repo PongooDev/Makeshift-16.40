@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -79,6 +79,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>./</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -100,6 +101,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>./</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -119,6 +121,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>./</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -154,9 +157,69 @@
   <ItemGroup>
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\CoreGlobals.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\CoreTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Containers\StringConv.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\GenericPlatform\GenericPlatformMisc.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\CriticalSection.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\Platform.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PlatformMisc.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PreprocessorHelpers.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\UnrealMemory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Logging\LogCategory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Logging\LogMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Logging\LogScopedCategoryAndVerbosityOverride.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Logging\LogScopedVerbosityOverride.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Logging\LogTrace.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Logging\LogVerbosity.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\AssertionMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\Build.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\CoreMiscDefines.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\CString.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\FeedbackContext.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\OutputDevice.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\OutputDeviceError.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\OutputDeviceRedirector.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\ScopeLock.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\VarArgs.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\AndOrNot.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\EnableIf.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsArrayOrRefOfType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsEnum.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsValidVariadicFunctionArg.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\UnrealTemplate.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\UObject\UnrealNames.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsCriticalSection.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatform.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformMisc.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformString.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Private\Misc\VarargsHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\GenericPlatform\GenericPlatformMisc.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Logging\LogCategory.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Logging\LogMacros.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Logging\LogScopedCategoryAndVerbosityOverride.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Logging\LogScopedVerbosityOverride.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\AssertionMacros.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\CoreMisc.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\OutputDevice.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\OutputDeviceRedirector.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Windows\WindowsPlatformMisc.cpp" />
+    <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SDK\SDK\Basic.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

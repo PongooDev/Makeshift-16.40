@@ -1,8 +1,13 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
 
+DEFINE_LOG_CATEGORY(LogMakeshift);
+
 DWORD WINAPI Main(LPVOID) {
     InitConsole();
+
+    UE_LOG(LogMakeshift, Display, TEXT("Makeshift 16.40 loaded, ImageBase: 0x%llX"), ImageBase);
+    Log(std::format("Playlist: {}, Map: {}", std::string(Configuration::Playlist.begin(), Configuration::Playlist.end()), Configuration::MapToLoad));
 
     return 0;
 }

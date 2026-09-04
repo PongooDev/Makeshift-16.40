@@ -19,7 +19,6 @@
 #include <format>
 #include <print>
 #include <array>
-#include <minmax.h>
 #include <TlHelp32.h>
 #include <dbghelp.h>
 #include <sstream>
@@ -54,10 +53,142 @@ namespace Configuration {
 
 inline uint64_t ImageBase = InSDKUtils::GetImageBase();
 
+#include "Engine/Source/Runtime/Core/Public/UObject/UnrealNames.h"
+#include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
+#include "Engine/Source/Runtime/Core/Public/CoreGlobals.h"
+#include "Engine/Source/Runtime/Core/Public/Logging/LogScopedVerbosityOverride.h"
+#include "Engine/Source/Runtime/Core/Public/Misc/OutputDeviceRedirector.h"
+#include "Engine/Source/Runtime/Core/Public/Misc/OutputDeviceError.h"
+#include "Engine/Source/Runtime/Core/Public/Misc/FeedbackContext.h"
+#include "Engine/Source/Runtime/Core/Public/Misc/CString.h"
+#include "Engine/Source/Runtime/Core/Public/Templates/UnrealTemplate.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/EngineLogs.h"
+
+DECLARE_LOG_CATEGORY_OFFSET(LogOnline, Log, All)
+#define LogOnline UE_LOG_CATEGORY_AT(LogOnline, 0x93A6618)
+DECLARE_LOG_CATEGORY_OFFSET(LogOnlineGame, Log, All)
+#define LogOnlineGame UE_LOG_CATEGORY_AT(LogOnlineGame, 0x93A6628)
+DECLARE_LOG_CATEGORY_OFFSET(LogBeacon, Log, All)
+#define LogBeacon UE_LOG_CATEGORY_AT(LogBeacon, 0x93A69A0)
+DECLARE_LOG_CATEGORY_OFFSET(LogAbilitySystem, Display, All)
+#define LogAbilitySystem UE_LOG_CATEGORY_AT(LogAbilitySystem, 0x93A5740)
+DECLARE_LOG_CATEGORY_OFFSET(LogAbilitySystemComponent, Log, All)
+#define LogAbilitySystemComponent UE_LOG_CATEGORY_AT(LogAbilitySystemComponent, 0x93A56E0)
+DECLARE_LOG_CATEGORY_OFFSET(LogReplicationGraph, Log, All)
+#define LogReplicationGraph UE_LOG_CATEGORY_AT(LogReplicationGraph, 0x93AD0E0)
+DECLARE_LOG_CATEGORY_OFFSET(LogFort, Log, All)
+#define LogFort UE_LOG_CATEGORY_AT(LogFort, 0x93CAB28)
+DECLARE_LOG_CATEGORY_OFFSET(LogFortInventory, Warning, All)
+#define LogFortInventory UE_LOG_CATEGORY_AT(LogFortInventory, 0x93CAB38)
+DECLARE_LOG_CATEGORY_OFFSET(LogFortBuilding, Log, All)
+#define LogFortBuilding UE_LOG_CATEGORY_AT(LogFortBuilding, 0x93CAB68)
+DECLARE_LOG_CATEGORY_OFFSET(LogFortReplicationGraph, Display, All)
+#define LogFortReplicationGraph UE_LOG_CATEGORY_AT(LogFortReplicationGraph, 0x93CC700)
+
+DECLARE_LOG_CATEGORY_EXTERN(LogMakeshift, Log, All);
+
 inline void InitConsole() {
 	AllocConsole();
 	FILE* fptr;
 	freopen_s(&fptr, "CONOUT$", "w+", stdout);
+}
+
+inline void VARARGS LogImpl(ELogVerbosity::Type Verbosity, const TCHAR* Fmt, ...)
+{
+	if (LogMakeshift.IsSuppressed(Verbosity))
+	{
+		return;
+	}
+
+	TCHAR Buffer[8192];
+	GET_VARARGS(Buffer, UE_ARRAY_COUNT(Buffer), UE_ARRAY_COUNT(Buffer) - 1, Fmt, Fmt);
+
+	if ((Verbosity & ELogVerbosity::VerbosityMask) == ELogVerbosity::Fatal)
+	{
+		FMsg::Logf_Internal(__FILE__, __LINE__, LogMakeshift.GetCategoryName(), ELogVerbosity::Fatal, TEXT("%s"), Buffer);
+		_DebugBreakAndPromptForRemote();
+		FDebug::ProcessFatalError();
+		return;
+	}
+
+	FMsg::Logf(__FILE__, __LINE__, LogMakeshift.GetCategoryName(), Verbosity, TEXT("%s"), Buffer);
+}
+
+template <typename... Types>
+inline void Log(ELogVerbosity::Type Verbosity, const TCHAR* Fmt, Types... Args)
+{
+	static_assert(TAnd<TIsValidVariadicFunctionArg<Types>...>::Value, "Invalid argument(s) passed to Log");
+
+	LogImpl(Verbosity, Fmt, Args...);
+}
+
+template <typename... Types>
+inline void Log(const TCHAR* Fmt, Types... Args)
+{
+	Log(ELogVerbosity::Display, Fmt, Args...);
+}
+
+inline std::wstring ToWide(const char* Str)
+{
+	if (!Str || !*Str)
+		return {};
+
+	const int Length = MultiByteToWideChar(CP_UTF8, 0, Str, -1, nullptr, 0);
+	if (Length <= 1)
+		return {};
+
+	std::wstring Out(static_cast<size_t>(Length) - 1, L'\0');
+	MultiByteToWideChar(CP_UTF8, 0, Str, -1, Out.data(), Length);
+	return Out;
+}
+
+inline std::wstring NarrowFormatToWide(const char* Fmt)
+{
+	std::wstring Out = ToWide(Fmt);
+	for (size_t i = 0; i < Out.size(); ++i)
+	{
+		if (Out[i] != L'%')
+			continue;
+
+		size_t j = i + 1;
+		if (j < Out.size() && Out[j] == L'%')
+		{
+			i = j;
+			continue;
+		}
+
+		while (j < Out.size() && wcschr(L"-+ #0123456789.*", Out[j]))
+			++j;
+
+		if (j < Out.size() && (Out[j] == L's' || Out[j] == L'c') && !wcschr(L"hlLqjzt", Out[j - 1]))
+		{
+			Out.insert(j, 1, L'h');
+		}
+		i = j;
+	}
+	return Out;
+}
+
+template <typename... Types>
+inline void Log(ELogVerbosity::Type Verbosity, const char* Fmt, Types... Args)
+{
+	Log(Verbosity, NarrowFormatToWide(Fmt).c_str(), Args...);
+}
+
+template <typename... Types>
+inline void Log(const char* Fmt, Types... Args)
+{
+	Log(ELogVerbosity::Display, NarrowFormatToWide(Fmt).c_str(), Args...);
+}
+
+inline void Log(ELogVerbosity::Type Verbosity, const std::string& Message)
+{
+	Log(Verbosity, TEXT("%hs"), Message.c_str());
+}
+
+inline void Log(const std::string& Message)
+{
+	Log(ELogVerbosity::Display, TEXT("%hs"), Message.c_str());
 }
 
 class Memory

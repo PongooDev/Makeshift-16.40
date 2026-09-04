@@ -308,6 +308,34 @@ public:
 	uint32                                        Number;                                            // 0x0004(0x0004)(NOT AUTO-GENERATED PROPERTY)
 
 public:
+
+	FName(const wchar_t* String)
+	{
+		static auto FName__Ctor = (void (*)(FName*, const wchar_t*, int))(InSDKUtils::GetImageBase() + 0xC8E9A0);
+
+		FName__Ctor(this, String, 1);
+	}
+
+	FName(std::wstring String)
+	{
+		static auto FName__Ctor = (void (*)(FName*, const wchar_t*, int))(InSDKUtils::GetImageBase() + 0xC8E9A0);
+
+		FName__Ctor(this, String.c_str(), 1);
+	}
+
+	FName(FString String)
+	{
+		static auto FName__Ctor = (void (*)(FName*, const wchar_t*, int))(InSDKUtils::GetImageBase() + 0xC8E9A0);
+
+		FName__Ctor(this, String.CStr(), 1);
+	}
+
+	FName(int32 _Ci = 0, uint32 _Number = 0)
+		    : ComparisonIndex(_Ci)
+		    , Number(_Number)
+	{
+	}
+
 	static void InitInternal()
 	{
 		AppendString = reinterpret_cast<void*>(InSDKUtils::GetImageBase() + Offsets::AppendString);

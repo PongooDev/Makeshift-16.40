@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Makeshift-16.40/Makeshift-16.40.vcxproj" />
+</Solution>

@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="Makeshift-16.40/Makeshift-16.40.vcxproj" />
+  <Project Path="Makeshift-16.40/Makeshift-16.40.vcxproj" Id="3e9f4aca-86ea-4345-85c4-87131a83053c" />
 </Solution>

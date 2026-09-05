@@ -37,6 +37,8 @@ public:
 	bool HasTypeFlag(EClassCastFlags TypeFlags) const;
 	bool IsA(EClassCastFlags TypeFlags) const;
 	bool IsA(class UClass* TypeClass) const;
+	template <typename T> inline bool IsA() { return IsA(T::StaticClass()); }
+	template <typename T> inline T* Cast() { return IsA(T::StaticClass()) ? (T*)this : nullptr; }
 	bool IsDefaultObject() const;
 
 	void ExecuteUbergraph(int32 EntryPoint);

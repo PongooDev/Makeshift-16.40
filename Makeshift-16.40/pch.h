@@ -33,6 +33,8 @@
 #include <cwctype>
 #include <cstdarg>
 #include <unordered_set>
+#include <algorithm>
+#include <cwctype>
 
 #include "minhook/MinHook.h"
 

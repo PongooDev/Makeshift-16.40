@@ -47,7 +47,11 @@ CORE_API FOutputDeviceRedirector* GetGlobalLogSingleton();
 
 #define GLog GetGlobalLogSingleton()
 
-#define GError				(*reinterpret_cast<FOutputDeviceError**>(InSDKUtils::GetImageBase() + 0x938EE70))
-#define GWarn				(*reinterpret_cast<FFeedbackContext**>(InSDKUtils::GetImageBase() + 0x938EEC8))
-#define GErrorHist			(reinterpret_cast<TCHAR*>(InSDKUtils::GetImageBase() + 0x9386E40))
-#define GIsCriticalError	(*reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE80))
+inline FOutputDeviceError*&	GError = *reinterpret_cast<FOutputDeviceError**>(InSDKUtils::GetImageBase() + 0x938EE70);
+inline FFeedbackContext*&	GWarn = *reinterpret_cast<FFeedbackContext**>(InSDKUtils::GetImageBase() + 0x938EEC8);
+
+inline TCHAR (&GErrorHist)[16384] = *reinterpret_cast<TCHAR(*)[16384]>(InSDKUtils::GetImageBase() + 0x9386E40);
+
+inline bool& GIsClient = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE5B);
+inline bool& GIsServer = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE5A);
+inline bool& GIsCriticalError = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE80);

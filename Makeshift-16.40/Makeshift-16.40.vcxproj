@@ -194,7 +194,9 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformMisc.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformString.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Private\Misc\VarargsHelper.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />

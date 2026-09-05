@@ -132,7 +132,13 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Private\Misc\VarargsHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

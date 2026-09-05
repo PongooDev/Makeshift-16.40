@@ -63,6 +63,8 @@ inline uint64_t ImageBase = InSDKUtils::GetImageBase();
 #include "Engine/Source/Runtime/Core/Public/Misc/CString.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/UnrealTemplate.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EngineLogs.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
 
 DECLARE_LOG_CATEGORY_OFFSET(LogOnline, Log, All)
 #define LogOnline UE_LOG_CATEGORY_AT(LogOnline, 0x93A6618)

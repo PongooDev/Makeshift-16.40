@@ -281,6 +281,7 @@
     <ClInclude Include="Engine\Source\Runtime\Net\Core\Public\Net\Core\PushModel\PushModelMacros.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Public\EngineStats.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Stats\StatsCommon.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\GameMode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />
@@ -318,6 +319,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Online\FortGameSession.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortGameModeAthena.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameMode.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SDK\NameCollisions.inl" />

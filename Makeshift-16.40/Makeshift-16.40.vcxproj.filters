@@ -82,6 +82,15 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Online">
       <UniqueIdentifier>{8a7dcd01-2382-4355-ac6f-c4cd4eca3046}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena">
+      <UniqueIdentifier>{053bbb06-8a94-4a46-93fd-935c02b9b4e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes">
+      <UniqueIdentifier>{0f25f1c9-61c8-4bd4-bfe4-5ccb142341d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Engine\Classes\GameFramework">
+      <UniqueIdentifier>{353d71ca-090d-47dc-ad0b-1eec05aa9b73}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -453,6 +462,9 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Stats\StatsCommon.h">
       <Filter>Engine\Source\Runtime\Core\Public\Stats</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\GameMode.h">
+      <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp">
@@ -544,6 +556,15 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Online\FortGameSession.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Online</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortGameModeAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameMode.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

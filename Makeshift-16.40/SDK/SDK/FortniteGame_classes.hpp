@@ -79,6 +79,8 @@
 namespace SDK
 {
 
+class AFortWorldManager;
+
 // Class FortniteGame.FortTooltipContext
 // 0x0048 (0x0070 - 0x0028)
 class UFortTooltipContext : public UObject
@@ -20792,6 +20794,11 @@ public:
 	void OnEndOfDay();
 
 	void DumpReservations() const;
+
+	static void Init();
+
+	static inline void (*FinishWorldInitializationOG)(AFortGameMode* This, AFortWorldManager* WorldManager);
+	static void FinishWorldInitializationHook(AFortGameMode* This, AFortWorldManager* WorldManager);
 
 public:
 	static class UClass* StaticClass()
@@ -56064,6 +56071,10 @@ public:
 	bool IsGameReadyToSelectLoot() const;
 	bool IsSpectatingAllowedAfterDeath() const;
 
+	static void FinishWorldInitializationHook(AFortGameModeZone* This, AFortWorldManager* WorldManager);
+
+	static void Init();
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -56380,6 +56391,18 @@ public:
 	class UFortServerBotManagerAthena* GetServerBotManager() const;
 	TSubclassOf<class AActor> GetVehicleClassOverride(TSubclassOf<class AActor> DefaultVehicleClass) const;
 	bool IsMapInfoInitialized() const;
+
+	static void Init();
+
+	static inline void (*FinishWorldInitializationOG)(AFortGameModeAthena* This, AFortWorldManager* WorldManager);
+	static void FinishWorldInitializationHook(AFortGameModeAthena* This, AFortWorldManager* WorldManager);
+
+	static bool ReadyToStartMatchHook(AFortGameModeAthena* This);
+
+	int32 CountReadyPlayers() {
+		int32(*Fn)(AFortGameModeAthena*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x454C99C);
+		return Fn(this, false);
+	}
 
 public:
 	static class UClass* StaticClass()

@@ -1111,6 +1111,13 @@ public:
 		reinterpret_cast<void (*)(AActor*)>(ImageBase + Offset)(this);
 	}
 
+	/** Called to finish the spawning process, generally in the case of deferred spawning */
+	void FinishSpawning(const FTransform& Transform, bool bIsDefaultTransform = false, const class FComponentInstanceDataCache* InstanceDataCache = nullptr)
+	{
+		void (*Fn)(AActor*, const FTransform&, bool, const class FComponentInstanceDataCache*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1165050);
+		Fn(this, Transform, bIsDefaultTransform, InstanceDataCache);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"Actor">();
@@ -1364,6 +1371,13 @@ public:
 	bool IsPawnControlled() const;
 	bool IsPlayerControlled() const;
 	struct FVector K2_GetMovementInputVector() const;
+
+	/** Returns The half-height of the default Pawn, scaled by the component scale. By default returns the half-height of the RootComponent, regardless of whether it is registered or collidable. */
+	float GetDefaultHalfHeight() const
+	{
+		float (*Fn)(const APawn*) = decltype(Fn)(VTable[0xD0]);
+		return Fn(this);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -10549,6 +10563,31 @@ public:
 
 	/** Returns the current level pending invisibility. */
 	class ULevel* GetCurrentLevelPendingInvisibility() const { return CurrentLevelPendingInvisibility; }
+
+	/**
+	 * Spawn Actors with given transform and SpawnParameters
+	 * 
+	 * @param	Class					Class to Spawn
+	 * @param	Transform				World Transform to spawn on
+	 * @param	SpawnParameters			Spawn Parameters
+	 *
+	 * @return	Actor that just spawned
+	 */
+	class AActor* SpawnActor( class UClass* Class, FTransform const* Transform, const ::FActorSpawnParameters& SpawnParameters )
+	{
+		class AActor* (*Fn)(UWorld*, class UClass*, FTransform const*, const ::FActorSpawnParameters*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF00494);
+		return Fn(this, Class, Transform, &SpawnParameters);
+	}
+
+	/** 
+	 *  Templated version of SpawnActor that allows you to specify whole Transform
+	 *  class type via parameter while the return type is a parent class of that type 
+	 */
+	template< class T >
+	T* SpawnActor(class UClass* Class, FTransform const& Transform,const ::FActorSpawnParameters& SpawnParameters)
+	{
+		return static_cast<T*>(SpawnActor(Class, &Transform, SpawnParameters));
+	}
 
 	static class UClass* StaticClass()
 	{

@@ -11,6 +11,8 @@ DWORD WINAPI Main(LPVOID) {
     UE_LOG(LogMakeshift, Display, TEXT("Makeshift 16.40 loaded, ImageBase: 0x%llX"), ImageBase);
     Log(std::format("Playlist: {}, Map: {}", std::string(Configuration::Playlist.begin(), Configuration::Playlist.end()), Configuration::MapToLoad));
 
+    bool bFrontendMatchInProgress = false;
+
     while (true)
     {
         if (GWorld)
@@ -23,7 +25,23 @@ DWORD WINAPI Main(LPVOID) {
                     {
                         if (GM->MatchState == FName(L"InProgress"))
                         {
-                            break;
+                            bool bStreamingLevelsVisible = true;
+
+                            for (ULevelStreaming* StreamingLevel : GWorld->StreamingLevels)
+                            {
+                                if (StreamingLevel && StreamingLevel->bShouldBeVisible && !(StreamingLevel->LoadedLevel && StreamingLevel->LoadedLevel->bIsVisible))
+                                {
+                                    bStreamingLevelsVisible = false;
+                                    break;
+                                }
+                            }
+
+                            if (bFrontendMatchInProgress && bStreamingLevelsVisible)
+                            {
+                                break;
+                            }
+
+                            bFrontendMatchInProgress = true;
                         }
                     }
                 }
@@ -42,6 +60,7 @@ DWORD WINAPI Main(LPVOID) {
 
     UWorld::Init();
     UEngine::Init();
+    UMcpProfileGroup::Init();
     AFortGameSession::Init();
     AFortGameMode::Init();
     AFortGameModeZone::Init();

@@ -58,6 +58,7 @@ using namespace UC;
 #include "Engine/Source/Runtime/Core/Public/Templates/SharedPointer.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/UniquePtr.h"
 #include "Engine/Source/Runtime/Engine/Public/Net/NetAnalyticsTypes.h"
+#include "Engine/Source/Runtime/Core/Public/Math/UnrealMathUtility.h"
 
 struct FActorPriority;
 struct FActorDestructionInfo;
@@ -65,6 +66,7 @@ struct FNetworkObjectInfo;
 class FNetworkObjectList;
 class FNetGUIDCache;
 class FObjectReplicator;
+struct FActorSpawnParameters;
 
 #include "SDK/SDK.hpp"
 

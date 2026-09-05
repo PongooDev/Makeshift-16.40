@@ -337,6 +337,15 @@ public:
 	float                                         Z;                                                 // 0x0008(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
 public:
+	/**
+	 * Squared distance between two points in the XY plane only.
+	 *	
+	 * @param V1 The first point.
+	 * @param V2 The second point.
+	 * @return The squared distance between two points in the XY plane
+	 */
+	static FORCEINLINE float DistSquaredXY(const FVector &V1, const FVector &V2);
+
 	FVector& Normalize()
 	{
 		*this /= Magnitude();
@@ -463,6 +472,11 @@ static_assert(sizeof(FVector) == 0x00000C, "Wrong size on FVector");
 static_assert(offsetof(FVector, X) == 0x000000, "Member 'FVector::X' has a wrong offset!");
 static_assert(offsetof(FVector, Y) == 0x000004, "Member 'FVector::Y' has a wrong offset!");
 static_assert(offsetof(FVector, Z) == 0x000008, "Member 'FVector::Z' has a wrong offset!");
+
+FORCEINLINE float FVector::DistSquaredXY(const FVector &V1, const FVector &V2)
+{
+	return FMath::Square(V2.X-V1.X) + FMath::Square(V2.Y-V1.Y);
+}
 
 // ScriptStruct CoreUObject.Plane
 // 0x0004 (0x0010 - 0x000C)
@@ -668,6 +682,8 @@ static_assert(sizeof(FTwoVectors) == 0x000018, "Wrong size on FTwoVectors");
 static_assert(offsetof(FTwoVectors, v1) == 0x000000, "Member 'FTwoVectors::v1' has a wrong offset!");
 static_assert(offsetof(FTwoVectors, v2) == 0x00000C, "Member 'FTwoVectors::v2' has a wrong offset!");
 
+struct FQuat;
+
 // ScriptStruct CoreUObject.Rotator
 // 0x000C (0x000C - 0x0000)
 struct FRotator final
@@ -676,12 +692,72 @@ public:
 	float                                         Pitch;                                             // 0x0000(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         Yaw;                                               // 0x0004(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         Roll;                                              // 0x0008(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+
+#if ENABLE_NAN_DIAGNOSTIC
+	FORCEINLINE void DiagnosticCheckNaN() const
+	{
+		if (ContainsNaN())
+		{
+			logOrEnsureNanError(TEXT("FRotator contains NaN: %s"), *ToString());
+			*const_cast<FRotator*>(this) = ZeroRotator;
+		}
+	}
+
+	FORCEINLINE void DiagnosticCheckNaN(const TCHAR* Message) const
+	{
+		if (ContainsNaN())
+		{
+			logOrEnsureNanError(TEXT("%s: FRotator contains NaN: %s"), Message, *ToString());
+			*const_cast<FRotator*>(this) = ZeroRotator;
+		}
+	}
+#else
+	FORCEINLINE void DiagnosticCheckNaN() const {}
+	FORCEINLINE void DiagnosticCheckNaN(const TCHAR* Message) const {}
+#endif
+
+	/**
+	 * Default constructor (no initialization).
+	 */
+	FORCEINLINE FRotator() { }
+
+	/**
+	 * Constructor.
+	 *
+	 * @param EForceInit Force Init Enum.
+	 */
+	explicit FORCEINLINE FRotator( EForceInit );
+
+	/**
+	 * Get a textual representation of the vector.
+	 *
+	 * @return Text describing the vector.
+	 */
+	FString ToString() const;
+
+	/**
+	 * Get Rotation as a quaternion.
+	 *
+	 * @return Rotation as a quaternion.
+	 */
+	CORE_API FQuat Quaternion() const;
 };
 static_assert(alignof(FRotator) == 0x000004, "Wrong alignment on FRotator");
 static_assert(sizeof(FRotator) == 0x00000C, "Wrong size on FRotator");
 static_assert(offsetof(FRotator, Pitch) == 0x000000, "Member 'FRotator::Pitch' has a wrong offset!");
 static_assert(offsetof(FRotator, Yaw) == 0x000004, "Member 'FRotator::Yaw' has a wrong offset!");
 static_assert(offsetof(FRotator, Roll) == 0x000008, "Member 'FRotator::Roll' has a wrong offset!");
+
+FORCEINLINE FRotator::FRotator(EForceInit)
+	: Pitch(0), Yaw(0), Roll(0)
+{}
+
+FORCEINLINE FString FRotator::ToString() const
+{
+	return FString::Printf(TEXT("P=%f Y=%f R=%f"), Pitch, Yaw, Roll );
+}
 
 // ScriptStruct CoreUObject.Quat
 // 0x0010 (0x0010 - 0x0000)
@@ -692,6 +768,54 @@ public:
 	float                                         Y;                                                 // 0x0004(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         Z;                                                 // 0x0008(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         W;                                                 // 0x000C(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+
+	/** Identity quaternion. */
+	static CORE_API const FQuat Identity;
+
+public:
+
+	/** Default constructor (no initialization). */
+	FORCEINLINE FQuat() { }
+
+	/**
+	 * Constructor.
+	 *
+	 * @param InX X component of the quaternion
+	 * @param InY Y component of the quaternion
+	 * @param InZ Z component of the quaternion
+	 * @param InW W component of the quaternion
+	 */
+	FORCEINLINE FQuat(float InX, float InY, float InZ, float InW);
+
+	/**
+	 * Utility to check if there are any non-finite values (NaN or Inf) in this Quat.
+	 *
+	 * @return true if there are any non-finite values in this Quaternion, otherwise false.
+	 */
+	bool ContainsNaN() const;
+
+	/**
+	 * Get a textual representation of the vector.
+	 *
+	 * @return Text describing the vector.
+	 */
+	FString ToString() const;
+
+#if ENABLE_NAN_DIAGNOSTIC
+	FORCEINLINE void DiagnosticCheckNaN() const
+	{
+		if (ContainsNaN())
+		{
+			logOrEnsureNanError(TEXT("FQuat contains NaN: %s"), *ToString());
+			*const_cast<FQuat*>(this) = FQuat::Identity;
+		}
+	}
+#else
+	FORCEINLINE void DiagnosticCheckNaN() const {}
+	FORCEINLINE void DiagnosticCheckNaN(const TCHAR* Message) const {}
+#endif
 };
 static_assert(alignof(FQuat) == 0x000010, "Wrong alignment on FQuat");
 static_assert(sizeof(FQuat) == 0x000010, "Wrong size on FQuat");
@@ -699,6 +823,29 @@ static_assert(offsetof(FQuat, X) == 0x000000, "Member 'FQuat::X' has a wrong off
 static_assert(offsetof(FQuat, Y) == 0x000004, "Member 'FQuat::Y' has a wrong offset!");
 static_assert(offsetof(FQuat, Z) == 0x000008, "Member 'FQuat::Z' has a wrong offset!");
 static_assert(offsetof(FQuat, W) == 0x00000C, "Member 'FQuat::W' has a wrong offset!");
+
+FORCEINLINE FQuat::FQuat(float InX, float InY, float InZ, float InW)
+	: X(InX)
+	, Y(InY)
+	, Z(InZ)
+	, W(InW)
+{
+	DiagnosticCheckNaN();
+}
+
+FORCEINLINE FString FQuat::ToString() const
+{
+	return FString::Printf(TEXT("X=%.9f Y=%.9f Z=%.9f W=%.9f"), X, Y, Z, W);
+}
+
+FORCEINLINE bool FQuat::ContainsNaN() const
+{
+	return (!FMath::IsFinite(X) ||
+			!FMath::IsFinite(Y) ||
+			!FMath::IsFinite(Z) ||
+			!FMath::IsFinite(W)
+	);
+}
 
 // ScriptStruct CoreUObject.PackedNormal
 // 0x0004 (0x0004 - 0x0000)
@@ -1118,6 +1265,31 @@ public:
 	struct FVector                                Scale3D;                                           // 0x0020(0x000C)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_2C[0x4];                                       // 0x002C(0x0004)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
+
+public:
+	/**
+	 * Constructor with initialization to the identity transform.
+	 */
+	FORCEINLINE FTransform()
+		: Rotation(0.f, 0.f, 0.f, 1.f)
+		, Translation{0.f, 0.f, 0.f}
+		, Scale3D{1.f, 1.f, 1.f}
+	{
+	}
+
+	/**
+	 * Constructor with all components initialized, taking a FRotator as the rotation component
+	 *
+	 * @param InRotation The value to use for rotation component (after being converted to a quaternion)
+	 * @param InTranslation The value to use for the translation component
+	 * @param InScale3D The value to use for the scale component
+	 */
+	FORCEINLINE FTransform(const FRotator& InRotation, const FVector& InTranslation, const FVector& InScale3D = FVector{1.f, 1.f, 1.f})
+		: Rotation(InRotation.Quaternion())
+		, Translation(InTranslation)
+		, Scale3D(InScale3D)
+	{
+	}
 public:
 	/**
 	 * Returns the translation component
@@ -1147,7 +1319,7 @@ struct FRandomStream final
 {
 public:
 	int32                                         InitialSeed;                                       // 0x0000(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	mutable int32                                 Seed;                                              // 0x0004(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	mutable uint32                                Seed;                                              // 0x0004(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 
 public:
 	/**

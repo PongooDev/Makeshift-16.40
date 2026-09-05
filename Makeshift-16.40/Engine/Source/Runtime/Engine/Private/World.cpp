@@ -13,6 +13,31 @@
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EngineLogs.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EngineBaseTypes.h"
 
+FActorSpawnParameters::FActorSpawnParameters()
+: Name(NAME_None)
+, Template(NULL)
+, Owner(NULL)
+, Instigator(NULL)
+, OverrideLevel(NULL)
+#if WITH_EDITOR
+, OverridePackage(nullptr)
+, OverrideParentComponent(nullptr)
+#endif
+, SpawnCollisionHandlingOverride(ESpawnActorCollisionHandlingMethod::Undefined)
+, bRemoteOwned(false)
+, bNoFail(false)
+, bDeferConstruction(false)
+, bAllowDuringConstructionScript(false)
+#if WITH_EDITOR
+, bTemporaryEditorActor(false)
+, bHideFromSceneOutliner(false)
+, bCreateActorPackage(false)
+#endif
+, NameMode(ESpawnActorNameMode::Required_Fatal)
+, ObjectFlags(RF_Transactional)
+{
+}
+
 bool UWorld::Listen( FURL& InURL )
 {
 	LLM_SCOPE(ELLMTag::Networking);

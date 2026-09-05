@@ -10,6 +10,15 @@
 	Floating point constants.
 -----------------------------------------------------------------------------*/
 
+// Assert on non finite numbers. Used to track NaNs.
+#ifndef ENABLE_NAN_DIAGNOSTIC
+	#if UE_BUILD_DEBUG
+		#define ENABLE_NAN_DIAGNOSTIC 1
+	#else
+		#define ENABLE_NAN_DIAGNOSTIC 0
+	#endif
+#endif
+
 #undef  PI
 #define PI 					(3.1415926535897932f)	/* Extra digits if needed: 3.1415926535897932384626433832795f */
 #define SMALL_NUMBER		(1.e-8f)

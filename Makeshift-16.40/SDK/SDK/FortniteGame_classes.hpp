@@ -1667,6 +1667,11 @@ public:
 	bool ShouldPlayDeathSoundEffects(const class AActor* Victim) const;
 	bool ShouldReturnToMatchmakingOriginOnMatchEnd() const;
 
+	void SetCurrentPlaylistId(int32 InPlaylistId) {
+		CurrentPlaylistId = InPlaylistId;
+		OnRep_CurrentPlaylistId();
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -56398,6 +56403,11 @@ public:
 	static void FinishWorldInitializationHook(AFortGameModeAthena* This, AFortWorldManager* WorldManager);
 
 	static bool ReadyToStartMatchHook(AFortGameModeAthena* This);
+
+	static APawn* SpawnDefaultPawnForHook(AFortGameModeAthena* This, AController* NewPlayer, AActor* StartSpot);
+
+	static inline void (*InitGameStateOG)(AFortGameModeAthena* This);
+	static void InitGameStateHook(AFortGameModeAthena* This);
 
 	int32 CountReadyPlayers() {
 		int32(*Fn)(AFortGameModeAthena*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x454C99C);
@@ -111450,6 +111460,13 @@ class UFortPlaylistManager final : public UObject
 public:
 	TArray<class UFortPlaylistAthena*>            AthenaPlaylists;                                   // 0x0028(0x0010)(BlueprintVisible, ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
 	uint8                                         Pad_38[0x8];                                       // 0x0038(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	class UFortPlaylistAthena* GetPlaylist(class FName PlaylistName)
+	{
+		class UFortPlaylistAthena* (*Fn)(UFortPlaylistManager*, class FName) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x49CC3C4);
+		return Fn(this, PlaylistName);
+	}
 
 public:
 	static class UClass* StaticClass()

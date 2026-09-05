@@ -91,6 +91,33 @@
     <Filter Include="Engine\Source\Runtime\Engine\Classes\GameFramework">
       <UniqueIdentifier>{353d71ca-090d-47dc-ad0b-1eec05aa9b73}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Private">
+      <UniqueIdentifier>{ba331c78-6ee3-4dad-b339-972412fd027e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\Core\Private\Math">
+      <UniqueIdentifier>{dc6dd4ea-51a9-44f2-bb5d-b6ec5730978f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted">
+      <UniqueIdentifier>{ea4ff61e-636d-431f-aadc-ada54ea2861a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted\NotForLicensees">
+      <UniqueIdentifier>{05b04aba-052d-4da9-b29a-14da885dc52e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted\NotForLicensees\Plugins">
+      <UniqueIdentifier>{3b58e79e-0751-496b-b1dc-2aa7890ef8fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework">
+      <UniqueIdentifier>{2d2fcecc-2759-495a-b7b8-df47583b1e49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source">
+      <UniqueIdentifier>{b962c9aa-b74c-4ea4-bc1e-42343a840e35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys">
+      <UniqueIdentifier>{ec6e6cb2-69ed-481a-802f-9dd947020823}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private">
+      <UniqueIdentifier>{dbf41644-ee1d-48a7-b3da-e6aacfbf9746}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -465,6 +492,15 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\GameFramework\GameMode.h">
       <Filter>Engine\Source\Runtime\Engine\Classes\GameFramework</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\VectorRegister.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealMathSSE.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealMathVectorConstants.h">
+      <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp">
@@ -504,6 +540,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\SDK\Engine_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\SDK\FortniteGame_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SDK\SDK\Basic.cpp">
@@ -565,6 +607,12 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp">
+      <Filter>Engine\Source\Runtime\Core\Private\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp">
+      <Filter>Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -19067,6 +19067,16 @@ public:
 	class UFortPlaylistAthena*                    OverridePlaylist;                                  // 0x0128(0x0008)(ZeroConstructor, Transient, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TMap<class FString, struct FPropertyOverrideScope> PropertyOverrideScopes;                            // 0x0130(0x0050)(Transient, RepSkip, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_180[0x68];                                     // 0x0180(0x0068)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	void SetBasePlaylist(UFortPlaylistAthena* Playlist)
+	{
+		PlaylistReplicationKey++;
+		BasePlaylist = Playlist;
+
+		if (PlaylistReplicationKey == -1)
+			PlaylistReplicationKey = 0;
+	}
 };
 static_assert(alignof(FPlaylistPropertyArray) == 0x000008, "Wrong alignment on FPlaylistPropertyArray");
 static_assert(sizeof(FPlaylistPropertyArray) == 0x0001E8, "Wrong size on FPlaylistPropertyArray");

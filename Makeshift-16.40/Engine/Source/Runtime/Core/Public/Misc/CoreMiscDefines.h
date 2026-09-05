@@ -13,6 +13,12 @@
 
 #define INDEX_NONE -1
 
+enum EForceInit 
+{
+	ForceInit,
+	ForceInitToZero
+};
+
 #ifndef CA_ASSUME
 	#define CA_ASSUME( Expr )
 #endif

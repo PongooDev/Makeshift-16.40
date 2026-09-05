@@ -7296,16 +7296,44 @@ static_assert(sizeof(FAnimationFrameSnapshot) == 0x000001, "Wrong size on FAnima
 struct alignas(0x08) FFastArraySerializer
 {
 public:
-	uint8                                         Pad_0[0x54];                                       // 0x0000(0x0054)(Fixing Size After Last Property [ Dumper-7 ])
+	TMap<int32, int32>                            ItemMap;                                           // 0x0000(0x0050)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         IDCounter;                                         // 0x0050(0x0004)(NOT AUTO-GENERATED PROPERTY)
 	int32                                         ArrayReplicationKey;                               // 0x0054(0x0004)(ZeroConstructor, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_58[0xA8];                                      // 0x0058(0x00A8)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_58[0xA0];                                      // 0x0058(0x00A0)(Fixing Size After Last Property [ Dumper-7 ])
+	int32                                         CachedNumItems;                                    // 0x00F8(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         CachedNumItemsToConsiderForWriting;                // 0x00FC(0x0004)(NOT AUTO-GENERATED PROPERTY)
 	EFastArraySerializerDeltaFlags                DeltaFlags;                                        // 0x0100(0x0001)(ZeroConstructor, Transient, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_101[0x7];                                      // 0x0101(0x0007)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	/** This must be called if you just remove something from the array */
+	void MarkArrayDirty()
+	{
+		ItemMap.Reset();		// This allows to clients to add predictive elements to arrays without affecting replication.
+		IncrementArrayReplicationKey();
+
+		// Invalidate the cached item counts so that they're recomputed during the next write
+		CachedNumItems = INDEX_NONE;
+		CachedNumItemsToConsiderForWriting = INDEX_NONE;
+	}
+
+	void IncrementArrayReplicationKey()
+	{
+		ArrayReplicationKey++;
+		if (ArrayReplicationKey == INDEX_NONE)
+		{
+			ArrayReplicationKey++;
+		}
+	}
 };
 static_assert(alignof(FFastArraySerializer) == 0x000008, "Wrong alignment on FFastArraySerializer");
 static_assert(sizeof(FFastArraySerializer) == 0x000108, "Wrong size on FFastArraySerializer");
 static_assert(offsetof(FFastArraySerializer, ArrayReplicationKey) == 0x000054, "Member 'FFastArraySerializer::ArrayReplicationKey' has a wrong offset!");
 static_assert(offsetof(FFastArraySerializer, DeltaFlags) == 0x000100, "Member 'FFastArraySerializer::DeltaFlags' has a wrong offset!");
+static_assert(offsetof(FFastArraySerializer, ItemMap) == 0x000000, "Member 'FFastArraySerializer::ItemMap' has a wrong offset!");
+static_assert(offsetof(FFastArraySerializer, IDCounter) == 0x000050, "Member 'FFastArraySerializer::IDCounter' has a wrong offset!");
+static_assert(offsetof(FFastArraySerializer, CachedNumItems) == 0x0000F8, "Member 'FFastArraySerializer::CachedNumItems' has a wrong offset!");
+static_assert(offsetof(FFastArraySerializer, CachedNumItemsToConsiderForWriting) == 0x0000FC, "Member 'FFastArraySerializer::CachedNumItemsToConsiderForWriting' has a wrong offset!");
 
 // ScriptStruct Engine.CustomOutput
 // 0x000C (0x000C - 0x0000)

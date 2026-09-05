@@ -162,6 +162,9 @@
 #ifndef ENGINE_API
 	#define ENGINE_API
 #endif
+#ifndef GAMEPLAYABILITIES_API
+	#define GAMEPLAYABILITIES_API
+#endif
 
 #ifndef UE_DEPRECATED
 	#define UE_DEPRECATED(Version, Message) [[deprecated(Message " Please update your code to the new API before upgrading to the next release, otherwise your project will no longer compile.")]]

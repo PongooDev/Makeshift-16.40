@@ -120,6 +120,31 @@ static_assert(alignof(AGameplayAbilityTargetActor_Radius) == 0x000010, "Wrong al
 static_assert(sizeof(AGameplayAbilityTargetActor_Radius) == 0x000340, "Wrong size on AGameplayAbilityTargetActor_Radius");
 static_assert(offsetof(AGameplayAbilityTargetActor_Radius, Radius) == 0x000338, "Member 'AGameplayAbilityTargetActor_Radius::Radius' has a wrong offset!");
 
+/** 
+ *	Associative container of GameplayAbilitySpecs + PredictionKeys --> FAbilityReplicatedDataCache. Basically, it holds replicated data on the ability system component that abilities access in their scripting.
+ *	This was refactored from a normal TMap. This mainly servers to:
+ *		1. Return shared ptrs to the cached data so that callsites are not vulnerable to the underlying map shifting around (E.g invoking a replicated event ends the ability or activates a new one and causes memory to move, invalidating the pointer).
+ *		2. Data is cleared on ability end via ::Remove.
+ *		3. The FAbilityReplicatedDataCache instances are recycled rather than allocated each time via ::FreeData.
+ * 
+ **/
+struct FGameplayAbilityReplicatedDataContainer
+{
+	GAMEPLAYABILITIES_API TSharedPtr<FAbilityReplicatedDataCache> Find(const FGameplayAbilitySpecHandleAndPredictionKey& Key) const;
+
+private:
+
+	struct FKeyDataPair
+	{
+		FGameplayAbilitySpecHandleAndPredictionKey Key;
+		TSharedRef<FAbilityReplicatedDataCache> Value;
+	};
+
+	TArray<FKeyDataPair> InUseData;
+	TArray<TSharedRef<FAbilityReplicatedDataCache>> FreeData;
+};
+static_assert(sizeof(FGameplayAbilityReplicatedDataContainer) == 0x000020, "Wrong size on FGameplayAbilityReplicatedDataContainer");
+
 // Class GameplayAbilities.AbilitySystemComponent
 // 0x11F8 (0x1318 - 0x0120)
 class UAbilitySystemComponent : public UGameplayTasksComponent
@@ -129,10 +154,12 @@ public:
 	TArray<struct FAttributeDefaults>             DefaultStartingData;                               // 0x0130(0x0010)(Edit, ZeroConstructor, NativeAccessSpecifierPublic)
 	TArray<class UAttributeSet*>                  SpawnedAttributes;                                 // 0x0140(0x0010)(ExportObject, Net, ZeroConstructor, ContainsInstancedReference, NativeAccessSpecifierPublic)
 	class FName                                   AffectedAnimInstanceTag;                           // 0x0150(0x0008)(Edit, BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_158[0x198];                                    // 0x0158(0x0198)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_158[0x8];                                      // 0x0158(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FPredictionKey                         ScopedPredictionKey;                               // 0x0160(0x0010)
+	uint8                                         Pad_170[0x180];                                    // 0x0170(0x0180)(Fixing Size After Last Property [ Dumper-7 ])
 	float                                         OutgoingDuration;                                  // 0x02F0(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         IncomingDuration;                                  // 0x02F4(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_2F8[0x20];                                     // 0x02F8(0x0020)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FGameplayTagContainer                  InternalTryActivateAbilityFailureTags;             // 0x02F8(0x0020)
 	TArray<class FString>                         ClientDebugStrings;                                // 0x0318(0x0010)(Net, ZeroConstructor, RepNotify, NativeAccessSpecifierPublic)
 	TArray<class FString>                         ServerDebugStrings;                                // 0x0328(0x0010)(Net, ZeroConstructor, RepNotify, NativeAccessSpecifierPublic)
 	uint8                                         Pad_338[0x58];                                     // 0x0338(0x0058)(Fixing Size After Last Property [ Dumper-7 ])
@@ -145,11 +172,13 @@ public:
 	uint8                                         Pad_3A8[0x28];                                     // 0x03A8(0x0028)(Fixing Size After Last Property [ Dumper-7 ])
 	class AActor*                                 OwnerActor;                                        // 0x03D0(0x0008)(Net, ZeroConstructor, IsPlainOldData, RepNotify, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class AActor*                                 AvatarActor;                                       // 0x03D8(0x0008)(Net, ZeroConstructor, IsPlainOldData, RepNotify, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_3E0[0x10];                                     // 0x03E0(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
+	TSharedPtr<struct FGameplayAbilityActorInfo>  AbilityActorInfo;                                  // 0x03E0(0x0010)
 	struct FGameplayAbilitySpecContainer          ActivatableAbilities;                              // 0x03F0(0x0120)(BlueprintVisible, BlueprintReadOnly, Net, RepNotify, ContainsInstancedReference, Protected, NativeAccessSpecifierProtected)
-	uint8                                         Pad_510[0x30];                                     // 0x0510(0x0030)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FGameplayAbilityReplicatedDataContainer AbilityTargetDataMap;                              // 0x0510(0x0020)
+	uint8                                         Pad_530[0x10];                                     // 0x0530(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class UGameplayAbility*>               AllReplicatedInstancedAbilities;                   // 0x0540(0x0010)(ZeroConstructor, Protected, NativeAccessSpecifierProtected)
-	uint8                                         Pad_550[0x200];                                    // 0x0550(0x0200)(Fixing Size After Last Property [ Dumper-7 ])
+	int32                                         AbilityScopeLockCount;                             // 0x0550(0x0004)
+	uint8                                         Pad_554[0x1FC];                                    // 0x0554(0x01FC)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FGameplayAbilityRepAnimMontage         RepAnimMontageInfo;                                // 0x0750(0x0030)(Net, RepNotify, NoDestructor, Protected, NativeAccessSpecifierProtected)
 	bool                                          bCachedIsNetSimulated;                             // 0x0780(0x0001)(ZeroConstructor, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	bool                                          bPendingMontageRep;                                // 0x0781(0x0001)(ZeroConstructor, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
@@ -166,6 +195,41 @@ public:
 	uint8                                         Pad_11D8[0x18];                                    // 0x11D8(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FReplicatedPredictionKeyMap            ReplicatedPredictionKeyMap;                        // 0x11F0(0x0118)(Net, NativeAccessSpecifierPublic)
 	uint8                                         Pad_1308[0x10];                                    // 0x1308(0x0010)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	/** Returns an ability spec from a handle. If modifying call MarkAbilitySpecDirty */
+	FGameplayAbilitySpec* FindAbilitySpecFromHandle(FGameplayAbilitySpecHandle Handle);
+
+	/** Call to mark that an ability spec has been modified */
+	void MarkAbilitySpecDirty(FGameplayAbilitySpec& Spec, bool WasAddOrRemove=false)
+	{
+		void (*Fn)(UAbilitySystemComponent*, FGameplayAbilitySpec&, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1870FA8);
+		Fn(this, Spec, WasAddOrRemove);
+	}
+
+	/** Attempts to activate the given ability, will only work if called from the correct client/server context */
+	bool InternalTryActivateAbility(FGameplayAbilitySpecHandle AbilityToActivate, FPredictionKey InPredictionKey = FPredictionKey(), UGameplayAbility ** OutInstancedAbility = nullptr, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate = nullptr, const FGameplayEventData* TriggerEventData = nullptr)
+	{
+		bool (*Fn)(UAbilitySystemComponent*, FGameplayAbilitySpecHandle, FPredictionKey, UGameplayAbility**, FOnGameplayAbilityEnded::FDelegate*, const FGameplayEventData*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x3715478);
+		return Fn(this, AbilityToActivate, InPredictionKey, OutInstancedAbility, OnGameplayAbilityEndedDelegate, TriggerEventData);
+	}
+
+	/** Called from FScopedAbilityListLock */
+	void IncrementAbilityListLock();
+	void DecrementAbilityListLock()
+	{
+		void (*Fn)(UAbilitySystemComponent*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE2771C);
+		Fn(this);
+	}
+
+	/** Deletes all cached ability client data (Was: ConsumeAbilityTargetData)*/
+	void ConsumeAllReplicatedData(FGameplayAbilitySpecHandle AbilityHandle, FPredictionKey AbilityOriginalPredictionKey);
+
+	/** Implementation of ServerTryActivateAbility */
+	void InternalServerTryActivateAbility(FGameplayAbilitySpecHandle AbilityToActivate, bool InputPressed, const FPredictionKey& PredictionKey, const FGameplayEventData* TriggerEventData);
+	static void InternalServerTryActivateAbilityHook(UAbilitySystemComponent* This, FGameplayAbilitySpecHandle AbilityToActivate, bool InputPressed, const FPredictionKey& PredictionKey, const FGameplayEventData* TriggerEventData);
+
+	static void Init();
 
 public:
 	struct FActiveGameplayEffectHandle BP_ApplyGameplayEffectSpecToSelf(const struct FGameplayEffectSpecHandle& SpecHandle);
@@ -273,6 +337,11 @@ static_assert(offsetof(UAbilitySystemComponent, MinimalReplicationGameplayCues) 
 static_assert(offsetof(UAbilitySystemComponent, BlockedAbilityBindings) == 0x001040, "Member 'UAbilitySystemComponent::BlockedAbilityBindings' has a wrong offset!");
 static_assert(offsetof(UAbilitySystemComponent, MinimalReplicationTags) == 0x001178, "Member 'UAbilitySystemComponent::MinimalReplicationTags' has a wrong offset!");
 static_assert(offsetof(UAbilitySystemComponent, ReplicatedPredictionKeyMap) == 0x0011F0, "Member 'UAbilitySystemComponent::ReplicatedPredictionKeyMap' has a wrong offset!");
+static_assert(offsetof(UAbilitySystemComponent, ScopedPredictionKey) == 0x000160, "Member 'UAbilitySystemComponent::ScopedPredictionKey' has a wrong offset!");
+static_assert(offsetof(UAbilitySystemComponent, InternalTryActivateAbilityFailureTags) == 0x0002F8, "Member 'UAbilitySystemComponent::InternalTryActivateAbilityFailureTags' has a wrong offset!");
+static_assert(offsetof(UAbilitySystemComponent, AbilityActorInfo) == 0x0003E0, "Member 'UAbilitySystemComponent::AbilityActorInfo' has a wrong offset!");
+static_assert(offsetof(UAbilitySystemComponent, AbilityTargetDataMap) == 0x000510, "Member 'UAbilitySystemComponent::AbilityTargetDataMap' has a wrong offset!");
+static_assert(offsetof(UAbilitySystemComponent, AbilityScopeLockCount) == 0x000550, "Member 'UAbilitySystemComponent::AbilityScopeLockCount' has a wrong offset!");
 
 // Class GameplayAbilities.AbilityAsync_WaitGameplayEffectApplied
 // 0x00C0 (0x00F8 - 0x0038)
@@ -2096,6 +2165,11 @@ public:
 	uint8                                         Pad_3A9[0x7];                                      // 0x03A9(0x0007)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	/** Where should an ability execute on the network? Provides protection from clients attempting to execute restricted abilities. */
+	EGameplayAbilityNetSecurityPolicy GetNetSecurityPolicy() const
+	{
+		return NetSecurityPolicy;
+	}
 	struct FActiveGameplayEffectHandle BP_ApplyGameplayEffectToOwner(TSubclassOf<class UGameplayEffect> GameplayEffectClass, int32 GameplayEffectLevel, int32 Stacks);
 	TArray<struct FActiveGameplayEffectHandle> BP_ApplyGameplayEffectToTarget(const struct FGameplayAbilityTargetDataHandle& TargetData, TSubclassOf<class UGameplayEffect> GameplayEffectClass, int32 GameplayEffectLevel, int32 Stacks);
 	void BP_RemoveGameplayEffectFromOwnerWithAssetTags(const struct FGameplayTagContainer& WithAssetTags, int32 StacksToRemove);

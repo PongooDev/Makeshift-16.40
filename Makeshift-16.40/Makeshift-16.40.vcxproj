@@ -190,6 +190,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsEnum.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsValidVariadicFunctionArg.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\UnrealTemplate.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\Identity.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\UObject\UnrealNames.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsCriticalSection.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatform.h" />
@@ -287,6 +288,11 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\VectorRegister.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealMathSSE.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealMathVectorConstants.h" />
+    <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\AbilitySystemLog.h" />
+    <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\GameplayPrediction.h" />
+    <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\GameplayAbilitySpec.h" />
+    <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities\GameplayAbilityTargetTypes.h" />
+    <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities\GameplayAbilityTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />
@@ -318,6 +324,7 @@
     <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp" />
     <ClCompile Include="SDK\SDK\Engine_functions.cpp" />
     <ClCompile Include="SDK\SDK\FortniteGame_functions.cpp" />
+    <ClCompile Include="SDK\SDK\GameplayAbilities_functions.cpp" />
     <ClCompile Include="SDK\SDK\Basic.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -331,6 +338,10 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp" />
     <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp" />
+    <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayPrediction.cpp" />
+    <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayAbilityTypes.cpp" />
+    <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\AbilitySystemComponent_Abilities.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\GameplayTags\Private\GameplayTagContainer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SDK\NameCollisions.inl" />

@@ -458,6 +458,28 @@ struct FGameplayAbilitySpecHandle final
 {
 public:
 	int32                                         Handle;                                            // 0x0000(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
+
+public:
+	FGameplayAbilitySpecHandle()
+		: Handle(INDEX_NONE)
+	{
+	}
+
+	/** True if GenerateNewHandle was called on this handle */
+	bool IsValid() const
+	{
+		return Handle != INDEX_NONE;
+	}
+
+	bool operator==(const FGameplayAbilitySpecHandle& Other) const
+	{
+		return Handle == Other.Handle;
+	}
+
+	bool operator!=(const FGameplayAbilitySpecHandle& Other) const
+	{
+		return Handle != Other.Handle;
+	}
 };
 static_assert(alignof(FGameplayAbilitySpecHandle) == 0x000004, "Wrong alignment on FGameplayAbilitySpecHandle");
 static_assert(sizeof(FGameplayAbilitySpecHandle) == 0x000004, "Wrong size on FGameplayAbilitySpecHandle");
@@ -470,6 +492,20 @@ struct FGameplayAbilitySpecHandleAndPredictionKey final
 public:
 	struct FGameplayAbilitySpecHandle             AbilityHandle;                                     // 0x0000(0x0004)(NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int32                                         PredictionKeyAtCreation;                           // 0x0004(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	FGameplayAbilitySpecHandleAndPredictionKey();
+	FGameplayAbilitySpecHandleAndPredictionKey(const FGameplayAbilitySpecHandle& HandleRef, const struct FPredictionKey& PredictionKeyAtCreationRef);
+
+	bool operator==(const FGameplayAbilitySpecHandleAndPredictionKey& Other) const
+	{
+		return AbilityHandle == Other.AbilityHandle && PredictionKeyAtCreation == Other.PredictionKeyAtCreation;
+	}
+
+	bool operator!=(const FGameplayAbilitySpecHandleAndPredictionKey& Other) const
+	{
+		return AbilityHandle != Other.AbilityHandle || PredictionKeyAtCreation != Other.PredictionKeyAtCreation;
+	}
 };
 static_assert(alignof(FGameplayAbilitySpecHandleAndPredictionKey) == 0x000004, "Wrong alignment on FGameplayAbilitySpecHandleAndPredictionKey");
 static_assert(sizeof(FGameplayAbilitySpecHandleAndPredictionKey) == 0x000008, "Wrong size on FGameplayAbilitySpecHandleAndPredictionKey");
@@ -578,6 +614,14 @@ static_assert(offsetof(FPredictionKey, Current) == 0x000008, "Member 'FPredictio
 static_assert(offsetof(FPredictionKey, Base) == 0x00000A, "Member 'FPredictionKey::Base' has a wrong offset!");
 static_assert(offsetof(FPredictionKey, bIsStale) == 0x00000C, "Member 'FPredictionKey::bIsStale' has a wrong offset!");
 static_assert(offsetof(FPredictionKey, bIsServerInitiated) == 0x00000D, "Member 'FPredictionKey::bIsServerInitiated' has a wrong offset!");
+
+inline FGameplayAbilitySpecHandleAndPredictionKey::FGameplayAbilitySpecHandleAndPredictionKey()
+	: PredictionKeyAtCreation(0)
+{}
+
+inline FGameplayAbilitySpecHandleAndPredictionKey::FGameplayAbilitySpecHandleAndPredictionKey(const FGameplayAbilitySpecHandle& HandleRef, const FPredictionKey& PredictionKeyAtCreationRef)
+	: AbilityHandle(HandleRef), PredictionKeyAtCreation(PredictionKeyAtCreationRef.Current)
+{}
 
 // ScriptStruct GameplayAbilities.ServerAbilityRPCBatch
 // 0x0048 (0x0048 - 0x0000)

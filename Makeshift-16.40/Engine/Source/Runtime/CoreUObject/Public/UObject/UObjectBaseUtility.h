@@ -27,3 +27,5 @@ FORCEINLINE FString GetNameSafe(const UObject *Object)
 		return ResultString;
 	}
 }
+
+#define SCOPE_CYCLE_UOBJECT(Name, Object)

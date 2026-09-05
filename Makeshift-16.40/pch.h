@@ -67,6 +67,10 @@ class FNetworkObjectList;
 class FNetGUIDCache;
 class FObjectReplicator;
 struct FActorSpawnParameters;
+struct FAbilityReplicatedDataCache;
+struct alignas(8) FSimpleMulticastDelegate { uint8 Pad_0[0x18]; };
+struct alignas(8) FAbilityTargetDataSetDelegate { uint8 Pad_0[0x18]; };
+struct FOnGameplayAbilityEnded { struct FDelegate; };
 
 #include "SDK/SDK.hpp"
 

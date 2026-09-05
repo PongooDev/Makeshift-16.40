@@ -53,6 +53,13 @@ public:
 		return Object;
 	}
 
+	// We declare ourselves as a friend (templated using OtherType) so we can access members as needed
+    template< class OtherType, ESPMode OtherMode > friend class TSharedRef;
+
+	// Declare other smart pointer types as friends as needed
+    template< class OtherType, ESPMode OtherMode > friend class TSharedPtr;
+    template< class OtherType, ESPMode OtherMode > friend class TWeakPtr;
+
 private:
 
 	/**
@@ -94,6 +101,25 @@ public:
 		: Object( nullptr )
 		, SharedReferenceCount()
 	{ }
+
+	/**
+	 * Implicitly converts a shared reference to a shared pointer, adding a reference to the object.
+	 * NOTE: We allow an implicit conversion from TSharedRef to TSharedPtr because it's always a safe conversion.
+	 *
+	 * @param  InSharedRef  The shared reference that will be converted to a shared pointer
+	 */
+	// NOTE: The following is an Unreal extension to standard shared_ptr behavior
+	template <
+		typename OtherType,
+		typename = decltype(ImplicitConv<ObjectType*>((OtherType*)nullptr))
+	>
+	FORCEINLINE TSharedPtr( TSharedRef< OtherType, Mode > const& InSharedRef )
+		: Object( InSharedRef.Object )
+		, SharedReferenceCount( InSharedRef.SharedReferenceCount )
+	{
+		// There is no rvalue overload of this constructor, because 'stealing' the pointer from a
+		// TSharedRef would leave it as null, which would invalidate its invariant.
+	}
 
 	/**
 	 * Returns the object referenced by this pointer, or nullptr if no object is reference

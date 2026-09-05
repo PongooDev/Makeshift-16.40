@@ -9,12 +9,28 @@
 #include "Engine/Source/Runtime/Core/Public/Templates/IsArithmetic.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/IsEnum.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/IsPointer.h"
+#include "Engine/Source/Runtime/Core/Public/Templates/Identity.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/IsClass.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/RemoveReference.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/TypeCompatibleBytes.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/UnrealTypeTraits.h"
 #include "Engine/Source/Runtime/Core/Public/Traits/IsContiguousContainer.h"
 #include "Engine/Source/Runtime/Core/Public/HAL/UnrealMemory.h"
+
+/**
+ * Uses implicit conversion to create an instance of a specific type.
+ * Useful to make things clearer or circumvent unintended type deduction in templates.
+ * Safer than C casts and static_casts, e.g. does not allow down-casts
+ *
+ * @param Obj  The object (usually pointer or reference) to convert.
+ *
+ * @return The object converted to the specified type.
+ */
+template <typename T>
+FORCEINLINE T ImplicitConv(typename TIdentity<T>::Type Obj)
+{
+    return Obj;
+}
 
 /*-----------------------------------------------------------------------------
 	Standard templates.

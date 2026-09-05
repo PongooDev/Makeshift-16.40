@@ -1426,6 +1426,45 @@ namespace UC
 		}
 
 	public:
+		/** Append a string and return a reference to this */
+		FString& operator+=(const wchar_t* Str)
+		{
+			AppendChars(Str, static_cast<int32>(wcslen(Str)));
+			return *this;
+		}
+
+		FString& operator+=(const FString& Str)
+		{
+			AppendChars(*Str, Str.Len());
+			return *this;
+		}
+
+		void AppendChars(const wchar_t* Str, int32 Count)
+		{
+			check(Count >= 0);
+
+			if (!Count)
+			{
+				return;
+			}
+
+			checkSlow(Str);
+
+			const int32 OldNum = Num();
+
+			// Reserve enough space - including an extra gap for a null terminator if we don't already have a string allocated
+			AddUninitialized(Count + (OldNum ? 0 : 1));
+
+			wchar_t* Dest = Data + OldNum - (OldNum ? 1 : 0);
+
+			// Copy characters to end of string, overwriting null terminator if we already have one
+			FMemory::Memcpy(Dest, Str, Count * sizeof(wchar_t));
+
+			// (Re-)establish the null terminator
+			Dest[Count] = '\0';
+		}
+
+	public:
 		/**
 		 * Constructs FString object similarly to how classic sprintf works.
 		 *

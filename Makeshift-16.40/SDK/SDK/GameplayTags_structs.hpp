@@ -78,6 +78,15 @@ struct FGameplayTag
 {
 public:
 	class FName                                   TagName;                                           // 0x0000(0x0008)(Edit, ZeroConstructor, EditConst, SaveGame, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
+
+public:
+	/** Displays gameplay tag as a string for blueprint graph usage */
+	FORCEINLINE FString ToString() const
+	{
+		FString Out;
+		TagName.ToString(Out);
+		return Out;
+	}
 };
 static_assert(alignof(FGameplayTag) == 0x000004, "Wrong alignment on FGameplayTag");
 static_assert(sizeof(FGameplayTag) == 0x000008, "Wrong size on FGameplayTag");
@@ -90,6 +99,10 @@ struct FGameplayTagContainer final
 public:
 	TArray<struct FGameplayTag>                   GameplayTags;                                      // 0x0000(0x0010)(Edit, BlueprintVisible, ZeroConstructor, EditConst, SaveGame, Protected, NativeAccessSpecifierProtected)
 	TArray<struct FGameplayTag>                   ParentTags;                                        // 0x0010(0x0010)(ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
+
+public:
+	/** Returns abbreviated human readable Tag list without parens or property names. If bQuoted is true it will quote each tag */
+	FString ToStringSimple(bool bQuoted = false) const;
 };
 static_assert(alignof(FGameplayTagContainer) == 0x000008, "Wrong alignment on FGameplayTagContainer");
 static_assert(sizeof(FGameplayTagContainer) == 0x000020, "Wrong size on FGameplayTagContainer");

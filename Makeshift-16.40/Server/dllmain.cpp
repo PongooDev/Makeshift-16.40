@@ -65,6 +65,7 @@ DWORD WINAPI Main(LPVOID) {
     AFortGameMode::Init();
     AFortGameModeZone::Init();
     AFortGameModeAthena::Init();
+    UAbilitySystemComponent::Init();
     UNetDriver::Init();
 
     UWorld* World = GWorld;

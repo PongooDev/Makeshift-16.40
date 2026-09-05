@@ -1484,6 +1484,56 @@ public:
 public:
 	static class UEngine* GetEngine();
 
+	static void Init();
+
+	static inline bool (*LoadMapOG)(UEngine* This, FWorldContext& WorldContext, FURL& URL, class UPendingNetGame* Pending, FString& Error);
+	static bool LoadMapHook(UEngine* This, FWorldContext& WorldContext, FURL& URL, class UPendingNetGame* Pending, FString& Error);
+
+	void BroadcastNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure FailureType, const FString& ErrorString = TEXT(""))
+	{
+		void (*Fn)(UEngine*, UWorld*, UNetDriver*, int32, const FString&) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x60A3C80);
+		return Fn(this, World, NetDriver, static_cast<int32>(FailureType), ErrorString);
+	}
+
+	FWorldContext* GetWorldContextFromWorld(const UWorld* InWorld)
+	{
+		FWorldContext* (*Fn)(UEngine*, const UWorld*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xEC5AC4);
+		return Fn(this, InWorld);
+	}
+
+	FWorldContext& HandleInvalidWorldContext()
+	{
+		FWorldContext& (*Fn)(UEngine*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x60AB0CC);
+		return Fn(this);
+	}
+
+	FWorldContext& GetWorldContextFromWorldChecked(const UWorld* InWorld)
+	{
+		if (FWorldContext* WorldContext = GetWorldContextFromWorld(InWorld))
+		{
+			return *WorldContext;
+		}
+		return HandleInvalidWorldContext();
+	}
+
+	UNetDriver* FindNamedNetDriver(const UWorld* InWorld, FName NetDriverName)
+	{
+		UNetDriver* (*FindNamedNetDriver_Local)(const TArray<FNamedNetDriver>&, FName) = decltype(FindNamedNetDriver_Local)(InSDKUtils::GetImageBase() + 0x1B5F264);
+		return FindNamedNetDriver_Local(GetWorldContextFromWorldChecked(InWorld).ActiveNetDrivers, NetDriverName);
+	}
+
+	bool CreateNamedNetDriver(UWorld* InWorld, FName NetDriverName, FName NetDriverDefinition)
+	{
+		bool (*Fn)(UEngine*, UWorld*, FName, FName) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1B5F060);
+		return Fn(this, InWorld, NetDriverName, NetDriverDefinition);
+	}
+
+	void DestroyNamedNetDriver(UWorld* InWorld, FName NetDriverName)
+	{
+		void (*Fn)(UEngine*, UWorld*, FName) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x60A6DCC);
+		return Fn(this, InWorld, NetDriverName);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -2975,6 +3025,8 @@ public:
 static_assert(alignof(UAudioSubsystemCollectionRoot) == 0x000008, "Wrong alignment on UAudioSubsystemCollectionRoot");
 static_assert(sizeof(UAudioSubsystemCollectionRoot) == 0x000030, "Wrong size on UAudioSubsystemCollectionRoot");
 
+class FNetworkNotify;
+
 // Class Engine.NetDriver
 // 0x0730 (0x0758 - 0x0028)
 class UNetDriver : public UObject
@@ -3020,6 +3072,19 @@ public:
 	uint8                                         Pad_214[0x4E4];                                    // 0x0214(0x04E4)(Fixing Size After Last Property [ Dumper-7 ])
 	class UReplicationDriver*                     ReplicationDriver;                                 // 0x06F8(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_700[0x58];                                     // 0x0700(0x0058)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	void SetWorld(class UWorld* InWorld)
+	{
+		void (*Fn)(UNetDriver*, class UWorld*) = decltype(Fn)(VTable[0x72]);
+		return Fn(this, InWorld);
+	}
+
+	bool InitListen(class FNetworkNotify* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error)
+	{
+		bool (*Fn)(UNetDriver*, class FNetworkNotify*, FURL&, bool, FString&) = decltype(Fn)(VTable[0x52]);
+		return Fn(this, InNotify, ListenURL, bReuseAddressAndPort, Error);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -9970,7 +10035,8 @@ public:
 	TSet<class UActorComponent*>                  ComponentsThatNeedPreEndOfFrameSync;               // 0x0220(0x0050)(ExportObject, Transient, NonTransactional, ContainsInstancedReference, NativeAccessSpecifierPrivate)
 	TArray<class UActorComponent*>                ComponentsThatNeedEndOfFrameUpdate;                // 0x0270(0x0010)(ExportObject, ZeroConstructor, Transient, NonTransactional, ContainsInstancedReference, NativeAccessSpecifierPrivate)
 	TArray<class UActorComponent*>                ComponentsThatNeedEndOfFrameUpdate_OnGameThread;   // 0x0280(0x0010)(ExportObject, ZeroConstructor, Transient, NonTransactional, ContainsInstancedReference, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_290[0x370];                                    // 0x0290(0x0370)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_290[0x36C];                                    // 0x0290(0x036C)(Fixing Size After Last Property [ Dumper-7 ])
+	float                                         NextSwitchCountdown;                               // 0x05FC(0x0004)(NOT AUTO-GENERATED PROPERTY)
 	class UWorldComposition*                      WorldComposition;                                  // 0x0600(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_608[0x90];                                     // 0x0608(0x0090)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FWorldPSCPool                          PSCPool;                                           // 0x0698(0x0058)(ContainsInstancedReference, NativeAccessSpecifierPrivate)
@@ -9987,6 +10053,42 @@ public:
 		return Fn(this, InURL, bAbsolute, bShouldSkipGameNotify);
 	}
 
+	// Start listening for connections.
+	bool Listen( FURL& InURL );
+
+	class FNetworkNotify* GetNetworkNotify()
+	{
+		return reinterpret_cast<class FNetworkNotify*>(reinterpret_cast<uint8*>(this) + 0x28);
+	}
+
+	/** Returns the FLevelCollection for the given InType, or null if a collection of that type hasn't been created yet. */
+	FLevelCollection* FindCollectionByType(const ELevelCollectionType InType)
+	{
+		for (FLevelCollection& LC : LevelCollections)
+		{
+			if (LC.GetType() == InType)
+			{
+				return &LC;
+			}
+		}
+
+		return nullptr;
+	}
+
+	/** Returns the FLevelCollection for the given InType, or null if a collection of that type hasn't been created yet. */
+	const FLevelCollection* FindCollectionByType(const ELevelCollectionType InType) const
+	{
+		for (const FLevelCollection& LC : LevelCollections)
+		{
+			if (LC.GetType() == InType)
+			{
+				return &LC;
+			}
+		}
+
+		return nullptr;
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -9999,6 +10101,7 @@ public:
 };
 static_assert(alignof(UWorld) == 0x000008, "Wrong alignment on UWorld");
 static_assert(sizeof(UWorld) == 0x0007B8, "Wrong size on UWorld");
+static_assert(offsetof(UWorld, NextSwitchCountdown) == 0x0005FC, "Member 'UWorld::NextSwitchCountdown' has a wrong offset!");
 static_assert(offsetof(UWorld, PersistentLevel) == 0x000030, "Member 'UWorld::PersistentLevel' has a wrong offset!");
 static_assert(offsetof(UWorld, NetDriver) == 0x000038, "Member 'UWorld::NetDriver' has a wrong offset!");
 static_assert(offsetof(UWorld, LineBatcher) == 0x000040, "Member 'UWorld::LineBatcher' has a wrong offset!");

@@ -197,6 +197,13 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\LowLevelMemTracker.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\Char.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\CommandLine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\Parse.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Traits\IntType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\UObject\NameTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\UObject\UnrealNames.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />
@@ -210,18 +217,14 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\OutputDevice.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\OutputDeviceRedirector.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Windows\WindowsPlatformMisc.cpp" />
-    <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="SDK\SDK\Basic.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\CommandLine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\Parse.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\UObject\UnrealNames.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\UnrealEngine.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\URL.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\World.cpp" />
+    <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp" />
+    <ClCompile Include="SDK\SDK\Basic.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -10730,6 +10730,33 @@ public:
 	class FString                                 RedirectUrl;                                       // 0x0038(0x0010)(ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	TArray<class FString>                         Op;                                                // 0x0048(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
 	class FString                                 Portal;                                            // 0x0058(0x0010)(ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	/**
+	 * Tests if the URL contains an option string.
+	 */
+	bool HasOption( const TCHAR* Test ) const;
+
+	/**
+	 * Returns the value associated with an option.
+	 *
+	 * @param Match The name of the option to get.
+	 * @param Default The value to return if the option wasn't found.
+	 *
+	 * @return The value of the named option, or Default if the option wasn't found.
+	 */
+	const TCHAR* GetOption( const TCHAR* Match, const TCHAR* Default ) const;
+
+	/**
+	 * Convert this URL to text.
+	 */
+	FString ToString( bool FullyQualified=0 ) const
+	{
+		FString& (*ToStringInternal)(const FURL*, FString&, bool) = decltype(ToStringInternal)(InSDKUtils::GetImageBase() + 0x1234550);
+		FString Result;
+		ToStringInternal(this, Result, FullyQualified);
+		return Result;
+	}
 };
 static_assert(alignof(FURL) == 0x000008, "Wrong alignment on FURL");
 static_assert(sizeof(FURL) == 0x000068, "Wrong size on FURL");
@@ -10788,7 +10815,14 @@ public:
 	class UGameViewportClient*                    GameViewport;                                      // 0x0210(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class UGameInstance*                          OwningGameInstance;                                // 0x0218(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	TArray<struct FNamedNetDriver>                ActiveNetDrivers;                                  // 0x0220(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPublic)
-	uint8                                         Pad_230[0x58];                                     // 0x0230(0x0058)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_230[0x50];                                     // 0x0230(0x0050)(Fixing Size After Last Property [ Dumper-7 ])
+	class UWorld*                                 ThisCurrentWorld;                                  // 0x0280(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	FORCEINLINE UWorld* World() const
+	{
+		return ThisCurrentWorld;
+	}
 };
 static_assert(alignof(FWorldContext) == 0x000008, "Wrong alignment on FWorldContext");
 static_assert(sizeof(FWorldContext) == 0x000288, "Wrong size on FWorldContext");
@@ -10802,6 +10836,7 @@ static_assert(offsetof(FWorldContext, PendingLevelStreamingStatusUpdates) == 0x0
 static_assert(offsetof(FWorldContext, GameViewport) == 0x000210, "Member 'FWorldContext::GameViewport' has a wrong offset!");
 static_assert(offsetof(FWorldContext, OwningGameInstance) == 0x000218, "Member 'FWorldContext::OwningGameInstance' has a wrong offset!");
 static_assert(offsetof(FWorldContext, ActiveNetDrivers) == 0x000220, "Member 'FWorldContext::ActiveNetDrivers' has a wrong offset!");
+static_assert(offsetof(FWorldContext, ThisCurrentWorld) == 0x000280, "Member 'FWorldContext::ThisCurrentWorld' has a wrong offset!");
 
 // ScriptStruct Engine.AnimInstanceSubsystemData
 // 0x0001 (0x0001 - 0x0000)
@@ -17633,20 +17668,84 @@ static_assert(alignof(FStreamingLevelsToConsider) == 0x000008, "Wrong alignment 
 static_assert(sizeof(FStreamingLevelsToConsider) == 0x000028, "Wrong size on FStreamingLevelsToConsider");
 static_assert(offsetof(FStreamingLevelsToConsider, StreamingLevels) == 0x000000, "Member 'FStreamingLevelsToConsider::StreamingLevels' has a wrong offset!");
 
+/** Indicates the type of a level collection, used in FLevelCollection. */
+enum class ELevelCollectionType : uint8
+{
+	/**
+	 * The dynamic levels that are used for normal gameplay and the source for any duplicated collections.
+	 * Will contain a world's persistent level and any streaming levels that contain dynamic or replicated gameplay actors.
+	 * This collection will always exist for gameplay and editor worlds.
+	 */
+	DynamicSourceLevels,
+
+	/** Gameplay relevant levels that have been duplicated from DynamicSourceLevels if requested by the game. */
+	DynamicDuplicatedLevels,
+
+	/**
+	 * These levels are shared between the source levels and the duplicated levels, and should contain
+	 * only static geometry and other visuals that are not replicated or affected by gameplay.
+	 * These will not be duplicated in order to save memory.
+	 */
+	StaticLevels,
+
+	MAX
+};
+
 // ScriptStruct Engine.LevelCollection
 // 0x0078 (0x0078 - 0x0000)
 struct FLevelCollection final
 {
 public:
-	uint8                                         Pad_0[0x8];                                        // 0x0000(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	ELevelCollectionType                          CollectionType;                                    // 0x0000(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bIsVisible;                                        // 0x0001(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_2[0x6];                                        // 0x0002(0x0006)(Fixing Size After Last Property [ Dumper-7 ])
 	class AGameStateBase*                         GameState;                                         // 0x0008(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UNetDriver*                             NetDriver;                                         // 0x0010(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UDemoNetDriver*                         DemoNetDriver;                                     // 0x0018(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class ULevel*                                 PersistentLevel;                                   // 0x0020(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TSet<class ULevel*>                           Levels;                                            // 0x0028(0x0050)(NativeAccessSpecifierPrivate)
+
+public:
+	/** Gets the type of this collection. */
+	ELevelCollectionType GetType() const { return CollectionType; }
+
+	/** Sets the type of this collection. */
+	void SetType(const ELevelCollectionType InType) { CollectionType = InType; }
+
+	/** Gets the game state for this collection. */
+	class AGameStateBase* GetGameState() const { return GameState; }
+
+	/** Sets the game state for this collection. */
+	void SetGameState(class AGameStateBase* const InGameState) { GameState = InGameState; }
+
+	/** Gets the net driver for this collection. */
+	class UNetDriver* GetNetDriver() const { return NetDriver; }
+
+	/** Sets the net driver for this collection. */
+	void SetNetDriver(class UNetDriver* const InNetDriver) { NetDriver = InNetDriver; }
+
+	/** Gets the demo net driver for this collection. */
+	class UDemoNetDriver* GetDemoNetDriver() const { return DemoNetDriver; }
+
+	/** Sets the demo net driver for this collection. */
+	void SetDemoNetDriver(class UDemoNetDriver* const InDemoNetDriver) { DemoNetDriver = InDemoNetDriver; }
+
+	/** Returns the set of levels in this collection. */
+	const TSet<class ULevel*>& GetLevels() const { return Levels; }
+
+	/** Returns this collection's PersistentLevel. */
+	class ULevel* GetPersistentLevel() const { return PersistentLevel; }
+
+	/** Gets whether this collection is currently visible. */
+	bool IsVisible() const { return bIsVisible; }
+
+	/** Sets whether this collection is currently visible. */
+	void SetIsVisible(const bool bInIsVisible) { bIsVisible = bInIsVisible; }
 };
 static_assert(alignof(FLevelCollection) == 0x000008, "Wrong alignment on FLevelCollection");
 static_assert(sizeof(FLevelCollection) == 0x000078, "Wrong size on FLevelCollection");
+static_assert(offsetof(FLevelCollection, CollectionType) == 0x000000, "Member 'FLevelCollection::CollectionType' has a wrong offset!");
+static_assert(offsetof(FLevelCollection, bIsVisible) == 0x000001, "Member 'FLevelCollection::bIsVisible' has a wrong offset!");
 static_assert(offsetof(FLevelCollection, GameState) == 0x000008, "Member 'FLevelCollection::GameState' has a wrong offset!");
 static_assert(offsetof(FLevelCollection, NetDriver) == 0x000010, "Member 'FLevelCollection::NetDriver' has a wrong offset!");
 static_assert(offsetof(FLevelCollection, DemoNetDriver) == 0x000018, "Member 'FLevelCollection::DemoNetDriver' has a wrong offset!");

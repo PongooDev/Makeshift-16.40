@@ -40,6 +40,8 @@ DWORD WINAPI Main(LPVOID) {
         GIsServer = 1;
     }
 
+    UEngine::Init();
+
     UWorld* World = GWorld;
     if (World) {
         UFortGameInstance* FortGameInstance = World->OwningGameInstance->Cast<UFortGameInstance>();

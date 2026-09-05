@@ -6,6 +6,7 @@
 #include "Engine/Source/Runtime/Core/Public/CoreTypes.h"
 #include "Engine/Source/Runtime/Core/Public/Misc/VarArgs.h"
 #include "Engine/Source/Runtime/Core/Public/Misc/AssertionMacros.h"
+#include "Engine/Source/Runtime/Core/Public/Misc/Char.h"
 #include "Engine/Source/Runtime/Core/Public/Windows/WindowsPlatformString.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/IsArrayOrRefOfType.h"
 #include "Engine/Source/Runtime/Core/Public/Templates/IsValidVariadicFunctionArg.h"
@@ -122,6 +123,16 @@ struct TCString
 	static FORCEINLINE int32 Strnicmp( const CharType* String1, const CharType* String2, SIZE_T Count );
 
 	/**
+	 * Find string in string, case sensitive, requires non-alphanumeric lead-in.
+	 */
+	static const CharType* Strfind( const CharType* Str, const CharType* Find, bool bSkipQuotedChars = false );
+
+	/**
+	 * Find string in string, case insensitive, requires non-alphanumeric lead-in.
+	 */
+	static const CharType* Strifind( const CharType* Str, const CharType* Find, bool bSkipQuotedChars = false );
+
+	/**
 	 * strlen wrapper
 	 */
 	static FORCEINLINE int32 Strlen( const CharType* String );
@@ -207,6 +218,115 @@ int32 TCString<T>::SnprintfImpl(CharType* Dest, int32 DestSize, const CharType* 
 		va_end(ap);
 	}
 	return Result;
+}
+
+//
+// Find string in string, case sensitive, requires non-alphanumeric lead-in.
+//
+template <typename T>
+const typename TCString<T>::CharType* TCString<T>::Strfind(const CharType* Str, const CharType* Find, bool bSkipQuotedChars)
+{
+	if (Find == NULL || Str == NULL)
+	{
+		return NULL;
+	}
+
+	bool Alnum = 0;
+	CharType f = *Find;
+	int32 Length = Strlen(Find++) - 1;
+	CharType c = *Str++;
+	if (bSkipQuotedChars)
+	{
+		bool bInQuotedStr = false;
+		while (c)
+		{
+			if (!bInQuotedStr && !Alnum && c == f && !Strncmp(Str, Find, Length))
+			{
+				return Str - 1;
+			}
+			Alnum = (c >= LITERAL(CharType, 'A') && c <= LITERAL(CharType, 'Z')) ||
+				(c >= LITERAL(CharType, 'a') && c <= LITERAL(CharType, 'z')) ||
+				(c >= LITERAL(CharType, '0') && c <= LITERAL(CharType, '9'));
+			if (c == LITERAL(CharType, '"'))
+			{
+				bInQuotedStr = !bInQuotedStr;
+			}
+			c = *Str++;
+		}
+	}
+	else
+	{
+		while (c)
+		{
+			if (!Alnum && c == f && !Strncmp(Str, Find, Length))
+			{
+				return Str - 1;
+			}
+			Alnum = (c >= LITERAL(CharType, 'A') && c <= LITERAL(CharType, 'Z')) ||
+				(c >= LITERAL(CharType, 'a') && c <= LITERAL(CharType, 'z')) ||
+				(c >= LITERAL(CharType, '0') && c <= LITERAL(CharType, '9'));
+			c = *Str++;
+		}
+	}
+	return NULL;
+}
+
+//
+// Find string in string, case insensitive, requires non-alphanumeric lead-in.
+//
+template <typename T>
+const typename TCString<T>::CharType* TCString<T>::Strifind( const CharType* Str, const CharType* Find, bool bSkipQuotedChars )
+{
+	if( Find == NULL || Str == NULL )
+	{
+		return NULL;
+	}
+	
+	bool Alnum  = 0;
+	CharType f = ( *Find < LITERAL(CharType, 'a') || *Find > LITERAL(CharType, 'z') ) ? (*Find) : (*Find + LITERAL(CharType,'A') - LITERAL(CharType,'a'));
+	int32 Length = Strlen(Find++)-1;
+	CharType c = *Str++;
+	
+	if (bSkipQuotedChars)
+	{
+		bool bInQuotedStr = false;
+		while( c )
+		{
+			if( c >= LITERAL(CharType, 'a') && c <= LITERAL(CharType, 'z') )
+			{
+				c += LITERAL(CharType, 'A') - LITERAL(CharType, 'a');
+			}
+			if( !bInQuotedStr && !Alnum && c==f && !Strnicmp(Str,Find,Length) )
+			{
+				return Str-1;
+			}
+			Alnum = (c>=LITERAL(CharType,'A') && c<=LITERAL(CharType,'Z')) || 
+					(c>=LITERAL(CharType,'0') && c<=LITERAL(CharType,'9'));
+			if (c == LITERAL(CharType, '"'))
+			{
+				bInQuotedStr = !bInQuotedStr;
+			}
+			c = *Str++;
+		}
+	}
+	else
+	{
+		while( c )
+		{
+			if( c >= LITERAL(CharType, 'a') && c <= LITERAL(CharType, 'z') )
+			{
+				c += LITERAL(CharType, 'A') - LITERAL(CharType, 'a');
+			}
+			if( !Alnum && c==f && !Strnicmp(Str,Find,Length) )
+			{
+				return Str-1;
+			}
+			Alnum = (c>=LITERAL(CharType,'A') && c<=LITERAL(CharType,'Z')) || 
+					(c>=LITERAL(CharType,'0') && c<=LITERAL(CharType,'9'));
+			c = *Str++;
+		}
+	}
+	return NULL;
 }
 
 template <typename T> FORCEINLINE

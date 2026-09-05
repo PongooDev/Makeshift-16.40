@@ -75,6 +75,11 @@
 	#define PLATFORM_BREAK() (__debugbreak())
 #endif
 
+// Prefetch
+#ifndef PLATFORM_CACHE_LINE_SIZE
+	#define PLATFORM_CACHE_LINE_SIZE	64
+#endif
+
 #ifndef CORE_API
 	#define CORE_API
 #endif

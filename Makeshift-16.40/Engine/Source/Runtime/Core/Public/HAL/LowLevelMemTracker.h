@@ -1,0 +1,37 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#pragma once
+#include "pch.h"
+
+#include "Engine/Source/Runtime/Core/Public/CoreTypes.h"
+
+#ifndef ENABLE_LOW_LEVEL_MEM_TRACKER
+	#define ENABLE_LOW_LEVEL_MEM_TRACKER 0
+#endif
+
+#if !ENABLE_LOW_LEVEL_MEM_TRACKER
+	#define LLM(...)
+	#define LLM_IF_ENABLED(...)
+	#define LLM_SCOPE(...)
+	#define LLM_PLATFORM_SCOPE(...)
+	#define LLM_REALLOC_SCOPE(...)
+	#define LLM_REALLOC_PLATFORM_SCOPE(...)
+	#define LLM_SCOPED_TAG_WITH_STAT(...)
+	#define LLM_SCOPED_TAG_WITH_STAT_IN_SET(...)
+	#define LLM_SCOPED_TAG_WITH_STAT_NAME(...)
+	#define LLM_SCOPED_TAG_WITH_STAT_NAME_IN_SET(...)
+	#define LLM_SCOPED_SINGLE_PLATFORM_STAT_TAG(...)
+	#define LLM_SCOPED_SINGLE_PLATFORM_STAT_TAG_IN_SET(...)
+	#define LLM_SCOPED_SINGLE_STAT_TAG(...)
+	#define LLM_SCOPED_SINGLE_STAT_TAG_IN_SET(...)
+	#define LLM_SCOPED_SINGLE_RHI_STAT_TAG(...)
+	#define LLM_SCOPED_SINGLE_RHI_STAT_TAG_IN_SET(...)
+	#define LLM_SCOPED_TAG_WITH_OBJECT_IN_SET(...)
+	#define LLM_SCOPED_PAUSE_TRACKING(...)
+	#define LLM_SCOPED_PAUSE_TRACKING_FOR_TRACKER(...)
+	#define LLM_SCOPED_PAUSE_TRACKING_WITH_ENUM_AND_AMOUNT(...)
+	#define LLM_SCOPED_PAUSE_TRACKING_WITH_STAT_AND_AMOUNT(...)
+	#define LLM_PUSH_STATS_FOR_ASSET_TAGS()
+	#define LLM_DUMP_TAG()
+	#define LLM_DUMP_PLATFORM_TAG()
+#endif		// #if ENABLE_LOW_LEVEL_MEM_TRACKER

@@ -18,6 +18,8 @@
 #include "../PropertyFixup.hpp"
 #include "../UnrealContainers.hpp"
 
+#include "Engine/Source/Runtime/Core/Public/UObject/NameTypes.h"
+
 namespace SDK
 {
 
@@ -328,6 +330,14 @@ public:
 		static auto FName__Ctor = (void (*)(FName*, const wchar_t*, int))(InSDKUtils::GetImageBase() + 0xC8E9A0);
 
 		FName__Ctor(this, String.CStr(), 1);
+	}
+
+	FORCEINLINE FName(EName Ename) : FName(Ename, NAME_NO_NUMBER_INTERNAL) {}
+
+	FORCEINLINE FName(EName Ename, int32 InNumber)
+		: ComparisonIndex(FNameEntryId::FromEName(Ename).ToUnstableInt())
+		, Number(InNumber)
+	{
 	}
 
 	FName(int32 _Ci = 0, uint32 _Number = 0)

@@ -42,6 +42,11 @@
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "ntdll.lib")
 
+#include "SDK/PropertyFixup.hpp"
+#include "SDK/UnrealContainers.hpp"
+
+using namespace UC;
+
 #include "SDK/SDK.hpp"
 
 using namespace SDK;

@@ -42,6 +42,8 @@ private:
 	CORE_API static FNameEntryId FromValidEName(EName Ename);
 };
 
+CORE_API uint32 GetTypeHash(FNameEntryId Id);
+
 /** Externally, the instance number to represent no instance number is NAME_NO_NUMBER,
     but internally, we add 1 to indices, so we use this #define internally for
 	zero'd memory initialization will still make NAME_None as expected */

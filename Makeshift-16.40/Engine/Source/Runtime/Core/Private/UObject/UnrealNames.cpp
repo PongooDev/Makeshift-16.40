@@ -4,6 +4,48 @@
 #include "Engine/Source/Runtime/Core/Public/UObject/NameTypes.h"
 #include "Engine/Source/Runtime/Core/Public/Misc/AssertionMacros.h"
 
+/** Remember to update natvis if you change these */
+enum { FNameMaxBlockBits = 13 }; // Limit block array a bit, still allowing 8k * block size = 1GB - 2G of FName entry data
+enum { FNameBlockOffsetBits = 16 };
+enum { FNameMaxBlocks = 1 << FNameMaxBlockBits };
+enum { FNameBlockOffsets = 1 << FNameBlockOffsetBits };
+
+/** An unpacked FNameEntryId */
+struct FNameEntryHandle
+{
+	uint32 Block = 0;
+	uint32 Offset = 0;
+
+	FNameEntryHandle(uint32 InBlock, uint32 InOffset)
+		: Block(InBlock)
+		, Offset(InOffset)
+	{}
+
+	FNameEntryHandle(FNameEntryId Id)
+		: Block(Id.ToUnstableInt() >> FNameBlockOffsetBits)
+		, Offset(Id.ToUnstableInt() & (FNameBlockOffsets - 1))
+	{}
+
+	operator FNameEntryId() const
+	{
+		return FNameEntryId::FromUnstableInt(Block << FNameBlockOffsetBits | Offset);
+	}
+
+	explicit operator bool() const { return Block | Offset; }
+};
+
+static uint32 GetTypeHash(FNameEntryHandle Handle)
+{
+	return (Handle.Block << (32 - FNameMaxBlockBits)) + Handle.Block // Let block index impact most hash bits
+		+ (Handle.Offset << FNameBlockOffsetBits) + Handle.Offset // Let offset impact most hash bits
+		+ (Handle.Offset >> 4); // Reduce impact of non-uniformly distributed entry name lengths 
+}
+
+uint32 GetTypeHash(FNameEntryId Id)
+{
+	return GetTypeHash(FNameEntryHandle(Id));
+}
+
 class FNamePool
 {
 public:

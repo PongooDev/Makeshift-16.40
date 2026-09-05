@@ -6,6 +6,7 @@
 
 #include "Engine/Source/Runtime/Core/Public/CoreTypes.h"
 #include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
+#include "Engine/Source/Runtime/Core/Public/HAL/PlatformTLS.h"
 
 DECLARE_LOG_CATEGORY_OFFSET(LogHAL, Log, All)
 #define LogHAL UE_LOG_CATEGORY_AT(LogHAL, 0x93DBBB8)
@@ -55,3 +56,28 @@ inline TCHAR (&GErrorHist)[16384] = *reinterpret_cast<TCHAR(*)[16384]>(InSDKUtil
 inline bool& GIsClient = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE5B);
 inline bool& GIsServer = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE5A);
 inline bool& GIsCriticalError = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE80);
+
+/** Thread ID of the main/game thread */
+inline uint32& GGameThreadId = *reinterpret_cast<uint32*>(InSDKUtils::GetImageBase() + 0x938EEB4);
+
+/** Has GGameThreadId been set yet? */
+inline bool& GIsGameThreadIdInitialized = *reinterpret_cast<bool*>(InSDKUtils::GetImageBase() + 0x938EE69);
+
+/** @return True if called from the game thread. */
+FORCEINLINE bool IsInGameThread()
+{
+	if(GIsGameThreadIdInitialized)
+	{
+		const uint32 CurrentThreadId = FPlatformTLS::GetCurrentThreadId();
+		return CurrentThreadId == GGameThreadId;
+	}
+
+	return true;
+}
+
+/** @return True if called from the rendering thread, or if called from ANY thread that isn't the game thread, except that during single threaded rendering the game thread is ok too.*/
+extern CORE_API bool IsInParallelRenderingThread();
+
+/** @return True if called from the rendering thread. */
+// Unlike IsInRenderingThread, this will always return false if we are running single threaded. It only returns true if this is actually a separate rendering thread. Mostly useful for checks
+extern CORE_API bool IsInActualRenderingThread();

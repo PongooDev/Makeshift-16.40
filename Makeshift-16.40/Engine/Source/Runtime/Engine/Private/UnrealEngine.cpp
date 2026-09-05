@@ -13,14 +13,12 @@ bool UEngine::LoadMapHook(UEngine* This, FWorldContext& WorldContext, FURL& URL,
 {
 	bool result = LoadMapOG(This, WorldContext, URL, Pending, Error);
 
-	URL = WorldContext.LastURL;
-
 	// Listen for clients.
-	if (result && Pending == NULL && (!GIsClient || URL.HasOption(TEXT("Listen"))))
+	if (result && Pending == NULL && (!GIsClient || WorldContext.LastURL.HasOption(TEXT("Listen"))))
 	{
-		if (!WorldContext.World()->Listen(URL))
+		if (!WorldContext.World()->Listen(WorldContext.LastURL))
 		{
-			UE_LOG(LogNet, Error, TEXT("LoadMap: failed to Listen(%s)"), *URL.ToString());
+			UE_LOG(LogNet, Error, TEXT("LoadMap: failed to Listen(%s)"), *WorldContext.LastURL.ToString());
 		}
 	}
 

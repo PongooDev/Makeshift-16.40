@@ -195,6 +195,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformString.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Private\Misc\VarargsHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineBaseTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\LowLevelMemTracker.h" />
@@ -204,6 +205,82 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Traits\IntType.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\UObject\NameTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\UObject\UnrealNames.inl" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\GenericPlatform\GenericPlatformMemory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformMemory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PlatformMemory.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\NumericLimits.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Containers\ContainerAllocationPolicies.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\TypeHash.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\RemoveReference.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\RemoveCV.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsPointer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsArithmetic.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsIntegral.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsPODType.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsTriviallyDestructible.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\TypeCompatibleBytes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\UnrealTypeTraits.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\MemoryOps.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\AlignmentTemplates.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\Less.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IdentityFunctor.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\Invoke.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\ReversePredicate.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\Sorting.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\SharedPointerInternals.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\SharedPointer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\UniquePtr.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\Function.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Traits\IsContiguousContainer.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\EnumClassFlags.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\MemStack.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\NetworkGuid.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Algo\Impl\BinaryHeap.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Algo\IntroSort.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Algo\Sort.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\GenericPlatform\GenericPlatformMath.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\GenericPlatform\GenericPlatformTLS.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformMath.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformTLS.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformAtomics.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformCompilerPreSetup.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PlatformMath.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PlatformTLS.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PlatformAtomics.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\TlsAutoCleanup.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\ThreadSingleton.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\IConsoleManager.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealMathUtility.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Stats\Stats.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\ProfilingDebugging\CsvProfiler.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\CoreNetTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectBaseUtility.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\ObjectMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\Net\Core\Public\Net\Core\PushModel\PushModel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\NetConnection.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Channel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\ActorChannel.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\NetDriver.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\NetworkObjectList.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\PackageMapClient.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Public\NetworkingDistanceConstants.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Public\Net\NetAnalyticsTypes.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Public\Net\DataReplication.h" />
+    <ClInclude Include="SDK\PropertyFixup.hpp" />
+    <ClInclude Include="SDK\SDK.hpp" />
+    <ClInclude Include="SDK\UnrealContainers.hpp" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsClass.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\AreTypesEqual.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsTriviallyCopyConstructible.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Templates\IsTriviallyCopyAssignable.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Containers\ContainersFwd.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\MemoryBase.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealPlatformMathSSE.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\UnrealPlatformMathSSE4.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\MinimalWindowsApi.h" />
+    <ClInclude Include="Engine\Source\Runtime\Net\Core\Public\Net\Core\PushModel\PushModelMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Public\EngineStats.h" />
+    <ClInclude Include="Engine\Source\Runtime\Core\Public\Stats\StatsCommon.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />
@@ -223,6 +300,15 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\URL.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\World.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\HAL\ThreadingBase.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\HAL\ConsoleManager.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\MemStack.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\Net\NetAnalyticsTypes.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\DataReplication.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\PackageMapClient.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\DataChannel.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\NetConnection.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\NetDriver.cpp" />
     <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp" />
     <ClCompile Include="SDK\SDK\Basic.cpp" />
     <ClCompile Include="pch.cpp">
@@ -231,6 +317,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SDK\NameCollisions.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -42,10 +42,29 @@
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "ntdll.lib")
 
+inline uint64_t ImageBase = reinterpret_cast<uint64_t>(GetModuleHandleW(nullptr));
+
 #include "SDK/PropertyFixup.hpp"
 #include "SDK/UnrealContainers.hpp"
 
 using namespace UC;
+
+#include "Engine/Source/Runtime/Engine/Classes/Engine/EngineBaseTypes.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/NetConnection.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/Channel.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/ActorChannel.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/CoreNetTypes.h"
+#include "Engine/Source/Runtime/Core/Public/Misc/NetworkGuid.h"
+#include "Engine/Source/Runtime/Core/Public/Templates/SharedPointer.h"
+#include "Engine/Source/Runtime/Core/Public/Templates/UniquePtr.h"
+#include "Engine/Source/Runtime/Engine/Public/Net/NetAnalyticsTypes.h"
+
+struct FActorPriority;
+struct FActorDestructionInfo;
+struct FNetworkObjectInfo;
+class FNetworkObjectList;
+class FNetGUIDCache;
+class FObjectReplicator;
 
 #include "SDK/SDK.hpp"
 
@@ -58,7 +77,6 @@ namespace Configuration {
 	inline std::string MapToLoad = "Apollo_Terrain";
 }
 
-inline uint64_t ImageBase = InSDKUtils::GetImageBase();
 
 #include "Engine/Source/Runtime/Core/Public/UObject/UnrealNames.h"
 #include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
@@ -72,6 +90,7 @@ inline uint64_t ImageBase = InSDKUtils::GetImageBase();
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EngineLogs.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectBaseUtility.h"
 
 DECLARE_LOG_CATEGORY_OFFSET(LogOnline, Log, All)
 #define LogOnline UE_LOG_CATEGORY_AT(LogOnline, 0x93A6618)

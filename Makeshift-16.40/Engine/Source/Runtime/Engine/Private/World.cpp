@@ -11,6 +11,7 @@
 #include "Engine/Source/Runtime/Core/Public/HAL/LowLevelMemTracker.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EngineLogs.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/EngineBaseTypes.h"
 
 bool UWorld::Listen( FURL& InURL )
 {
@@ -73,4 +74,14 @@ bool UWorld::Listen( FURL& InURL )
 
 	NextSwitchCountdown = NetDriver->ServerTravelPause;
 	return true;
+}
+
+ENetMode UWorld::InternalGetNetModeHook(UWorld* This)
+{
+	return NM_DedicatedServer;
+}
+
+void UWorld::Init()
+{
+	Memory::HookDetour(ImageBase + 0xED36E8, InternalGetNetModeHook, nullptr);
 }

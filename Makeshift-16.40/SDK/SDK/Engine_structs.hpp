@@ -446,6 +446,8 @@ enum class ENetRole : uint8
 	ROLE_MAX                                 = 4,
 };
 
+using enum ENetRole;
+
 // Enum Engine.EAttachLocation
 // NumValues: 0x0005
 enum class EAttachLocation : uint8
@@ -487,6 +489,8 @@ enum class ENetDormancy : uint8
 	DORM_Initial                             = 4,
 	DORM_MAX                                 = 5,
 };
+
+using enum ENetDormancy;
 
 // Enum Engine.EAutoReceiveInput
 // NumValues: 0x000A
@@ -17863,6 +17867,23 @@ public:
 	class AActor*                                 ViewTarget;                                        // 0x0010(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	struct FVector                                ViewLocation;                                      // 0x0018(0x000C)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	struct FVector                                ViewDir;                                           // 0x0024(0x000C)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	FNetViewer()
+		: Connection(NULL)
+		, InViewer(NULL)
+		, ViewTarget(NULL)
+		, ViewLocation()
+		, ViewDir()
+	{
+	}
+
+	FNetViewer(class UNetConnection* InConnection, float DeltaSeconds)
+	{
+		constexpr uintptr_t Offset = 0x5F7EFD4;
+
+		reinterpret_cast<void (*)(FNetViewer*, class UNetConnection*, float)>(ImageBase + Offset)(this, InConnection, DeltaSeconds);
+	}
 };
 static_assert(alignof(FNetViewer) == 0x000008, "Wrong alignment on FNetViewer");
 static_assert(sizeof(FNetViewer) == 0x000030, "Wrong size on FNetViewer");

@@ -41,6 +41,40 @@ public:
 	template <typename T> inline T* Cast() { return IsA(T::StaticClass()) ? (T*)this : nullptr; }
 	bool IsDefaultObject() const;
 
+	/** Returns the UClass of this object */
+	FORCEINLINE class UClass* GetClass() const
+	{
+		return Class;
+	}
+
+	/**
+	 * Returns the name of this object (with no path information)
+	 *
+	 * @param	ResultString the object name
+	 */
+	FORCEINLINE void GetName(FString& ResultString) const
+	{
+		Name.ToString(ResultString);
+	}
+
+	/** Checks if the object is pending kill. */
+	FORCEINLINE bool IsPendingKill() const
+	{
+		return GObjects->IndexToObject(Index)->IsPendingKill();
+	}
+
+	/**
+	 * Return the template that an object with this class, outer and name would be
+	 *
+	 * @return the archetype for this object
+	 */
+	class UObject* GetArchetype() const
+	{
+		constexpr uintptr_t Offset = 0xC96C34;
+
+		return reinterpret_cast<class UObject* (*)(const UObject*)>(ImageBase + Offset)(this);
+	}
+
 	void ExecuteUbergraph(int32 EntryPoint);
 
 public:
@@ -192,6 +226,12 @@ public:
 public:
 	bool IsSubclassOf(const UStruct* Base) const;
 
+	/** Returns the struct/ class/ function this struct is derived from */
+	FORCEINLINE class UStruct* GetSuperStruct() const
+	{
+		return Super;
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -225,6 +265,12 @@ public:
 	class UFunction* GetFunction(const std::string& ClassName, const std::string& FuncName) const;
 
 public:
+	/** Returns parent class, the parent of a Class is always another class */
+	FORCEINLINE class UClass* GetSuperClass() const
+	{
+		return (class UClass*)GetSuperStruct();
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"Class">();

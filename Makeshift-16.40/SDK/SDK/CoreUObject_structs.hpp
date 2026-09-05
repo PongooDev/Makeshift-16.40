@@ -436,6 +436,27 @@ public:
 	{
 		return X == Other.X && Y == Other.Y && Z == Other.Z;
 	}
+
+	/**
+	 * Calculate the dot product between this and another vector.
+	 *
+	 * @param V The other vector.
+	 * @return The dot product.
+	 */
+	FORCEINLINE float operator|(const FVector& V) const
+	{
+		return X*V.X + Y*V.Y + Z*V.Z;
+	}
+
+	/**
+	 * Get the squared length of this vector.
+	 *
+	 * @return The squared length of this vector.
+	 */
+	FORCEINLINE float SizeSquared() const
+	{
+		return X*X + Y*Y + Z*Z;
+	}
 };
 static_assert(alignof(FVector) == 0x000004, "Wrong alignment on FVector");
 static_assert(sizeof(FVector) == 0x00000C, "Wrong size on FVector");
@@ -1096,6 +1117,23 @@ public:
 	uint8                                         Pad_1C[0x4];                                       // 0x001C(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FVector                                Scale3D;                                           // 0x0020(0x000C)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_2C[0x4];                                       // 0x002C(0x0004)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	/**
+	 * Returns the translation component
+	 *
+	 * @return The translation component
+	 */
+	FORCEINLINE FVector GetTranslation() const
+	{
+		return Translation;
+	}
+
+	/** Returns the location component. */
+	FORCEINLINE FVector GetLocation() const
+	{
+		return GetTranslation();
+	}
 };
 static_assert(alignof(FTransform) == 0x000010, "Wrong alignment on FTransform");
 static_assert(sizeof(FTransform) == 0x000030, "Wrong size on FTransform");
@@ -1109,7 +1147,44 @@ struct FRandomStream final
 {
 public:
 	int32                                         InitialSeed;                                       // 0x0000(0x0004)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	int32                                         Seed;                                              // 0x0004(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	mutable int32                                 Seed;                                              // 0x0004(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	/**
+	 * Returns a random number between 0 and 1, inclusive.
+	 *
+	 * @return Random number.
+	 */
+	FORCEINLINE float FRand() const
+	{
+		return GetFraction();
+	}
+
+	/**
+	 * Returns a random number between 0 and 1.
+	 *
+	 * @return Random number.
+	 */
+	FORCEINLINE float GetFraction() const
+	{
+		MutateSeed();
+
+		float Result;
+
+		*(uint32*)&Result = 0x3F800000U | (Seed >> 9);
+
+		return Result - 1.0f;
+	}
+
+protected:
+
+	/**
+	 * Mutates the current seed into the next seed.
+	 */
+	void MutateSeed() const
+	{
+		Seed = (Seed * 196314165U) + 907633515U;
+	}
 };
 static_assert(alignof(FRandomStream) == 0x000004, "Wrong alignment on FRandomStream");
 static_assert(sizeof(FRandomStream) == 0x000008, "Wrong size on FRandomStream");

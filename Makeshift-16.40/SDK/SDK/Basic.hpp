@@ -19,6 +19,7 @@
 #include "../UnrealContainers.hpp"
 
 #include "Engine/Source/Runtime/Core/Public/UObject/NameTypes.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectMacros.h"
 
 namespace SDK
 {
@@ -181,7 +182,16 @@ struct FUObjectItem final
 {
 public:
 	class UObject*                                Object;                                            // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
-	uint8                                         Pad_8[0x10];                                       // 0x0008(0x0010)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	int32                                         Flags;                                             // 0x0008(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         ClusterRootIndex;                                  // 0x000C(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         SerialNumber;                                      // 0x0010(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_14[0x4];                                       // 0x0014(0x0004)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	FORCEINLINE bool IsPendingKill() const
+	{
+		return !!(Flags & int32(EInternalObjectFlags::PendingKill));
+	}
 };
 static_assert(alignof(FUObjectItem) == 0x000008, "Wrong alignment on FUObjectItem");
 static_assert(sizeof(FUObjectItem) == 0x000018, "Wrong size on FUObjectItem");
@@ -229,6 +239,20 @@ public:
 		if (!ChunkPtr) return nullptr;
 		
 		return ChunkPtr[InChunkIdx].Object;
+	}
+
+	FORCEINLINE FUObjectItem* IndexToObject(int32 Index)
+	{
+		const int32 ChunkIndex = Index / ElementsPerChunk;
+		const int32 InChunkIdx = Index % ElementsPerChunk;
+
+		if (ChunkIndex >= NumChunks || Index >= NumElements)
+		    return nullptr;
+
+		FUObjectItem* ChunkPtr = GetDecrytedObjPtr()[ChunkIndex];
+		if (!ChunkPtr) return nullptr;
+
+		return &ChunkPtr[InChunkIdx];
 	}
 };
 static_assert(alignof(TUObjectArray) == 0x000008, "Wrong alignment on TUObjectArray");
@@ -387,6 +411,28 @@ public:
 		return OutputString.substr(pos + 1);
 	}
 	
+	FORCEINLINE FNameEntryId GetComparisonIndex() const
+	{
+		return FNameEntryId::FromUnstableInt(ComparisonIndex);
+	}
+
+	FORCEINLINE int32 GetNumber() const
+	{
+		return Number;
+	}
+
+	void ToString(FString& Out) const
+	{
+		constexpr uintptr_t Offset = 0xC3ADF4;
+
+		reinterpret_cast<void (*)(const FName*, FString&)>(ImageBase + Offset)(this, Out);
+	}
+
+	friend uint32 GetTypeHash(const FName& Name)
+	{
+		return GetTypeHash(Name.GetComparisonIndex()) + Name.GetNumber();
+	}
+
 	bool operator==(const FName& Other) const
 	{
 		return ComparisonIndex == Other.ComparisonIndex && Number == Other.Number;
@@ -508,6 +554,29 @@ public:
 	int32                                         ObjectSerialNumber;                                // 0x0004(0x0004)(NOT AUTO-GENERATED PROPERTY)
 
 public:
+	FORCEINLINE FWeakObjectPtr()
+		: ObjectIndex(INDEX_NONE)
+		, ObjectSerialNumber(0)
+	{
+	}
+
+	FORCEINLINE FWeakObjectPtr(const class UObject* Object)
+	{
+		(*this) = Object;
+	}
+
+	void operator=(const class UObject* Object)
+	{
+		constexpr uintptr_t Offset = 0x11692E8;
+
+		reinterpret_cast<void (*)(FWeakObjectPtr*, const class UObject*)>(ImageBase + Offset)(this, Object);
+	}
+
+	FORCEINLINE friend uint32 GetTypeHash(const FWeakObjectPtr& WeakObjectPtr)
+	{
+		return WeakObjectPtr.ObjectIndex ^ WeakObjectPtr.ObjectSerialNumber;
+	}
+
 	class UObject* Get() const;
 	class UObject* operator->() const;
 	bool operator==(const FWeakObjectPtr& Other) const;
@@ -524,6 +593,13 @@ template<typename UEType>
 class TWeakObjectPtr : public FWeakObjectPtr
 {
 public:
+	FORCEINLINE TWeakObjectPtr() {}
+
+	FORCEINLINE TWeakObjectPtr(UEType* Object)
+		: FWeakObjectPtr(Object)
+	{
+	}
+
 	UEType* Get() const
 	{
 		return static_cast<UEType*>(FWeakObjectPtr::Get());
@@ -715,18 +791,143 @@ private:
 	inline uint8* GetValueBytes()
 	{
 		if constexpr (!bIsIntrusiveUnsetCheck)
+		{
 			return StoredValue.Value;
-
-		return StoredValue;
+		}
+		else
+		{
+			return StoredValue;
+		}
 	}
 
 	inline const uint8* GetValueBytes() const
 	{
 		if constexpr (!bIsIntrusiveUnsetCheck)
+		{
 			return StoredValue.Value;
-
-		return StoredValue;
+		}
+		else
+		{
+			return StoredValue;
+		}
 	}
+
+	inline void SetIsSet(bool bInIsSet)
+	{
+		if constexpr (!bIsIntrusiveUnsetCheck)
+			StoredValue.bIsSet = bInIsSet;
+	}
+
+public:
+	/** Construct an OptionalType with a valid value. */
+	TOptional(const OptionalType& InValue)
+	{
+		new(GetValueBytes()) OptionalType(InValue);
+		SetIsSet(true);
+	}
+	TOptional(OptionalType&& InValue)
+	{
+		new(GetValueBytes()) OptionalType(MoveTempIfPossible(InValue));
+		SetIsSet(true);
+	}
+
+	/** Construct an OptionalType with no value; i.e. unset */
+	TOptional()
+	{
+		if constexpr (bIsIntrusiveUnsetCheck)
+			memset(GetValueBytes(), 0, sizeof(OptionalType));
+		else
+			SetIsSet(false);
+	}
+
+	~TOptional()
+	{
+		Reset();
+	}
+
+	/** Copy/Move construction */
+	TOptional(const TOptional& InValue)
+	{
+		SetIsSet(false);
+		if (InValue.IsSet())
+		{
+			new(GetValueBytes()) OptionalType(InValue.GetValueRef());
+			SetIsSet(true);
+		}
+	}
+	TOptional(TOptional&& InValue)
+	{
+		SetIsSet(false);
+		if (InValue.IsSet())
+		{
+			new(GetValueBytes()) OptionalType(MoveTempIfPossible(InValue.GetValueRef()));
+			SetIsSet(true);
+		}
+	}
+
+	TOptional& operator=(const TOptional& InValue)
+	{
+		if (&InValue != this)
+		{
+			Reset();
+			if (InValue.IsSet())
+			{
+				new(GetValueBytes()) OptionalType(InValue.GetValueRef());
+				SetIsSet(true);
+			}
+		}
+		return *this;
+	}
+	TOptional& operator=(TOptional&& InValue)
+	{
+		if (&InValue != this)
+		{
+			Reset();
+			if (InValue.IsSet())
+			{
+				new(GetValueBytes()) OptionalType(MoveTempIfPossible(InValue.GetValueRef()));
+				SetIsSet(true);
+			}
+		}
+		return *this;
+	}
+
+	TOptional& operator=(const OptionalType& InValue)
+	{
+		if (&InValue != reinterpret_cast<const OptionalType*>(GetValueBytes()))
+		{
+			Reset();
+			new(GetValueBytes()) OptionalType(InValue);
+			SetIsSet(true);
+		}
+		return *this;
+	}
+	TOptional& operator=(OptionalType&& InValue)
+	{
+		if (&InValue != reinterpret_cast<const OptionalType*>(GetValueBytes()))
+		{
+			Reset();
+			new(GetValueBytes()) OptionalType(MoveTempIfPossible(InValue));
+			SetIsSet(true);
+		}
+		return *this;
+	}
+
+	void Reset()
+	{
+		if (IsSet())
+		{
+			SetIsSet(false);
+
+			// We need a typedef here because VC won't compile the destructor call below if OptionalType itself has a member called OptionalType
+			typedef OptionalType OptionalDestructOptionalType;
+			reinterpret_cast<OptionalType*>(GetValueBytes())->OptionalDestructOptionalType::~OptionalDestructOptionalType();
+
+			if constexpr (bIsIntrusiveUnsetCheck)
+				memset(GetValueBytes(), 0, sizeof(OptionalType));
+		}
+	}
+
 public:
 
 	inline OptionalType& GetValueRef()
@@ -742,11 +943,15 @@ public:
 	inline bool IsSet() const
 	{
 		if constexpr (!bIsIntrusiveUnsetCheck)
+		{
 			return StoredValue.bIsSet;
+		}
+		else
+		{
+			constexpr char ZeroBytes[sizeof(OptionalType)] = {};
 
-		constexpr char ZeroBytes[sizeof(OptionalType)];
-
-		return memcmp(GetValueBytes(), &ZeroBytes, sizeof(OptionalType)) == 0;
+			return memcmp(GetValueBytes(), &ZeroBytes, sizeof(OptionalType)) != 0;
+		}
 	}
 
 	inline explicit operator bool() const

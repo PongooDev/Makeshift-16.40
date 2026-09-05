@@ -304,7 +304,9 @@ public:
 	EComponentMobility                            Mobility;                                          // 0x014F(0x0001)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	EDetailMode                                   DetailMode;                                        // 0x0150(0x0001)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, AdvancedDisplay, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	FMulticastSparseDelegateProperty_             PhysicsVolumeChangedDelegate;                      // 0x0151(0x0001)(InstancedReference, BlueprintAssignable, NoDestructor, NativeAccessSpecifierPublic)
-	uint8                                         Pad_152[0xA6];                                     // 0x0152(0x00A6)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_152[0x6E];                                     // 0x0152(0x006E)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FTransform                             ComponentToWorld;                                  // 0x01C0(0x0030)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_1F0[0x8];                                      // 0x01F0(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
 	void DetachFromParent(bool bMaintainWorldPosition, bool bCallModify);
@@ -372,6 +374,18 @@ public:
 	struct FTransform K2_GetComponentToWorld() const;
 
 public:
+	/** Get the current component-to-world transform for this component */
+	FORCEINLINE const FTransform& GetComponentTransform() const
+	{
+		return ComponentToWorld;
+	}
+
+	/** Return location of the component, in world space */
+	FORCEINLINE FVector GetComponentLocation() const
+	{
+		return GetComponentTransform().GetLocation();
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"SceneComponent">();
@@ -754,7 +768,9 @@ public:
 	uint8                                         bReplicates : 1;                                   // 0x005B(0x0001)(BitIndex: 0x01, PropSize: 0x0001 (Edit, BlueprintVisible, BlueprintReadOnly, DisableEditOnInstance, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected))
 	uint8                                         bCanBeInCluster : 1;                               // 0x005B(0x0001)(BitIndex: 0x02, PropSize: 0x0001 (Edit, NoDestructor, AdvancedDisplay, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected))
 	uint8                                         bAllowReceiveTickEventOnDedicatedServer : 1;       // 0x005B(0x0001)(BitIndex: 0x03, PropSize: 0x0001 (NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected))
-	uint8                                         BitPad_5B_4 : 4;                                   // 0x005B(0x0001)(Fixing Bit-Field Size For New Byte [ Dumper-7 ])
+	uint8                                         BitPad_5B_4 : 2;                                   // 0x005B(0x0001)(Fixing Bit-Field Size Between Bits [ Dumper-7 ])
+	uint8                                         bActorInitialized : 1;                             // 0x005B(0x0001)(BitIndex: 0x06, PropSize: 0x0001 (NOT AUTO-GENERATED PROPERTY))
+	uint8                                         BitPad_5B_7 : 1;                                   // 0x005B(0x0001)(Fixing Bit-Field Size For New Byte [ Dumper-7 ])
 	uint8                                         BitPad_5C_0 : 3;                                   // 0x005C(0x0001)(Fixing Bit-Field Size Between Bits [ Dumper-7 ])
 	uint8                                         bActorEnableCollision : 1;                         // 0x005C(0x0001)(BitIndex: 0x03, PropSize: 0x0001 (NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate))
 	uint8                                         bActorIsBeingDestroyed : 1;                        // 0x005C(0x0001)(BitIndex: 0x04, PropSize: 0x0001 (Transient, DuplicateTransient, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate))
@@ -820,7 +836,11 @@ public:
 	void EnableInput(class APlayerController* PlayerController);
 	void FinishAddComponent(class UActorComponent* Component, bool bManualAttachment, const struct FTransform& RelativeTransform);
 	void FlushNetDormancy();
-	void ForceNetUpdate();
+	void ForceNetUpdate()
+	{
+		void (*Fn)(AActor*) = decltype(Fn)(VTable[191]);
+		return Fn(this);
+	}
 	bool GetTickableWhenPaused();
 	void K2_AddActorLocalOffset(const struct FVector& DeltaLocation, bool bSweep, struct FHitResult* SweepHitResult, bool bTeleport);
 	void K2_AddActorLocalRotation(const struct FRotator& DeltaRotation, bool bSweep, struct FHitResult* SweepHitResult, bool bTeleport);
@@ -928,7 +948,10 @@ public:
 	class AActor* GetOwner() const;
 	class AActor* GetParentActor() const;
 	class UChildActorComponent* GetParentComponent() const;
-	ENetRole GetRemoteRole() const;
+	ENetRole GetRemoteRole() const
+	{
+		return RemoteRole;
+	}
 	float GetSquaredDistanceTo(const class AActor* OtherActor) const;
 	const struct FTransform GetTransform() const;
 	struct FVector GetVelocity() const;
@@ -945,6 +968,149 @@ public:
 	bool WasRecentlyRendered(float Tolerance) const;
 
 public:
+	/** Returns true if this actor is pending kill, or has been marked for destruction. */
+	inline bool IsPendingKillPending() const
+	{
+		return bActorIsBeingDestroyed || IsPendingKill();
+	}
+
+	/** Returns whether this actor has network authority */
+	bool GetTearOff() const
+	{
+		return bTearOff;
+	}
+
+	/** Returns whether an actor has been initialized for gameplay */
+	bool IsActorInitialized() const { return bActorInitialized; }
+
+	/** Returns the net driver name for this actor */
+	FName GetNetDriverName() const { return NetDriverName; }
+
+	/** Returns the location of the RootComponent of this Actor */
+	FORCEINLINE FVector GetActorLocation() const
+	{
+		return (RootComponent != nullptr) ? RootComponent->GetComponentLocation() : FVector();
+	}
+
+	/** Getter for the cached world pointer, will return null if the actor is not actually spawned in a level */
+	class UWorld* GetWorld() const
+	{
+		constexpr uintptr_t Offset = 0xD6BC90;
+
+		return reinterpret_cast<class UWorld* (*)(const AActor*)>(ImageBase + Offset)(this);
+	}
+
+	/** Return the ULevel that this Actor is part of. */
+	class ULevel* GetLevel() const
+	{
+		constexpr uintptr_t Offset = 0x297A0C8;
+
+		return reinterpret_cast<class ULevel* (*)(const AActor*)>(ImageBase + Offset)(this);
+	}
+
+	/** Returns true if this actor is a net startup actor that should replicate to clients */
+	bool IsNetStartupActor() const
+	{
+		constexpr uintptr_t Offset = 0xE3C8B8;
+
+		return reinterpret_cast<bool (*)(const AActor*)>(ImageBase + Offset)(this);
+	}
+
+	/** Return the actor responsible for replication, if any. Typically the player controller */
+	const AActor* GetNetOwner() const
+	{
+		const AActor* (*Fn)(const AActor*) = decltype(Fn)(VTable[148]);
+		return Fn(this);
+	}
+
+	/**
+	 * Checks to see if this actor is relevant for a specific network connection
+	 *
+	 * @param RealViewer - is the "controlling net object" associated with the client for which network relevancy is being checked (typically player controller)
+	 * @param ViewTarget - is the Actor being used as the point of view for the RealViewer
+	 * @param SrcLocation - is the viewing location
+	 *
+	 * @return bool - true if this actor is network relevant to the client associated with RealViewer
+	 */
+	bool IsNetRelevantFor(const AActor* RealViewer, const AActor* ViewTarget, const FVector& SrcLocation) const
+	{
+		bool (*Fn)(const AActor*, const AActor*, const AActor*, const FVector&) = decltype(Fn)(VTable[142]);
+		return Fn(this, RealViewer, ViewTarget, SrcLocation);
+	}
+
+	/**
+	 * Check if this actor is the owner when doing relevancy checks for actors marked bOnlyRelevantToOwner
+	 *
+	 * @param ReplicatedActor - the actor we're doing a relevancy test on
+	 * @param ActorOwner - the owner of ReplicatedActor
+	 * @param ConnectionActor - the actor associated with the net connection
+	 *
+	 * @return bool - true if this actor should be considered the owner
+	 */
+	bool IsRelevancyOwnerFor(const AActor* ReplicatedActor, const AActor* ActorOwner, const AActor* ConnectionActor) const
+	{
+		bool (*Fn)(const AActor*, const AActor*, const AActor*, const AActor*) = decltype(Fn)(VTable[144]);
+		return Fn(this, ReplicatedActor, ActorOwner, ConnectionActor);
+	}
+
+	/**
+	 * Function used to prioritize actors when deciding which to replicate
+	 * @param ViewPos		Position of the viewer
+	 * @param ViewDir		Vector direction of viewer
+	 * @param Viewer		"net object" owned by the client for whom net priority is being determined (typically player controller)
+	 * @param ViewTarget	The actor that is currently being viewed/controlled by Viewer, usually a pawn
+	 * @param InChannel		Channel on which this actor is being replicated.
+	 * @param Time			Time since actor was last replicated
+	 * @param bLowBandwidth True if low bandwidth of viewer
+	 * @return				Priority of this actor for replication
+	 */
+	float GetNetPriority(const FVector& ViewPos, const FVector& ViewDir, class AActor* Viewer, AActor* ViewTarget, class UActorChannel* InChannel, float Time, bool bLowBandwidth)
+	{
+		float (*Fn)(AActor*, const FVector&, const FVector&, class AActor*, AActor*, class UActorChannel*, float, bool) = decltype(Fn)(VTable[122]);
+		return Fn(this, ViewPos, ViewDir, Viewer, ViewTarget, InChannel, Time, bLowBandwidth);
+	}
+
+	/**
+	 * Function used to determine if an actor should be replicated in a given relevancy check
+	 * @param ViewPos		Position of the viewer
+	 * @param ViewDir		Vector direction of viewer
+	 * @param Viewer		"net object" owned by the client for whom net priority is being determined (typically player controller)
+	 * @param ViewTarget	The actor that is currently being viewed/controlled by Viewer, usually a pawn
+	 * @param InChannel		Channel on which this actor is being replicated.
+	 * @param Time			Time since actor was last replicated
+	 * @param bLowBandwidth True if low bandwidth of viewer
+	 * @return				Priority of this actor for replication
+	 */
+	bool GetNetDormancy(const FVector& ViewPos, const FVector& ViewDir, class AActor* Viewer, AActor* ViewTarget, class UActorChannel* InChannel, float Time, bool bLowBandwidth)
+	{
+		bool (*Fn)(AActor*, const FVector&, const FVector&, class AActor*, AActor*, class UActorChannel*, float, bool) = decltype(Fn)(VTable[124]);
+		return Fn(this, ViewPos, ViewDir, Viewer, ViewTarget, InChannel, Time, bLowBandwidth);
+	}
+
+	/** Called on the actor right before replication occurs. Only called on Server, and for autonomous proxies if recording a Client Replay. */
+	void CallPreReplication(class UNetDriver* NetDriver)
+	{
+		constexpr uintptr_t Offset = 0x5DE6C84;
+
+		reinterpret_cast<void (*)(AActor*, class UNetDriver*)>(ImageBase + Offset)(this, NetDriver);
+	}
+
+	/** Calls this to swap the Role and RemoteRole.  Only call this if you know what you're doing! */
+	void SwapRoles()
+	{
+		constexpr uintptr_t Offset = 0x5DEDA20;
+
+		reinterpret_cast<void (*)(AActor*)>(ImageBase + Offset)(this);
+	}
+
+	/** Forces properties on this actor to do a compare for one frame (rather than share shadow state) */
+	void ForcePropertyCompare()
+	{
+		constexpr uintptr_t Offset = 0x209BE0C;
+
+		reinterpret_cast<void (*)(AActor*)>(ImageBase + Offset)(this);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"Actor">();
@@ -1535,6 +1701,19 @@ public:
 	}
 
 public:
+	/**
+	 * Returns the maximum tick rate.
+	 *
+	 * @param DeltaTime		Delta time of the previous frame, used to determine the current frame rate for smoothing purposes
+	 * @param bAllowFrameRateSmoothing	Whether to allow frame rate smoothing
+	 * @return The maximum tick rate, or 0 if no limit
+	 */
+	float GetMaxTickRate(float DeltaTime, bool bAllowFrameRateSmoothing = true) const
+	{
+		float (*Fn)(const UEngine*, float, bool) = decltype(Fn)(VTable[86]);
+		return Fn(this, DeltaTime, bAllowFrameRateSmoothing);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"Engine">();
@@ -3059,7 +3238,8 @@ public:
 	uint8                                         Pad_104[0x3C];                                     // 0x0104(0x003C)(Fixing Size After Last Property [ Dumper-7 ])
 	class UWorld*                                 World;                                             // 0x0140(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class UPackage*                               WorldPackage;                                      // 0x0148(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_150[0x20];                                     // 0x0150(0x0020)(Fixing Size After Last Property [ Dumper-7 ])
+	TSharedPtr<class FNetGUIDCache>               GuidCache;                                         // 0x0150(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_160[0x10];                                     // 0x0160(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
 	class UClass*                                 NetConnectionClass;                                // 0x0170(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class UClass*                                 ReplicationDriverClass;                            // 0x0178(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_180[0x10];                                     // 0x0180(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
@@ -3069,9 +3249,29 @@ public:
 	TArray<class UChannel*>                       ActorChannelPool;                                  // 0x01F8(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_208[0x8];                                      // 0x0208(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
 	float                                         Time;                                              // 0x0210(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_214[0x4E4];                                    // 0x0214(0x04E4)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_214[0x4];                                      // 0x0214(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
+	double                                        ElapsedTime;                                       // 0x0218(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        LastTickDispatchRealtime;                          // 0x0220(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bIsPeer;                                           // 0x0228(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_229[0xB7];                                     // 0x0229(0x00B7)(Fixing Size After Last Property [ Dumper-7 ])
+	int32                                         NetTag;                                            // 0x02E0(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          DebugRelevantActors;                               // 0x02E4(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_2E5[0x3];                                      // 0x02E5(0x0003)(Fixing Size After Last Property [ Dumper-7 ])
+	TArray<TWeakObjectPtr<class AActor>>          LastPrioritizedActors;                             // 0x02E8(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	TArray<TWeakObjectPtr<class AActor>>          LastRelevantActors;                                // 0x02F8(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	TArray<TWeakObjectPtr<class AActor>>          LastSentActors;                                    // 0x0308(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	TArray<TWeakObjectPtr<class AActor>>          LastNonRelevantActors;                             // 0x0318(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	TMap<FNetworkGUID, TUniquePtr<struct FActorDestructionInfo>> DestroyedStartupOrDormantActors;    // 0x0328(0x0050)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_378[0xA0];                                     // 0x0378(0x00A0)(Fixing Size After Last Property [ Dumper-7 ])
+	uint32                                        ReplicationFrame;                                  // 0x0418(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_41C[0x2BD];                                    // 0x041C(0x02BD)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          bSkipServerReplicateActors;                        // 0x06D9(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_6DA[0x2];                                      // 0x06DA(0x0002)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FRandomStream                          UpdateDelayRandomStream;                           // 0x06DC(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_6E4[0x14];                                     // 0x06E4(0x0014)(Fixing Size After Last Property [ Dumper-7 ])
 	class UReplicationDriver*                     ReplicationDriver;                                 // 0x06F8(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_700[0x58];                                     // 0x0700(0x0058)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	TSharedPtr<class FNetworkObjectList>          NetworkObjects;                                    // 0x0700(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_710[0x48];                                     // 0x0710(0x0048)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
 	void SetWorld(class UWorld* InWorld)
@@ -3085,6 +3285,74 @@ public:
 		bool (*Fn)(UNetDriver*, class FNetworkNotify*, FURL&, bool, FString&) = decltype(Fn)(VTable[0x52]);
 		return Fn(this, InNotify, ListenURL, bReuseAddressAndPort, Error);
 	}
+
+	/** @return true if this netdriver is handling accepting connections */
+	bool IsServer() const
+	{
+		bool (*Fn)(const UNetDriver*) = decltype(Fn)(VTable[111]);
+		return Fn(this);
+	}
+
+	/** Returns the net mode this net driver is running under */
+	ENetMode GetNetMode() const
+	{
+		constexpr uintptr_t Offset = 0x2E0B6F8;
+
+		return reinterpret_cast<ENetMode (*)(const UNetDriver*)>(ImageBase + Offset)(this);
+	}
+
+	double GetElapsedTime() const { return ElapsedTime; }
+
+	/** @return String that uniquely describes the net driver instance */
+	FString GetDescription();
+
+	/** Returns true if this level has been loaded and initialized for the given connection */
+	bool IsLevelInitializedForActor(const class AActor* InActor, const class UNetConnection* InConnection) const
+	{
+		bool (*Fn)(const UNetDriver*, const class AActor*, const class UNetConnection*) = decltype(Fn)(VTable[124]);
+		return Fn(this, InActor, InConnection);
+	}
+
+	/** Remove an actor from the network object list */
+	void RemoveNetworkActor(class AActor* Actor)
+	{
+		constexpr uintptr_t Offset = 0xE3948C;
+
+		reinterpret_cast<void (*)(UNetDriver*, class AActor*)>(ImageBase + Offset)(this, Actor);
+	}
+
+	/** Sends a destruction info to the given connection */
+	int64 SendDestructionInfo(class UNetConnection* Connection, struct FActorDestructionInfo* DestructionInfo)
+	{
+		constexpr uintptr_t Offset = 0x5F89DA4;
+
+		return reinterpret_cast<int64 (*)(UNetDriver*, class UNetConnection*, struct FActorDestructionInfo*)>(ImageBase + Offset)(this, Connection, DestructionInfo);
+	}
+
+	/** Returns the list of tracked replicated actors */
+	FNetworkObjectList& GetNetworkObjectList() { return *NetworkObjects; }
+	const FNetworkObjectList& GetNetworkObjectList() const { return *NetworkObjects; }
+
+	/** Returns true if adaptive net update frequency is enabled */
+	static bool IsAdaptiveNetUpdateFrequencyEnabled();
+
+	/** Returns true if the actor is a startup actor that is initially dormant */
+	static bool IsDormInitialStartupActor(class AActor* Actor);
+
+	/** Update all client connections with replicated actor data */
+	int32 ServerReplicateActors(float DeltaSeconds);
+
+	int32 ServerReplicateActors_PrepConnections( const float DeltaSeconds );
+	void ServerReplicateActors_BuildConsiderList( TArray<FNetworkObjectInfo*>& OutConsiderList, const float ServerTickTime );
+	int32 ServerReplicateActors_PrioritizeActors( class UNetConnection* Connection, const TArray<struct FNetViewer>& ConnectionViewers, const TArray<FNetworkObjectInfo*> ConsiderList, const bool bCPUSaturated, struct FActorPriority*& OutPriorityList, struct FActorPriority**& OutPriorityActors );
+	int32 ServerReplicateActors_ProcessPrioritizedActors( class UNetConnection* Connection, const TArray<struct FNetViewer>& ConnectionViewers, struct FActorPriority** PriorityActors, const int32 FinalSortedCount, int32& OutUpdated );
+
+	/** Prints the actors that were considered, relevant and sent during the last ServerReplicateActors call */
+	void PrintDebugRelevantActors();
+
+	static inline void (*TickFlushOG)(UNetDriver* This, float DeltaSeconds) = nullptr;
+	static void TickFlushHook(UNetDriver* This, float DeltaSeconds);
+	static void Init();
 
 public:
 	static class UClass* StaticClass()
@@ -5028,7 +5296,46 @@ class UChannel : public UObject
 {
 public:
 	class UNetConnection*                         Connection;                                        // 0x0028(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_30[0x38];                                      // 0x0030(0x0038)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint32                                        OpenAcked : 1;                                     // 0x0030(0x0004)(BitIndex: 0x00, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        Closing : 1;                                       // 0x0030(0x0004)(BitIndex: 0x01, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        Dormant : 1;                                       // 0x0030(0x0004)(BitIndex: 0x02, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bIsReplicationPaused : 1;                          // 0x0030(0x0004)(BitIndex: 0x03, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        OpenTemporary : 1;                                 // 0x0030(0x0004)(BitIndex: 0x04, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        Broken : 1;                                        // 0x0030(0x0004)(BitIndex: 0x05, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bTornOff : 1;                                      // 0x0030(0x0004)(BitIndex: 0x06, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bPendingDormancy : 1;                              // 0x0030(0x0004)(BitIndex: 0x07, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bIsInDormancyHysteresis : 1;                       // 0x0030(0x0004)(BitIndex: 0x08, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bPausedUntilReliableACK : 1;                       // 0x0030(0x0004)(BitIndex: 0x09, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        SentClosingBunch : 1;                              // 0x0030(0x0004)(BitIndex: 0x0A, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bPooled : 1;                                       // 0x0030(0x0004)(BitIndex: 0x0B, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        OpenedLocally : 1;                                 // 0x0030(0x0004)(BitIndex: 0x0C, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	uint32                                        bOpenedForCheckpoint : 1;                          // 0x0030(0x0004)(BitIndex: 0x0D, PropSize: 0x0004 (NOT AUTO-GENERATED PROPERTY))
+	int32                                         ChIndex;                                           // 0x0034(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_38[0x8];                                       // 0x0038(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	class FName                                   ChName;                                            // 0x0040(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         NumInRec;                                          // 0x0048(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         NumOutRec;                                         // 0x004C(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	class FInBunch*                               InRec;                                             // 0x0050(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	class FOutBunch*                              OutRec;                                            // 0x0058(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	class FInBunch*                               InPartialBunch;                                    // 0x0060(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	/** Return whether this channel is ready for sending. */
+	int32 IsNetReady( bool Saturate );
+
+	/** Close the base channel. Returns how many bits were written to the send buffer */
+	int64 Close(EChannelCloseReason Reason)
+	{
+		int64 (*Fn)(UChannel*, EChannelCloseReason) = decltype(Fn)(VTable[80]);
+		return Fn(this, Reason);
+	}
+
+	/** Notification that the channel should go dormant */
+	void StartBecomingDormant()
+	{
+		void (*Fn)(UChannel*) = decltype(Fn)(VTable[91]);
+		return Fn(this);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -5595,13 +5902,82 @@ public:
 	class AActor*                                 OwningActor;                                       // 0x0098(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int32                                         MaxPacket;                                         // 0x00A0(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         InternalAck : 1;                                   // 0x00A4(0x0001)(BitIndex: 0x00, PropSize: 0x0001 (NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic))
-	uint8                                         Pad_A5[0xBB];                                      // 0x00A5(0x00BB)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_A5[0x8F];                                      // 0x00A5(0x008F)(Fixing Size After Last Property [ Dumper-7 ])
+	EConnectionState                              State;                                             // 0x0134(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_138[0x28];                                     // 0x0138(0x0028)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FUniqueNetIdRepl                       PlayerID;                                          // 0x0160(0x0028)(HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_188[0x48];                                     // 0x0188(0x0048)(Fixing Size After Last Property [ Dumper-7 ])
 	double                                        LastReceiveTime;                                   // 0x01D0(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_1D8[0x1338];                                   // 0x01D8(0x1338)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_1D8[0x20];                                     // 0x01D8(0x0020)(Fixing Size After Last Property [ Dumper-7 ])
+	int32                                         QueuedBits;                                        // 0x01F8(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         TickCount;                                         // 0x01FC(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint32                                        LastProcessedFrame;                                // 0x0200(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_204[0x6D];                                     // 0x0204(0x006D)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          TimeSensitive;                                     // 0x0271(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_272[0x10FE];                                   // 0x0272(0x10FE)(Fixing Size After Last Property [ Dumper-7 ])
+	TMap<TWeakObjectPtr<class AActor>, class UActorChannel*> ActorChannels;                          // 0x1370(0x0050)(NOT AUTO-GENERATED PROPERTY)
+	class UReplicationConnectionDriver*           ReplicationConnectionDriver;                       // 0x13C0(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	TSet<FNetworkGUID>                            DestroyedStartupOrDormantActorGUIDs;               // 0x13C8(0x0050)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_1418[0x50];                                    // 0x1418(0x0050)(Fixing Size After Last Property [ Dumper-7 ])
+	TMap<TWeakObjectPtr<class UObject>, TSharedRef<class FObjectReplicator>> DormantReplicatorMap;   // 0x1468(0x0050)(NOT AUTO-GENERATED PROPERTY)
+	TSet<class FName>                             ClientVisibleLevelNames;                           // 0x14B8(0x0050)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_1508[0x8];                                     // 0x1508(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class UChannel*>                       ChannelsToTick;                                    // 0x1510(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_1520[0x1A70];                                  // 0x1520(0x1A70)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_1520[0x574];                                   // 0x1520(0x0574)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          bHasWarnedAboutChannelLimit;                       // 0x1A94(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bConnectionPendingCloseDueToSocketSendFailure;     // 0x1A95(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bConnectionPendingCloseDueToReplicationFailure;    // 0x1A96(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_1A97[0x31];                                    // 0x1A97(0x0031)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FNetConnectionSaturationAnalytics      SaturationAnalytics;                               // 0x1AC8(0x0020)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_1AE8[0x14A8];                                  // 0x1AE8(0x14A8)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	/** Return whether this connection is ready for sending data (not saturated). */
+	int32 IsNetReady(bool Saturate)
+	{
+		int32 (*Fn)(UNetConnection*, bool) = decltype(Fn)(VTable[91]);
+		return Fn(this, Saturate);
+	}
+
+	/** Closes the connection (including sending a close notify across the network). */
+	void Close()
+	{
+		constexpr uintptr_t Offset = 0x16BC19C;
+
+		reinterpret_cast<void (*)(UNetConnection*)>(ImageBase + Offset)(this);
+	}
+
+	/**
+	 * Create a channel.
+	 *
+	 * @param ChName The name of the channel to create.
+	 * @param CreateFlags The flags to use when creating the channel.
+	 * @param ChannelIndex The index of the channel to create, or INDEX_NONE to pick the next free index.
+	 * @return The newly created channel.
+	 */
+	class UChannel* CreateChannelByName(const FName& ChName, EChannelCreateFlags CreateFlags, int32 ChannelIndex = INDEX_NONE)
+	{
+		constexpr uintptr_t Offset = 0x16F678C;
+
+		return reinterpret_cast<class UChannel* (*)(UNetConnection*, const FName&, EChannelCreateFlags, int32)>(ImageBase + Offset)(this, ChName, CreateFlags, ChannelIndex);
+	}
+
+	class UActorChannel* FindActorChannelRef(const TWeakObjectPtr<class AActor>& Actor)
+	{
+		return ActorChannels.FindRef(Actor);
+	}
+
+	void RemoveDestructionInfo(struct FActorDestructionInfo* DestructionInfo);
+
+	TSet<FNetworkGUID>& GetDestroyedStartupOrDormantActorGUIDs() { return DestroyedStartupOrDormantActorGUIDs; }
+
+	/** Tracks the replication stats for this connection */
+	void TrackReplicationForAnalytics(const bool bWasSaturated);
+
+	bool GetPendingCloseDueToReplicationFailure() const
+	{
+		return bConnectionPendingCloseDueToReplicationFailure;
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -5837,7 +6213,11 @@ public:
 
 	struct FRotator GetControlRotation() const;
 	struct FRotator GetDesiredRotation() const;
-	class AActor* GetViewTarget() const;
+	class AActor* GetViewTarget() const
+	{
+		class AActor* (*Fn)(const AController*) = decltype(Fn)(VTable[215]);
+		return Fn(this);
+	}
 	bool IsLocalController() const;
 	bool IsLocalPlayerController() const;
 	bool IsLookInputIgnored() const;
@@ -5847,6 +6227,9 @@ public:
 	bool LineOfSightTo(const class AActor* Other, const struct FVector& ViewPoint, bool bAlternateChecks) const;
 
 public:
+	/** Getter for Pawn */
+	FORCEINLINE class APawn* GetPawn() const { return Pawn; }
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"Controller">();
@@ -6212,6 +6595,13 @@ public:
 	bool WasInputKeyJustReleased(const struct FKey& Key) const;
 
 public:
+	/** Send a ClientAdjustment (if necessary) to the client */
+	void SendClientAdjustment()
+	{
+		void (*Fn)(APlayerController*) = decltype(Fn)(VTable[444]);
+		return Fn(this);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"PlayerController">();
@@ -7845,11 +8235,34 @@ class UActorChannel final : public UChannel
 {
 public:
 	class AActor*                                 Actor;                                             // 0x0068(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-	uint8                                         Pad_70[0xE8];                                      // 0x0070(0x00E8)(Fixing Size After Last Property [ Dumper-7 ])
+	FNetworkGUID                                  ActorNetGUID;                                      // 0x0070(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_74[0x4];                                       // 0x0074(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
+	double                                        RelevantTime;                                      // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        LastUpdateTime;                                    // 0x0080(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_88[0xD0];                                      // 0x0088(0x00D0)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class UObject*>                        CreateSubObjects;                                  // 0x0158(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
 	uint8                                         Pad_168[0x128];                                    // 0x0168(0x0128)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	/** Returns the actor this channel is replicating */
+	class AActor* GetActor() const { return Actor; }
+
+	/** Replicate this channel's actor differences. Returns how many bits were replicated (does not include non-bunch packet overhead) */
+	int64 ReplicateActor()
+	{
+		constexpr uintptr_t Offset = 0x5EA3220;
+
+		return reinterpret_cast<int64 (*)(UActorChannel*)>(ImageBase + Offset)(this);
+	}
+
+	/** Set this actor channel to the given actor */
+	void SetChannelActor(class AActor* InActor, ESetChannelActorFlags Flags)
+	{
+		constexpr uintptr_t Offset = 0xE37ED0;
+
+		reinterpret_cast<void (*)(UActorChannel*, class AActor*, ESetChannelActorFlags)>(ImageBase + Offset)(this, InActor, Flags);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"ActorChannel">();
@@ -8471,6 +8884,12 @@ static_assert(sizeof(IPreviewCollectionInterface) == 0x000028, "Wrong size on IP
 class UReplicationConnectionDriver : public UObject
 {
 public:
+	void NotifyRemoveDestructionInfo(struct FActorDestructionInfo* DestructInfo)
+	{
+		void (*Fn)(UReplicationConnectionDriver*, struct FActorDestructionInfo*) = decltype(Fn)(VTable[83]);
+		return Fn(this, DestructInfo);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"ReplicationConnectionDriver">();
@@ -8624,6 +9043,13 @@ static_assert(offsetof(UParticleModuleSizeScaleBySpeed, MaxScale) == 0x000038, "
 class UReplicationDriver : public UObject
 {
 public:
+	/** The main function that will actually replicate actors. Called every server tick. */
+	int32 ServerReplicateActors(float DeltaSeconds)
+	{
+		int32 (*Fn)(UReplicationDriver*, float) = decltype(Fn)(VTable[95]);
+		return Fn(this, DeltaSeconds);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"ReplicationDriver">();
@@ -10035,7 +10461,9 @@ public:
 	TSet<class UActorComponent*>                  ComponentsThatNeedPreEndOfFrameSync;               // 0x0220(0x0050)(ExportObject, Transient, NonTransactional, ContainsInstancedReference, NativeAccessSpecifierPrivate)
 	TArray<class UActorComponent*>                ComponentsThatNeedEndOfFrameUpdate;                // 0x0270(0x0010)(ExportObject, ZeroConstructor, Transient, NonTransactional, ContainsInstancedReference, NativeAccessSpecifierPrivate)
 	TArray<class UActorComponent*>                ComponentsThatNeedEndOfFrameUpdate_OnGameThread;   // 0x0280(0x0010)(ExportObject, ZeroConstructor, Transient, NonTransactional, ContainsInstancedReference, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_290[0x36C];                                    // 0x0290(0x036C)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_290[0x330];                                    // 0x0290(0x0330)(Fixing Size After Last Property [ Dumper-7 ])
+	float                                         TimeSeconds;                                       // 0x05C0(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_5C4[0x38];                                     // 0x05C4(0x0038)(Fixing Size After Last Property [ Dumper-7 ])
 	float                                         NextSwitchCountdown;                               // 0x05FC(0x0004)(NOT AUTO-GENERATED PROPERTY)
 	class UWorldComposition*                      WorldComposition;                                  // 0x0600(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_608[0x90];                                     // 0x0608(0x0090)(Fixing Size After Last Property [ Dumper-7 ])
@@ -10060,6 +10488,10 @@ public:
 	{
 		return reinterpret_cast<class FNetworkNotify*>(reinterpret_cast<uint8*>(this) + 0x28);
 	}
+
+	static void Init();
+
+	static ENetMode InternalGetNetModeHook(UWorld* This);
 
 	/** Returns the FLevelCollection for the given InType, or null if a collection of that type hasn't been created yet. */
 	FLevelCollection* FindCollectionByType(const ELevelCollectionType InType)
@@ -10090,6 +10522,34 @@ public:
 	}
 
 public:
+	/**
+	 * Returns the AWorldSettings actor associated with this world.
+	 *
+	 * @return AWorldSettings actor associated with this world
+	 */
+	class AWorldSettings* GetWorldSettings( bool bCheckStreamingPersistent = false, bool bChecked = true ) const
+	{
+		constexpr uintptr_t Offset = 0xEC500C;
+
+		return reinterpret_cast<class AWorldSettings* (*)(const UWorld*, bool, bool)>(ImageBase + Offset)(this, bCheckStreamingPersistent, bChecked);
+	}
+
+	/**
+	 * Returns time in seconds since world was brought up for play, IS stopped when game pauses, IS dilated/clamped
+	 *
+	 * @return time in seconds since world was brought up for play
+	 */
+	float GetTimeSeconds() const
+	{
+		return TimeSeconds;
+	}
+
+	/** Returns the current level pending visibility. */
+	class ULevel* GetCurrentLevelPendingVisibility() const { return CurrentLevelPendingVisibility; }
+
+	/** Returns the current level pending invisibility. */
+	class ULevel* GetCurrentLevelPendingInvisibility() const { return CurrentLevelPendingInvisibility; }
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"World">();
@@ -19894,6 +20354,13 @@ public:
 	uint8                                         Pad_2C2[0xE];                                      // 0x02C2(0x000E)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	/** @return true if we're in low bandwidth mode */
+	bool IsInLowBandwidthMode()
+	{
+		bool (*Fn)(AGameNetworkManager*) = decltype(Fn)(VTable[201]);
+		return Fn(this);
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"GameNetworkManager">();
@@ -23055,7 +23522,12 @@ public:
 	uint8                                         bTextureStreamingRotationChanged : 1;              // 0x01F4(0x0001)(BitIndex: 0x03, PropSize: 0x0001 (NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic))
 	uint8                                         bStaticComponentsRegisteredInStreamingManager : 1; // 0x01F4(0x0001)(BitIndex: 0x04, PropSize: 0x0001 (Transient, DuplicateTransient, NonTransactional, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic))
 	uint8                                         bIsVisible : 1;                                    // 0x01F4(0x0001)(BitIndex: 0x05, PropSize: 0x0001 (Transient, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic))
-	uint8                                         Pad_1F5[0x63];                                     // 0x01F5(0x0063)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         BitPad_1F5_0 : 2;                                  // 0x01F5(0x0001)(Fixing Bit-Field Size Between Bits [ Dumper-7 ])
+	uint8                                         bAlreadyInitializedNetworkActors : 1;              // 0x01F5(0x0001)(BitIndex: 0x02, PropSize: 0x0001 (NOT AUTO-GENERATED PROPERTY))
+	uint8                                         BitPad_1F5_3 : 3;                                  // 0x01F5(0x0001)(Fixing Bit-Field Size Between Bits [ Dumper-7 ])
+	uint8                                         bIsAssociatingLevel : 1;                           // 0x01F5(0x0001)(BitIndex: 0x06, PropSize: 0x0001 (NOT AUTO-GENERATED PROPERTY))
+	uint8                                         BitPad_1F5_7 : 1;                                  // 0x01F5(0x0001)(Fixing Bit-Field Size For New Byte [ Dumper-7 ])
+	uint8                                         Pad_1F6[0x62];                                     // 0x01F6(0x0062)(Fixing Size After Last Property [ Dumper-7 ])
 	class AWorldSettings*                         WorldSettings;                                     // 0x0258(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_260[0x8];                                      // 0x0260(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class UAssetUserData*>                 AssetUserData;                                     // 0x0268(0x0010)(ExportObject, ZeroConstructor, ContainsInstancedReference, Protected, NativeAccessSpecifierProtected)
@@ -23063,6 +23535,12 @@ public:
 	TArray<struct FReplicatedStaticActorDestructionInfo> DestroyedReplicatedStaticActors;                   // 0x0288(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
 
 public:
+	/** Whether the level is currently pending being made invisible or visible.				*/
+	bool HasVisibilityChangeRequestPending() const
+	{
+		return (OwningWorld && ( this == OwningWorld->GetCurrentLevelPendingVisibility() || this == OwningWorld->GetCurrentLevelPendingInvisibility() ) );
+	}
+
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"Level">();

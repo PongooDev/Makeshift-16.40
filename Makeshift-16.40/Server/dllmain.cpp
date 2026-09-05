@@ -40,7 +40,9 @@ DWORD WINAPI Main(LPVOID) {
         GIsServer = 1;
     }
 
+    UWorld::Init();
     UEngine::Init();
+    UNetDriver::Init();
 
     UWorld* World = GWorld;
     if (World) {

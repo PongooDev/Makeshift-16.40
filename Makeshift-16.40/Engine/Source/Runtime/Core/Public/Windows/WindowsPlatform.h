@@ -19,6 +19,18 @@ typedef __int64				PTRINT;
 #define PLATFORM_LITTLE_ENDIAN				1
 #define PLATFORM_SUPPORTS_COLORIZED_OUTPUT_DEVICE	1
 
+#define PLATFORM_SUPPORTS_PRAGMA_PACK						1
+#define PLATFORM_ENABLE_VECTORINTRINSICS					1
+#ifndef PLATFORM_MAYBE_HAS_SSE4_1 // May be set from UnrealBuildTool
+	#define PLATFORM_MAYBE_HAS_SSE4_1						1
+#endif
+// Current unreal minspec is sse2, not sse4, so on windows any calling code must check _cpuid before calling SSE4 instructions;
+// If called on a platform for which _cpuid for SSE4 returns false, attempting to call SSE4 intrinsics will crash
+// If your title has raised the minspec to sse4, you can define PLATFORM_ALWAYS_HAS_SSE4_1 to 1
+#ifndef PLATFORM_ALWAYS_HAS_SSE4_1 // May be set from UnrealBuildTool
+	#define PLATFORM_ALWAYS_HAS_SSE4_1						0
+#endif
+
 // Function type macros.
 #define VARARGS     __cdecl											/* Functions with variable arguments */
 #undef CDECL
@@ -26,6 +38,17 @@ typedef __int64				PTRINT;
 #define STDCALL		__stdcall										/* Standard calling convention */
 #define FORCEINLINE __forceinline									/* Force code to be inline */
 #define FORCENOINLINE __declspec(noinline)							/* Force code to NOT be inline */
+
+// Alignment.
+#if defined(__clang__)
+	#define GCC_PACK(n) __attribute__((packed,aligned(n)))
+	#define GCC_ALIGN(n) __attribute__((aligned(n)))
+	#if defined(_MSC_VER)
+		#define MS_ALIGN(n) __declspec(align(n)) // With -fms-extensions, Clang will accept either alignment attribute
+	#endif
+#else
+	#define MS_ALIGN(n) __declspec(align(n))
+#endif
 
 #if !defined(__clang__) || defined(_MSC_VER)
 	#define ASSUME(expr) __assume(expr)

@@ -4,6 +4,7 @@
 #include "pch.h"
 
 #include "Engine/Source/Runtime/Core/Public/CoreTypes.h"
+#include <tchar.h>
 
 #include <cwchar>
 #include <cstdio>
@@ -58,6 +59,11 @@ struct FWindowsPlatformString
 		return _wcsnicmp( String1, String2, Count );
 	}
 
+	static FORCEINLINE const WIDECHAR* Strstr( const WIDECHAR* String, const WIDECHAR* Find)
+	{
+		return _tcsstr( String, Find );
+	}
+
 	static FORCEINLINE int32 Strlen( const WIDECHAR* String )
 	{
 		return (int32)wcslen( String );
@@ -108,6 +114,11 @@ struct FWindowsPlatformString
 	static FORCEINLINE int32 Strnicmp( const ANSICHAR* String1, const ANSICHAR* String2, SIZE_T Count )
 	{
 		return _strnicmp( String1, String2, Count );
+	}
+
+	static FORCEINLINE const ANSICHAR* Strstr( const ANSICHAR* String, const ANSICHAR* Find)
+	{
+		return strstr(String, Find);
 	}
 
 	static FORCEINLINE int32 Strlen( const ANSICHAR* String )

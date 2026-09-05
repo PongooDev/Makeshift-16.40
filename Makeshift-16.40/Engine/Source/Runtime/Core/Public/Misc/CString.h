@@ -14,6 +14,32 @@
 
 #define MAX_SPRINTF 1024
 
+/** Determines case sensitivity options for string comparisons. */
+namespace ESearchCase
+{
+	enum Type
+	{
+		/** Case sensitive. Upper/lower casing must match for strings to be considered equal. */
+		CaseSensitive,
+
+		/** Ignore case. Upper/lower casing does not matter when making a comparison. */
+		IgnoreCase,
+	};
+};
+
+/** Determines search direction for string operations. */
+namespace ESearchDir
+{
+	enum Type
+	{
+		/** Search from the start, moving forward through the string. */
+		FromStart,
+
+		/** Search from the end, moving backward through the string. */
+		FromEnd,
+	};
+}
+
 /**
  *	Set of basic string utility functions operating on plain C strings. In addition to the
  *	wrapped C string API,this struct also contains a set of widely used utility functions that
@@ -138,6 +164,21 @@ struct TCString
 	static FORCEINLINE int32 Strlen( const CharType* String );
 
 	/**
+	 * strstr wrapper
+	 */
+	static FORCEINLINE const CharType* Strstr( const CharType* String, const CharType* Find );
+	static FORCEINLINE CharType* Strstr( CharType* String, const CharType* Find );
+
+	/**
+	 * Finds string in string, case insensitive
+	 * @param Str The string to look through
+	 * @param Find The string to find inside Str
+	 * @return Position in Str if Find was found, otherwise, NULL
+	 */
+	static const CharType* Stristr(const CharType* Str, const CharType* Find);
+	static CharType* Stristr(CharType* Str, const CharType* Find) { return (CharType*)Stristr((const CharType*)Str, Find); }
+
+	/**
 	* Standard string formatted print.
 	* @warning: make sure code using FCString::Sprintf allocates enough (>= MAX_SPRINTF) memory for the destination buffer
 	*/
@@ -177,6 +218,52 @@ private:
 	static int32 VARARGS SprintfImpl(CharType* Dest, const CharType* Fmt, ...);
 	static int32 VARARGS SnprintfImpl(CharType* Dest, int32 DestSize, const CharType* Fmt, ...);
 };
+
+template <typename T> FORCEINLINE
+const typename TCString<T>::CharType* TCString<T>::Strstr( const CharType* String, const CharType* Find )
+{
+	return FPlatformString::Strstr(String, Find);
+}
+
+template <typename T> FORCEINLINE
+typename TCString<T>::CharType* TCString<T>::Strstr( CharType* String, const CharType* Find )
+{
+	return (CharType*)FPlatformString::Strstr(String, Find);
+}
+
+template <typename T>
+const typename TCString<T>::CharType* TCString<T>::Stristr(const CharType* Str, const CharType* Find)
+{
+	// both strings must be valid
+	if( Find == NULL || Str == NULL )
+	{
+		return NULL;
+	}
+
+	// get upper-case first letter of the find string (to reduce the number of full strnicmps)
+	CharType FindInitial = TChar<CharType>::ToUpper(*Find);
+	// get length of find string, and increment past first letter
+	int32   Length = Strlen(Find++) - 1;
+	// get the first letter of the search string, and increment past it
+	CharType StrChar = *Str++;
+	// while we aren't at end of string...
+	while (StrChar)
+	{
+		// make sure it's upper-case
+		StrChar = TChar<CharType>::ToUpper(StrChar);
+		// if it matches the first letter of the find string, do a case-insensitive string compare for the length of the find string
+		if (StrChar == FindInitial && !Strnicmp(Str, Find, Length))
+		{
+			// if we found the string, then return a pointer to the beginning of it in the search string
+			return Str-1;
+		}
+		// go to next letter
+		StrChar = *Str++;
+	}
+
+	// if nothing was found, return NULL
+	return NULL;
+}
 
 typedef TCString<TCHAR>    FCString;
 typedef TCString<ANSICHAR> FCStringAnsi;

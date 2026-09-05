@@ -8208,6 +8208,13 @@ static_assert(sizeof(AFortArenaCamera) == 0x000820, "Wrong size on AFortArenaCam
 static_assert(offsetof(AFortArenaCamera, CameraZone) == 0x000804, "Member 'AFortArenaCamera::CameraZone' has a wrong offset!");
 static_assert(offsetof(AFortArenaCamera, CameraComponentType) == 0x000810, "Member 'AFortArenaCamera::CameraComponentType' has a wrong offset!");
 
+enum EFortPlayerValidationType : uint8
+{
+	NotValidated = 0,
+	ValidatedPlayer = 1,
+	ValidatedSpectator = 2,
+};
+
 // Class FortniteGame.FortGameSession
 // 0x0158 (0x0390 - 0x0238)
 class AFortGameSession : public AGameSession
@@ -8247,6 +8254,10 @@ public:
 public:
 	void DumpReservations() const;
 
+	static inline EFortPlayerValidationType (*ValidatePlayerOG)(AFortGameSession* This, const FUniqueNetIdRepl* UniqueId, bool bIsLocalPlayer, FText* ReturnReason);
+	static EFortPlayerValidationType ValidatePlayerHook(AFortGameSession* This, const FUniqueNetIdRepl* UniqueId, bool bIsLocalPlayer, FText* ReturnReason);
+
+	static void Init();
 public:
 	static class UClass* StaticClass()
 	{

@@ -1,4 +1,4 @@
-// dllmain.cpp : Defines the entry point for the DLL application.
+﻿// dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
 
 #include "Engine/Source/Runtime/Core/Public/CoreGlobals.h"
@@ -42,6 +42,7 @@ DWORD WINAPI Main(LPVOID) {
 
     UWorld::Init();
     UEngine::Init();
+    AFortGameSession::Init();
     UNetDriver::Init();
 
     UWorld* World = GWorld;

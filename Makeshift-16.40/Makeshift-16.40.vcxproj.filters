@@ -67,6 +67,21 @@
     <Filter Include="Engine\Source\Runtime\Engine\Public">
       <UniqueIdentifier>{80b64fa5-e43c-4fe4-b452-314808ba4017}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame">
+      <UniqueIdentifier>{fc0a6f37-153c-472e-bb65-303afa8b538b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source">
+      <UniqueIdentifier>{e2b3a021-3930-4f6a-9525-727f37eb6510}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame">
+      <UniqueIdentifier>{fbd7fd46-3dd2-42a1-b01b-28d486bb010e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private">
+      <UniqueIdentifier>{3a35e1a8-8835-4619-825f-3bb34dcbe1ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Online">
+      <UniqueIdentifier>{8a7dcd01-2382-4355-ac6f-c4cd4eca3046}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -526,6 +541,9 @@
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\NetDriver.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Online\FortGameSession.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Online</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

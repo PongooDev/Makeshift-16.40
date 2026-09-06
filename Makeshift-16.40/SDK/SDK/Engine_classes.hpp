@@ -1669,6 +1669,12 @@ public:
 	static inline bool (*LoadMapOG)(UEngine* This, FWorldContext& WorldContext, FURL& URL, class UPendingNetGame* Pending, FString& Error);
 	static bool LoadMapHook(UEngine* This, FWorldContext& WorldContext, FURL& URL, class UPendingNetGame* Pending, FString& Error);
 
+	UWorld* GetWorldFromContextObject(const UObject* Object, EGetWorldErrorMode ErrorMode) const
+	{
+		UWorld* (*Fn)(const UEngine*, const UObject*, EGetWorldErrorMode) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE8894C);
+		return Fn(this, Object, ErrorMode);
+	}
+
 	void BroadcastNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure FailureType, const FString& ErrorString = TEXT(""))
 	{
 		void (*Fn)(UEngine*, UWorld*, UNetDriver*, int32, const FString&) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x60A3C80);

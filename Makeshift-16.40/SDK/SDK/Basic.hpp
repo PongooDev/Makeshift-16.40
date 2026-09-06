@@ -1347,6 +1347,31 @@ static_assert(offsetof(FProperty, ElementSize) == 0x00003C, "Member 'FProperty::
 static_assert(offsetof(FProperty, PropertyFlags) == 0x000040, "Member 'FProperty::PropertyFlags' has a wrong offset!");
 static_assert(offsetof(FProperty, Offset) == 0x00004C, "Member 'FProperty::Offset' has a wrong offset!");
 
+class FNumericProperty : public FProperty
+{
+};
+static_assert(alignof(FNumericProperty) == 0x000008, "Wrong alignment on FNumericProperty");
+static_assert(sizeof(FNumericProperty) == 0x000078, "Wrong size on FNumericProperty");
+
+class FIntProperty final : public FNumericProperty
+{
+public:
+	typedef int32 TCppType;
+
+	static TCppType GetDefaultPropertyValue()
+	{
+		return TCppType();
+	}
+
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC5AD78);
+		return Fn();
+	}
+};
+static_assert(alignof(FIntProperty) == 0x000008, "Wrong alignment on FIntProperty");
+static_assert(sizeof(FIntProperty) == 0x000078, "Wrong size on FIntProperty");
+
 // Predefined struct FByteProperty
 // 0x0008 (0x0080 - 0x0078)
 class FByteProperty final : public FProperty
@@ -1381,6 +1406,12 @@ class FObjectPropertyBase : public FProperty
 {
 public:
 	class UClass*                                 PropertyClass;                                     // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
+public:
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC5A37C);
+		return Fn();
+	}
 };
 static_assert(alignof(FObjectPropertyBase) == 0x000008, "Wrong alignment on FObjectPropertyBase");
 static_assert(sizeof(FObjectPropertyBase) == 0x000080, "Wrong size on FObjectPropertyBase");
@@ -1461,6 +1492,12 @@ class FEnumProperty final : public FProperty
 public:
 	class FProperty*                              UnderlayingProperty;                               // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
 	class UEnum*                                  Enum;                                              // 0x0080(0x0008)(NOT AUTO-GENERATED PROPERTY)
+public:
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF0D510);
+		return Fn();
+	}
 };
 static_assert(alignof(FEnumProperty) == 0x000008, "Wrong alignment on FEnumProperty");
 static_assert(sizeof(FEnumProperty) == 0x000088, "Wrong size on FEnumProperty");

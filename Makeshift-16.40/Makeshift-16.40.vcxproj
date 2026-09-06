@@ -259,6 +259,10 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\CoreNetTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectBaseUtility.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\ObjectMacros.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\Script.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\CoreNative.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\Stack.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\ScriptMacros.h" />
     <ClInclude Include="Engine\Source\Runtime\Net\Core\Public\Net\Core\PushModel\PushModel.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\NetConnection.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Channel.h" />
@@ -338,6 +342,8 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\ScriptCore.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp" />
     <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp" />
     <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayPrediction.cpp" />

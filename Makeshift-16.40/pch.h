@@ -71,6 +71,11 @@ struct FAbilityReplicatedDataCache;
 struct alignas(8) FSimpleMulticastDelegate { uint8 Pad_0[0x18]; };
 struct alignas(8) FAbilityTargetDataSetDelegate { uint8 Pad_0[0x18]; };
 struct FOnGameplayAbilityEnded { struct FDelegate; };
+struct alignas(8) FlowStackType { uint8 Pad_0[0x30]; };
+enum class EGetWorldErrorMode;
+
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/Script.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectMacros.h"
 
 #include "SDK/SDK.hpp"
 
@@ -97,6 +102,9 @@ namespace Configuration {
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectBaseUtility.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/CoreNative.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/ScriptMacros.h"
 
 DECLARE_LOG_CATEGORY_OFFSET(LogOnline, Log, All)
 #define LogOnline UE_LOG_CATEGORY_AT(LogOnline, 0x93A6618)

@@ -459,6 +459,18 @@
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\ObjectMacros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\Script.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\CoreNative.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\Stack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\ScriptMacros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Net\Core\Public\Net\Core\PushModel\PushModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -667,6 +679,12 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\ScriptCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp">
       <Filter>Engine\Source\Runtime\Core\Private\Math</Filter>

@@ -67024,6 +67024,11 @@ static_assert(sizeof(IFortAthenaMutator_EQSActorProviderInterface) == 0x000028, 
 class UFortKismetLibrary final : public UBlueprintFunctionLibrary
 {
 public:
+	DECLARE_FUNCTION(execIncrementAnalyticMatchCount);
+
+	static void Init();
+
+public:
 	static void ActivateQuickbarSlot(class AFortPlayerPawn* PlayerPawn, EFortQuickBars InQuickBar, int32 Slot, float ActivateDelay, bool bUpdatePreviousFocusedSlot, bool bForceExecution);
 	static void AddActorToClear(class UObject* WorldContextObject, class ABuildingActor* Building);
 	static class UCameraModifier* AddCameraModifierForOwningPlayerController(TSubclassOf<class UCameraModifier> InCameraModifierClass, class AActor* InActor);

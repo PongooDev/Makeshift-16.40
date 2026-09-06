@@ -164028,38 +164028,6 @@ void UFortKismetLibrary::HideTutorialWidget(class UObject* WorldContextObject, c
 }
 
 
-// Function FortniteGame.FortKismetLibrary.IncrementAnalyticMatchCount
-// (Final, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// EAnalyticMatchCounts                    MatchCountID                                           (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   AmountToAdd                                            (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-int32 UFortKismetLibrary::IncrementAnalyticMatchCount(const class UObject* WorldContextObject, const EAnalyticMatchCounts MatchCountID, const int32 AmountToAdd)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "IncrementAnalyticMatchCount");
-
-	Params::FortKismetLibrary_IncrementAnalyticMatchCount Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.MatchCountID = MatchCountID;
-	Parms.AmountToAdd = AmountToAdd;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.InEditorOrPIE
 // (Final, Native, Static, Public, BlueprintCallable, BlueprintPure)
 // Parameters:

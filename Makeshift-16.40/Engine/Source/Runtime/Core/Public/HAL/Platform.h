@@ -162,6 +162,9 @@
 #ifndef ENGINE_API
 	#define ENGINE_API
 #endif
+#ifndef COREUOBJECT_API
+	#define COREUOBJECT_API
+#endif
 #ifndef GAMEPLAYABILITIES_API
 	#define GAMEPLAYABILITIES_API
 #endif

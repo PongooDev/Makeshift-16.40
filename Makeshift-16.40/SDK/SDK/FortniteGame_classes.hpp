@@ -357,6 +357,11 @@ public:
 	{
 		reinterpret_cast<void (*)(const UFortItemDefinition*, class IFortInventoryOwnerInterface*, int32, bool)>(VTable[132])(this, InventoryOwner, Quantity, bLoadedFromRecord);
 	}
+
+	void OnItemInstanceRemoved(class IFortInventoryOwnerInterface* InventoryOwner, class UFortItem* Item) const
+	{
+		reinterpret_cast<void (*)(const UFortItemDefinition*, class IFortInventoryOwnerInterface*, class UFortItem*)>(VTable[131])(this, InventoryOwner, Item);
+	}
 };
 static_assert(alignof(UFortItemDefinition) == 0x000008, "Wrong alignment on UFortItemDefinition");
 static_assert(sizeof(UFortItemDefinition) == 0x000348, "Wrong size on UFortItemDefinition");
@@ -6748,6 +6753,7 @@ public:
 
 public:
 	class UFortWorldItem* AddInventoryItem(const struct FFortItemEntry& ItemEntry, bool bResetRegenCooldown);
+	int32 RemoveInventoryItem(const struct FGuid& ItemGuid, int32 Count, bool bForceRemoval);
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");
 static_assert(sizeof(AFortPlayerController) == 0x002560, "Wrong size on AFortPlayerController");
@@ -30042,6 +30048,12 @@ public:
 public:
 	class UFortWorldItem* AddItem(const struct FFortItemEntry& ItemEntry);
 	void InitializeExistingItem(class UFortWorldItem* ExistingItem);
+	void OnRemoveItemStack(class UFortWorldItem* ItemStackToRemove, const struct FGuid& ItemGuid);
+
+	void HandleInventoryItemRemoved()
+	{
+		reinterpret_cast<void (*)(AFortInventory*)>(VTable[199])(this);
+	}
 
 	void UpdateItemInstances()
 	{
@@ -53562,6 +53574,12 @@ public:
 		class UGameDataBR* (*Fn)(UFortAssetManager*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1346328);
 		return Fn(this);
 	}
+
+	class UFortGameData* GetGameData()
+	{
+		class UFortGameData* (*Fn)(UFortAssetManager*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF72A74);
+		return Fn(this);
+	}
 };
 static_assert(alignof(UFortAssetManager) == 0x000008, "Wrong alignment on UFortAssetManager");
 static_assert(sizeof(UFortAssetManager) == 0x0008C8, "Wrong size on UFortAssetManager");
@@ -67252,6 +67270,13 @@ public:
 	DECLARE_FUNCTION(execK2_GiveItemToPlayer);
 	DECLARE_FUNCTION(execGiveItemToInventoryOwner);
 	DECLARE_FUNCTION(execAddRegenItemToInventoryOwner);
+	DECLARE_FUNCTION(execK2_RemoveItemFromPlayer);
+	DECLARE_FUNCTION(execK2_RemoveItemFromPlayerByGuid);
+	DECLARE_FUNCTION(execK2_RemoveItemsFromPlayerByIntStateValue);
+	DECLARE_FUNCTION(execK2_RemoveItemsFromPlayerByNameStateValue);
+	DECLARE_FUNCTION(execK2_RemoveItemFromAllPlayers);
+	DECLARE_FUNCTION(execK2_GiveBuildingResource);
+	DECLARE_FUNCTION(execUpgradeAllWeaponsVerticalToRarity);
 
 	static class AFortPickup* K2_SpawnPickupInWorldWithClassAndItemEntry(class UObject* WorldContextObject, const struct FFortItemEntry& ItemEntry, TSubclassOf<class AFortPickup> PickupClass, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, class AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner, bool bShouldCombinePickupsWhenTossCompletes = true);
 
@@ -79849,6 +79874,13 @@ public:
 	static class UFortGameData* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortGameData>();
+	}
+
+public:
+	class UFortResourceItemDefinition* GetResourceItemDefinition(EFortResourceType Type) const
+	{
+		class UFortResourceItemDefinition* (*Fn)(const UFortGameData*, EFortResourceType) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x13890E4);
+		return Fn(this, Type);
 	}
 };
 static_assert(alignof(UFortGameData) == 0x000008, "Wrong alignment on UFortGameData");
@@ -107738,6 +107770,13 @@ public:
 	static class UFortPickupInstigatorRegistryComponent* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortPickupInstigatorRegistryComponent>();
+	}
+
+public:
+	static class UFortPickupInstigatorRegistryComponent* GetPickupRegistryForContext(class AActor* ActorContext)
+	{
+		class UFortPickupInstigatorRegistryComponent* (*Fn)(class AActor*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x49CC2C8);
+		return Fn(ActorContext);
 	}
 };
 static_assert(alignof(UFortPickupInstigatorRegistryComponent) == 0x000008, "Wrong alignment on UFortPickupInstigatorRegistryComponent");

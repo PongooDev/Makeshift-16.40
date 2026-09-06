@@ -20702,7 +20702,11 @@ public:
 	int32                                         ItemVariantDataMappingIndex;                       // 0x018C(0x0004)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 
 public:
-	FFortItemEntry() = default;
+	FFortItemEntry()
+	{
+		void (*Fn)(FFortItemEntry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1520FD8);
+		Fn(this);
+	}
 	FFortItemEntry(const class UFortItemDefinition* InItemDefinition, int32 InCount, int32 InLevel)
 	{
 		void (*Fn)(FFortItemEntry*, const class UFortItemDefinition*, int32, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x14AFE1C);
@@ -20757,6 +20761,19 @@ public:
 	{
 		bool (*Fn)(const FFortItemEntry*, EFortItemEntryState, int32*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1583D20);
 		return Fn(this, StateType, &OutValue);
+	}
+
+	bool GetStateValue(EFortItemEntryState StateType, class FName& OutValue) const
+	{
+		for (int32 Index = 0; Index < StateValues.Num(); ++Index)
+		{
+			if (StateValues[Index].StateType == StateType)
+			{
+				OutValue = StateValues[Index].NameValue;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	void SetParentInventory(class AFortInventory* InParentInventory, bool InIsReplicatedCopy);

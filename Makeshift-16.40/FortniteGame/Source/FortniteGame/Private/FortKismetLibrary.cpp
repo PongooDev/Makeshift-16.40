@@ -742,6 +742,210 @@ DEFINE_FUNCTION(UFortKismetLibrary::execAddRegenItemToInventoryOwner)
 	P_NATIVE_END;
 }
 
+int32 UFortKismetLibrary::K2_RemoveItemFromPlayer(AFortPlayerController* PlayerController, UFortWorldItemDefinition* ItemDefinition, int32 AmountToRemove, bool bForceRemoval) {
+	if (!PlayerController || !PlayerController->WorldInventory || !ItemDefinition) {
+		return 0;
+	}
+
+	TArray<UFortWorldItem*> Items;
+	PlayerController->WorldInventory->FindItemInstancesForDefinition(ItemDefinition, Items, true);
+
+	int32 AmountRemoved = 0;
+	for (int32 Index = 0; Index < Items.Num() && (AmountToRemove < 0 || AmountRemoved < AmountToRemove); ++Index) {
+		AmountRemoved += PlayerController->RemoveInventoryItem(Items[Index]->GetItemGuid(), AmountToRemove < 0 ? INDEX_NONE : AmountToRemove - AmountRemoved, bForceRemoval);
+	}
+
+	return AmountRemoved;
+}
+
+int32 UFortKismetLibrary::K2_RemoveItemFromPlayerByGuid(AFortPlayerController* PlayerController, const FGuid& ItemGuid, int32 AmountToRemove, bool bForceRemoval) {
+	if (!PlayerController) {
+		return 0;
+	}
+
+	return PlayerController->RemoveInventoryItem(ItemGuid, AmountToRemove, bForceRemoval);
+}
+
+int32 UFortKismetLibrary::K2_RemoveItemsFromPlayerByIntStateValue(AFortPlayerController* PlayerController, EFortItemEntryState StateType, int32 StateValue, bool bForceRemoval) {
+	if (!PlayerController || !PlayerController->WorldInventory) {
+		return 0;
+	}
+
+	TArray<UFortWorldItem*> Items = PlayerController->WorldInventory->Inventory.ItemInstances;
+
+	int32 ItemsRemoved = 0;
+	for (int32 Index = 0; Index < Items.Num(); ++Index) {
+		UFortWorldItem* Item = Items[Index];
+		int32 ItemStateValue = 0;
+		if (Item && Item->ItemEntry.GetStateValue(StateType, ItemStateValue) && ItemStateValue == StateValue) {
+			if (PlayerController->RemoveInventoryItem(Item->GetItemGuid(), INDEX_NONE, bForceRemoval) > 0) {
+				++ItemsRemoved;
+			}
+		}
+	}
+
+	return ItemsRemoved;
+}
+
+int32 UFortKismetLibrary::K2_RemoveItemsFromPlayerByNameStateValue(AFortPlayerController* PlayerController, EFortItemEntryState StateType, FName StateValue, bool bForceRemoval) {
+	if (!PlayerController || !PlayerController->WorldInventory) {
+		return 0;
+	}
+
+	TArray<UFortWorldItem*> Items = PlayerController->WorldInventory->Inventory.ItemInstances;
+
+	int32 ItemsRemoved = 0;
+	for (int32 Index = 0; Index < Items.Num(); ++Index) {
+		UFortWorldItem* Item = Items[Index];
+		FName ItemStateValue;
+		if (Item && Item->ItemEntry.GetStateValue(StateType, ItemStateValue) && ItemStateValue == StateValue) {
+			if (PlayerController->RemoveInventoryItem(Item->GetItemGuid(), INDEX_NONE, bForceRemoval) > 0) {
+				++ItemsRemoved;
+			}
+		}
+	}
+
+	return ItemsRemoved;
+}
+
+void UFortKismetLibrary::K2_RemoveItemFromAllPlayers(UObject* WorldContextObject, UFortWorldItemDefinition* ItemDefinition, int32 AmountToRemove) {
+	TArray<AFortPlayerController*> PlayerControllers = GetAllFortPlayerControllers(WorldContextObject, true, false);
+	for (int32 Index = 0; Index < PlayerControllers.Num(); ++Index) {
+		K2_RemoveItemFromPlayer(PlayerControllers[Index], ItemDefinition, AmountToRemove, false);
+	}
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_RemoveItemFromPlayer)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_PlayerController);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_AmountToRemove);
+	P_GET_UBOOL(Z_Param_bForceRemoval);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(int32*)Z_Param__Result=UFortKismetLibrary::K2_RemoveItemFromPlayer(Z_Param_PlayerController,Z_Param_ItemDefinition,Z_Param_AmountToRemove,Z_Param_bForceRemoval);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_RemoveItemFromPlayerByGuid)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_PlayerController);
+	P_GET_STRUCT_REF(FGuid,Z_Param_Out_ItemGuid);
+	P_GET_PROPERTY(FIntProperty,Z_Param_AmountToRemove);
+	P_GET_UBOOL(Z_Param_bForceRemoval);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(int32*)Z_Param__Result=UFortKismetLibrary::K2_RemoveItemFromPlayerByGuid(Z_Param_PlayerController,Z_Param_Out_ItemGuid,Z_Param_AmountToRemove,Z_Param_bForceRemoval);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_RemoveItemsFromPlayerByIntStateValue)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_PlayerController);
+	P_GET_PROPERTY(FByteProperty,Z_Param_StateType);
+	P_GET_PROPERTY(FIntProperty,Z_Param_StateValue);
+	P_GET_UBOOL(Z_Param_bForceRemoval);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(int32*)Z_Param__Result=UFortKismetLibrary::K2_RemoveItemsFromPlayerByIntStateValue(Z_Param_PlayerController,EFortItemEntryState(Z_Param_StateType),Z_Param_StateValue,Z_Param_bForceRemoval);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_RemoveItemsFromPlayerByNameStateValue)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_PlayerController);
+	P_GET_PROPERTY(FByteProperty,Z_Param_StateType);
+	P_GET_PROPERTY(FNameProperty,Z_Param_StateValue);
+	P_GET_UBOOL(Z_Param_bForceRemoval);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(int32*)Z_Param__Result=UFortKismetLibrary::K2_RemoveItemsFromPlayerByNameStateValue(Z_Param_PlayerController,EFortItemEntryState(Z_Param_StateType),Z_Param_StateValue,Z_Param_bForceRemoval);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_RemoveItemFromAllPlayers)
+{
+	P_GET_OBJECT(UObject,Z_Param_WorldContextObject);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_AmountToRemove);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UFortKismetLibrary::K2_RemoveItemFromAllPlayers(Z_Param_WorldContextObject,Z_Param_ItemDefinition,Z_Param_AmountToRemove);
+	P_NATIVE_END;
+}
+
+void UFortKismetLibrary::K2_GiveBuildingResource(AFortPlayerController* Controller, const EFortResourceType ResourceType, const int32 ResourceAmount) {
+	if (!Controller || ResourceAmount <= 0) {
+		return;
+	}
+
+	UFortGameData* GameData = UFortAssetManager::Get().GetGameData();
+	UFortResourceItemDefinition* ResourceItemDefinition = GameData ? GameData->GetResourceItemDefinition(ResourceType) : nullptr;
+	if (!ResourceItemDefinition) {
+		return;
+	}
+
+	TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner;
+	InventoryOwner.SetObject(Controller);
+	InventoryOwner.SetInterface(&Controller->InventoryOwnerInterface);
+	GiveItemToInventoryOwner(InventoryOwner, ResourceItemDefinition, ResourceAmount, false, INDEX_NONE, INDEX_NONE, false);
+}
+
+bool UFortKismetLibrary::UpgradeAllWeaponsVerticalToRarity(AFortPlayerController* PlayerController, EFortRarity NewRarity, bool bThrottle) {
+	if (!PlayerController || !PlayerController->WorldInventory) {
+		return false;
+	}
+
+	TArray<UFortWorldItem*> Items = PlayerController->WorldInventory->Inventory.ItemInstances;
+
+	bool bUpgradedAllWeapons = true;
+	for (int32 Index = 0; Index < Items.Num(); ++Index) {
+		UFortWorldItem* Item = Items[Index];
+		UFortWeaponItemDefinition* WeaponItemDefinition = Item && Item->ItemEntry.ItemDefinition ? Item->ItemEntry.ItemDefinition->Cast<UFortWeaponItemDefinition>() : nullptr;
+		if (!WeaponItemDefinition || WeaponItemDefinition->GetRarity() >= NewRarity) {
+			continue;
+		}
+
+		UFortWeaponItemDefinition* UpgradedItemDefinition = GetUpgradedWeaponItemVerticalToRarity(WeaponItemDefinition, NewRarity);
+		if (!UpgradedItemDefinition || UpgradedItemDefinition == WeaponItemDefinition) {
+			bUpgradedAllWeapons = false;
+			continue;
+		}
+
+		FFortItemEntry UpgradedEntry(UpgradedItemDefinition, Item->ItemEntry.Count, Item->ItemEntry.Level);
+		UpgradedEntry.LoadedAmmo = Item->ItemEntry.LoadedAmmo;
+
+		PlayerController->RemoveInventoryItem(Item->GetItemGuid(), INDEX_NONE, true);
+		if (!PlayerController->AddInventoryItem(UpgradedEntry, false)) {
+			bUpgradedAllWeapons = false;
+		}
+	}
+
+	return bUpgradedAllWeapons;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_GiveBuildingResource)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_Controller);
+	P_GET_PROPERTY(FByteProperty,Z_Param_ResourceType);
+	P_GET_PROPERTY(FIntProperty,Z_Param_ResourceAmount);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UFortKismetLibrary::K2_GiveBuildingResource(Z_Param_Controller,EFortResourceType(Z_Param_ResourceType),Z_Param_ResourceAmount);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execUpgradeAllWeaponsVerticalToRarity)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_PlayerController);
+	P_GET_ENUM(EFortRarity,Z_Param_NewRarity);
+	P_GET_UBOOL(Z_Param_bThrottle);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(bool*)Z_Param__Result=UFortKismetLibrary::UpgradeAllWeaponsVerticalToRarity(Z_Param_PlayerController,EFortRarity(Z_Param_NewRarity),Z_Param_bThrottle);
+	P_NATIVE_END;
+}
+
 void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x5098E58, execIncrementAnalyticMatchCount, nullptr);
 	Memory::HookDetour(ImageBase + 0x508ADCC, execChangeTeam, nullptr);
@@ -759,4 +963,11 @@ void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x509A70C, execK2_GiveItemToPlayer, nullptr);
 	Memory::HookDetour(ImageBase + 0x5098800, execGiveItemToInventoryOwner, nullptr);
 	Memory::HookDetour(ImageBase + 0x5087E10, execAddRegenItemToInventoryOwner, nullptr);
+	Memory::HookDetour(ImageBase + 0x509AC40, execK2_RemoveItemFromPlayer, nullptr);
+	Memory::HookDetour(ImageBase + 0x509AED8, execK2_RemoveItemFromPlayerByGuid, nullptr);
+	Memory::HookDetour(ImageBase + 0x509B04C, execK2_RemoveItemsFromPlayerByIntStateValue, nullptr);
+	Memory::HookDetour(ImageBase + 0x509B1BC, execK2_RemoveItemsFromPlayerByNameStateValue, nullptr);
+	Memory::HookDetour(ImageBase + 0x509ADB4, execK2_RemoveItemFromAllPlayers, nullptr);
+	Memory::HookDetour(ImageBase + 0x509A5E8, execK2_GiveBuildingResource, nullptr);
+	Memory::HookDetour(ImageBase + 0x50A2B18, execUpgradeAllWeaponsVerticalToRarity, nullptr);
 }

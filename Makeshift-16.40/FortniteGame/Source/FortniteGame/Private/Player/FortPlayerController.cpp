@@ -74,3 +74,37 @@ UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& It
 
 	return LastItem;
 }
+
+int32 AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Count, bool bForceRemoval) {
+	if (!WorldInventory) {
+		return 0;
+	}
+
+	UFortWorldItem* Item = WorldInventory->InventoryInterface.GetItem(ItemGuid);
+	if (!Item) {
+		return 0;
+	}
+
+	const int32 CurrentCount = Item->ItemEntry.Count;
+	const int32 CountToRemove = Count < 0 ? CurrentCount : FMath::Min(Count, CurrentCount);
+	if (CountToRemove <= 0) {
+		return 0;
+	}
+
+	UFortItemDefinition* ItemDefinition = Item->ItemEntry.ItemDefinition;
+	UFortWorldItemDefinition* WorldItemDefinition = ItemDefinition ? ItemDefinition->Cast<UFortWorldItemDefinition>() : nullptr;
+	const bool bKeepEmptyStack = !bForceRemoval && WorldItemDefinition && WorldItemDefinition->bPersistInInventoryWhenFinalStackEmpty;
+
+	if (CountToRemove < CurrentCount || bKeepEmptyStack) {
+		Item->SetNumInStack(CurrentCount - CountToRemove, false);
+	} else {
+		if (ItemDefinition) {
+			ItemDefinition->OnItemInstanceRemoved(&InventoryOwnerInterface, Item);
+		}
+		WorldInventory->OnRemoveItemStack(Item, ItemGuid);
+	}
+
+	WorldInventory->HandleInventoryLocalUpdate();
+
+	return CountToRemove;
+}

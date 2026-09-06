@@ -271,6 +271,20 @@ public:
 	TArray<uint8>                                 QueryTokenStream;                                  // 0x0018(0x0010)(Edit, ZeroConstructor, NativeAccessSpecifierPrivate)
 	class FString                                 UserDescription;                                   // 0x0028(0x0010)(Edit, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class FString                                 AutoDescription;                                   // 0x0038(0x0010)(Edit, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
+
+public:
+	/** Returns true if the given tags match this query, or false otherwise. */
+	bool Matches(FGameplayTagContainer const& Tags) const
+	{
+		bool (*Fn)(const FGameplayTagQuery*, const FGameplayTagContainer*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1347EE4);
+		return Fn(this, &Tags);
+	}
+
+	/** Returns true if this query is empty, false otherwise. */
+	bool IsEmpty() const
+	{
+		return (QueryTokenStream.Num() == 0);
+	}
 };
 static_assert(alignof(FGameplayTagQuery) == 0x000008, "Wrong alignment on FGameplayTagQuery");
 static_assert(sizeof(FGameplayTagQuery) == 0x000048, "Wrong size on FGameplayTagQuery");

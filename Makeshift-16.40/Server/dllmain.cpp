@@ -70,6 +70,15 @@ DWORD WINAPI Main(LPVOID) {
     UFortKismetLibrary::Init();
     UInventoryManagementLibrary::Init();
     UFortAIFunctionLibrary::Init();
+    UConversationContextHelpers::Init();
+    UConversationLibrary::Init();
+    UConversationParticipantComponent::Init();
+    UConversationLinkNode::Init();
+    UFortNonPlayerConversationParticipantComponent::Init();
+    UFortPlayerConversationComponent::Init();
+    UFortIndicatedActorManagementLibrary::Init();
+    UFortControllerComponent_IndicatedActorManagement::Init();
+    UFortMissionLibrary::Init();
     UNetDriver::Init();
 
     UWorld* World = GWorld;

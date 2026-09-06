@@ -521,6 +521,16 @@ public:
 static_assert(alignof(FTextData) == 0x000008, "Wrong alignment on FTextData");
 static_assert(sizeof(FTextData) == 0x000038, "Wrong size on FTextData");
 static_assert(offsetof(FTextData, TextSource) == 0x000028, "Member 'FTextData::TextSource' has a wrong offset!");
+
+class FTextReferenceController final
+{
+public:
+	void**                                        VTable;
+	int32                                         SharedReferenceCount;
+	int32                                         WeakReferenceCount;
+};
+static_assert(alignof(FTextReferenceController) == 0x000008, "Wrong alignment on FTextReferenceController");
+static_assert(sizeof(FTextReferenceController) == 0x000010, "Wrong size on FTextReferenceController");
 }
 
 // Predefined struct FText
@@ -529,7 +539,74 @@ class FText final
 {
 public:
 	class FTextImpl::FTextData*                   TextData;                                          // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
-	uint8                                         Pad_8[0x10];                                       // 0x0008(0x0010)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	class FTextImpl::FTextReferenceController*    ReferenceController;
+	uint32                                        Flags;
+	uint8                                         Pad_14[0x4];
+
+private:
+	enum EFTextNoInit { FTextNoInit };
+	explicit FText(EFTextNoInit)
+	{
+	}
+
+	static void AddSharedReference(class FTextImpl::FTextReferenceController* InReferenceController)
+	{
+		if (InReferenceController)
+		{
+			_InterlockedIncrement(reinterpret_cast<volatile long*>(&InReferenceController->SharedReferenceCount));
+		}
+	}
+	static void ReleaseSharedReference(class FTextImpl::FTextReferenceController* InReferenceController)
+	{
+		if (InReferenceController && _InterlockedDecrement(reinterpret_cast<volatile long*>(&InReferenceController->SharedReferenceCount)) == 0)
+		{
+			reinterpret_cast<void (*)(class FTextImpl::FTextReferenceController*)>(InReferenceController->VTable[0])(InReferenceController);
+			void (*Fn)(class FTextImpl::FTextReferenceController*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE8F34C);
+			Fn(InReferenceController);
+		}
+	}
+
+public:
+	FText()
+	{
+		void (*Fn)(FText*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE86BB8);
+		Fn(this);
+	}
+	FText(const FText& Other)
+		: TextData(Other.TextData), ReferenceController(Other.ReferenceController), Flags(Other.Flags)
+	{
+		AddSharedReference(ReferenceController);
+	}
+	FText(FText&& Other)
+		: TextData(Other.TextData), ReferenceController(Other.ReferenceController), Flags(Other.Flags)
+	{
+		AddSharedReference(ReferenceController);
+	}
+	FText& operator=(const FText& Other)
+	{
+		AddSharedReference(Other.ReferenceController);
+		ReleaseSharedReference(ReferenceController);
+		TextData = Other.TextData;
+		ReferenceController = Other.ReferenceController;
+		Flags = Other.Flags;
+		return *this;
+	}
+	FText& operator=(FText&& Other)
+	{
+		return operator=(static_cast<const FText&>(Other));
+	}
+	~FText()
+	{
+		ReleaseSharedReference(ReferenceController);
+	}
+
+	static FText FromString(const class FString& String)
+	{
+		FText Result(FTextNoInit);
+		void (*Fn)(FText*, const class FString*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF069C0);
+		Fn(&Result, &String);
+		return Result;
+	}
 
 public:
 	const class FString& GetStringRef() const
@@ -543,6 +620,8 @@ public:
 };
 static_assert(alignof(FText) == 0x000008, "Wrong alignment on FText");
 static_assert(sizeof(FText) == 0x000018, "Wrong size on FText");
+static_assert(offsetof(FText, ReferenceController) == 0x000008, "Member 'FText::ReferenceController' has a wrong offset!");
+static_assert(offsetof(FText, Flags) == 0x000010, "Member 'FText::Flags' has a wrong offset!");
 static_assert(offsetof(FText, TextData) == 0x000000, "Member 'FText::TextData' has a wrong offset!");
 
 // Predefined struct FWeakObjectPtr
@@ -1532,6 +1611,25 @@ public:
 };
 static_assert(alignof(FFloatProperty) == 0x000008, "Wrong alignment on FFloatProperty");
 static_assert(sizeof(FFloatProperty) == 0x000078, "Wrong size on FFloatProperty");
+
+class FStrProperty final : public FProperty
+{
+public:
+	typedef FString TCppType;
+
+	static TCppType GetDefaultPropertyValue()
+	{
+		return TCppType();
+	}
+
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF085DC);
+		return Fn();
+	}
+};
+static_assert(alignof(FStrProperty) == 0x000008, "Wrong alignment on FStrProperty");
+static_assert(sizeof(FStrProperty) == 0x000078, "Wrong size on FStrProperty");
 
 class FNameProperty final : public FProperty
 {

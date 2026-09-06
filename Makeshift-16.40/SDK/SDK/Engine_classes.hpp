@@ -218,7 +218,8 @@ public:
 	FMulticastSparseDelegateProperty_             OnComponentDeactivated;                            // 0x008E(0x0001)(InstancedReference, BlueprintAssignable, NoDestructor, NativeAccessSpecifierPublic)
 	uint8                                         Pad_8F[0x1];                                       // 0x008F(0x0001)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<struct FSimpleMemberReference>         UCSModifiedProperties;                             // 0x0090(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_A0[0x10];                                      // 0x00A0(0x0010)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	class AActor*                                 OwnerPrivate;
+	uint8                                         Pad_A8[0x8];
 
 public:
 	void Activate(bool bReset);
@@ -244,7 +245,10 @@ public:
 
 	bool ComponentHasTag(class FName Tag) const;
 	float GetComponentTickInterval() const;
-	class AActor* GetOwner() const;
+	class AActor* GetOwner() const
+	{
+		return OwnerPrivate;
+	}
 	bool IsActive() const;
 	bool IsBeingDestroyed() const;
 	bool IsComponentTickEnabled() const;
@@ -261,6 +265,7 @@ public:
 };
 static_assert(alignof(UActorComponent) == 0x000008, "Wrong alignment on UActorComponent");
 static_assert(sizeof(UActorComponent) == 0x0000B0, "Wrong size on UActorComponent");
+static_assert(offsetof(UActorComponent, OwnerPrivate) == 0x0000A0, "Member 'UActorComponent::OwnerPrivate' has a wrong offset!");
 static_assert(offsetof(UActorComponent, PrimaryComponentTick) == 0x000030, "Member 'UActorComponent::PrimaryComponentTick' has a wrong offset!");
 static_assert(offsetof(UActorComponent, ComponentTags) == 0x000060, "Member 'UActorComponent::ComponentTags' has a wrong offset!");
 static_assert(offsetof(UActorComponent, AssetUserData) == 0x000070, "Member 'UActorComponent::AssetUserData' has a wrong offset!");
@@ -1125,6 +1130,17 @@ public:
 	static class AActor* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AActor>();
+	}
+
+public:
+	class UActorComponent* FindComponentByClass(class UClass* ComponentClass) const
+	{
+		return reinterpret_cast<class UActorComponent* (*)(const AActor*, class UClass*)>(VTable[196])(this, ComponentClass);
+	}
+	template<class T>
+	T* FindComponentByClass() const
+	{
+		return static_cast<T*>(FindComponentByClass(T::StaticClass()));
 	}
 };
 static_assert(alignof(AActor) == 0x000008, "Wrong alignment on AActor");
@@ -10620,6 +10636,18 @@ public:
 	static class UWorld* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UWorld>();
+	}
+
+public:
+	class USubsystem* GetSubsystemBase(class UClass* SubsystemClass) const
+	{
+		class USubsystem* (*Fn)(const void*, class UClass*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x11D86EC);
+		return Fn(reinterpret_cast<const uint8*>(this) + 0x6F0, SubsystemClass);
+	}
+	template<class T>
+	T* GetSubsystem() const
+	{
+		return static_cast<T*>(GetSubsystemBase(T::StaticClass()));
 	}
 };
 static_assert(alignof(UWorld) == 0x000008, "Wrong alignment on UWorld");

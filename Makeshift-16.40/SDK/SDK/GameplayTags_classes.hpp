@@ -74,7 +74,15 @@ static_assert(sizeof(UBlueprintGameplayTagLibrary) == 0x000028, "Wrong size on U
 class IGameplayTagAssetInterface final : public IInterface
 {
 public:
-	void GetOwnedGameplayTags(struct FGameplayTagContainer* TagContainer) const;
+	/**
+	 * Get any owned gameplay tags on the asset
+	 *
+	 * @param OutTags	[OUT] Set of tags on the asset
+	 */
+	void GetOwnedGameplayTags(FGameplayTagContainer& TagContainer) const
+	{
+		reinterpret_cast<void (*)(const IGameplayTagAssetInterface*, FGameplayTagContainer*)>(VTable[2])(this, &TagContainer);
+	}
 	bool HasAllMatchingGameplayTags(const struct FGameplayTagContainer& TagContainer) const;
 	bool HasAnyMatchingGameplayTags(const struct FGameplayTagContainer& TagContainer) const;
 	bool HasMatchingGameplayTag(const struct FGameplayTag& TagToCheck) const;

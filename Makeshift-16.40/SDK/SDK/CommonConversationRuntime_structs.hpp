@@ -17,6 +17,31 @@
 namespace SDK
 {
 
+class UConversationNode;
+class UConversationParticipantComponent;
+class UConversationRegistry;
+class UConversationInstance;
+class UConversationTaskNode;
+class UWorld;
+class AActor;
+
+template<typename ElementType>
+inline bool ArraysEqual(const TArray<ElementType>& Lhs, const TArray<ElementType>& Rhs)
+{
+	if (Lhs.Num() != Rhs.Num())
+	{
+		return false;
+	}
+	for (int32 Index = 0; Index < Lhs.Num(); ++Index)
+	{
+		if (Lhs[Index] != Rhs[Index])
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 // Enum CommonConversationRuntime.EConversationTaskResultType
 // NumValues: 0x0009
 enum class EConversationTaskResultType : uint8
@@ -58,10 +83,34 @@ struct FConversationNodeHandle final
 {
 public:
 	struct FGuid                                  NodeGUID;                                          // 0x0000(0x0010)(Edit, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	FConversationNodeHandle() : NodeGUID(0, 0, 0, 0) {}
+	FConversationNodeHandle(const FGuid& InNodeGUID) : NodeGUID(InNodeGUID) { }
+
+	bool IsValid() const { return NodeGUID.IsValid(); }
+	FString ToString() const { return NodeGUID.ToString(); }
+	void Invalidate() { NodeGUID.Invalidate(); }
+
+	FConversationNodeHandle& operator = (const FGuid& InNodeGUID)
+	{
+		NodeGUID = InNodeGUID;
+		return *this;
+	}
+
+	/**
+	 * Tries to resolve the node, this may fail, the guid might be bogus, or the node might not be
+	 * in memory.
+	 */
+	const class UConversationNode* TryToResolve(const struct FConversationContext& Context) const;
+	const class UConversationNode* TryToResolve_Slow(class UWorld* InWorld) const;
 };
 static_assert(alignof(FConversationNodeHandle) == 0x000004, "Wrong alignment on FConversationNodeHandle");
 static_assert(sizeof(FConversationNodeHandle) == 0x000010, "Wrong size on FConversationNodeHandle");
 static_assert(offsetof(FConversationNodeHandle, NodeGUID) == 0x000000, "Member 'FConversationNodeHandle::NodeGUID' has a wrong offset!");
+
+inline bool operator==(const FConversationNodeHandle& Lhs, const FConversationNodeHandle& Rhs) { return Lhs.NodeGUID == Rhs.NodeGUID; }
+inline bool operator!=(const FConversationNodeHandle& Lhs, const FConversationNodeHandle& Rhs) { return !(Lhs == Rhs); }
 
 // ScriptStruct CommonConversationRuntime.ConversationContext
 // 0x0038 (0x0038 - 0x0000)
@@ -71,10 +120,50 @@ public:
 	class UConversationRegistry*                  ConversationRegistry;                              // 0x0000(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UConversationInstance*                  ActiveConversation;                                // 0x0008(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UConversationParticipantComponent*      ClientParticipant;                                 // 0x0010(0x0008)(ExportObject, ZeroConstructor, InstancedReference, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	class UConversationTaskNode*                  TaskBeingConsidered;                               // 0x0018(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
+	const class UConversationTaskNode*            TaskBeingConsidered;                               // 0x0018(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TArray<struct FConversationNodeHandle>        ReturnScopeStack;                                  // 0x0020(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
 	bool                                          bServer;                                           // 0x0030(0x0001)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_31[0x7];                                       // 0x0031(0x0007)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	static FConversationContext CreateServerContext(class UConversationInstance* InActiveConversation, const class UConversationTaskNode* InTaskBeingConsidered);
+	static FConversationContext CreateClientContext(class UConversationParticipantComponent* InParticipantComponent, const class UConversationTaskNode* InTaskBeingConsidered);
+
+	FConversationContext CreateChildContext(const class UConversationTaskNode* NewTaskBeingConsidered) const;
+	FConversationContext CreateReturnScopeContext(const struct FConversationNodeHandle& NewReturnScope) const;
+
+	class UWorld* GetWorld() const;
+
+	struct FConversationNodeHandle GetCurrentNodeHandle() const;
+
+	class UConversationRegistry& GetConversationRegistry() const;
+
+	class UConversationInstance* GetActiveConversation() const;
+
+	const class UConversationTaskNode* GetTaskBeingConsidered() const { return TaskBeingConsidered; }
+
+	const TArray<struct FConversationNodeHandle>& GetReturnScopeStack() const { return ReturnScopeStack; }
+
+	const struct FConversationParticipantEntry* GetParticipant(const struct FGameplayTag& ParticipantTag) const;
+
+	class UConversationParticipantComponent* GetParticipantComponent(const struct FGameplayTag& ParticipantTag) const;
+
+	class AActor* GetParticipantActor(const struct FGameplayTag& ParticipantTag) const;
+
+	struct FConversationParticipants GetParticipantsCopy() const;
+
+	bool IsServerContext() const { return bServer; }
+	bool IsClientContext() const { return !bServer; }
+
+public:
+	FConversationContext()
+		: ConversationRegistry(nullptr)
+		, ActiveConversation(nullptr)
+		, ClientParticipant(nullptr)
+		, TaskBeingConsidered(nullptr)
+		, bServer(false)
+	{
+	}
 };
 static_assert(alignof(FConversationContext) == 0x000008, "Wrong alignment on FConversationContext");
 static_assert(sizeof(FConversationContext) == 0x000038, "Wrong size on FConversationContext");
@@ -92,11 +181,18 @@ struct FConversationNodeParameterPair final
 public:
 	class FString                                 Name;                                              // 0x0000(0x0010)(BlueprintVisible, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class FString                                 Value;                                             // 0x0010(0x0010)(BlueprintVisible, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	FConversationNodeParameterPair() { }
+	FConversationNodeParameterPair(const FString& InName, const FString& InValue) : Name(InName), Value(InValue) { }
 };
 static_assert(alignof(FConversationNodeParameterPair) == 0x000008, "Wrong alignment on FConversationNodeParameterPair");
 static_assert(sizeof(FConversationNodeParameterPair) == 0x000020, "Wrong size on FConversationNodeParameterPair");
 static_assert(offsetof(FConversationNodeParameterPair, Name) == 0x000000, "Member 'FConversationNodeParameterPair::Name' has a wrong offset!");
 static_assert(offsetof(FConversationNodeParameterPair, Value) == 0x000010, "Member 'FConversationNodeParameterPair::Value' has a wrong offset!");
+
+inline bool operator==(const FConversationNodeParameterPair& Lhs, const FConversationNodeParameterPair& Rhs) { return Lhs.Name == Rhs.Name && Lhs.Value == Rhs.Value; }
+inline bool operator!=(const FConversationNodeParameterPair& Lhs, const FConversationNodeParameterPair& Rhs) { return !(Lhs == Rhs); }
 
 // ScriptStruct CommonConversationRuntime.ConversationChoiceReference
 // 0x0020 (0x0020 - 0x0000)
@@ -105,11 +201,24 @@ struct FConversationChoiceReference final
 public:
 	struct FConversationNodeHandle                NodeReference;                                     // 0x0000(0x0010)(BlueprintVisible, NoDestructor, NativeAccessSpecifierPublic)
 	TArray<struct FConversationNodeParameterPair> NodeParameters;                                    // 0x0010(0x0010)(BlueprintVisible, ZeroConstructor, NativeAccessSpecifierPublic)
+
+public:
+	static const FConversationChoiceReference Empty;
+
+	FConversationChoiceReference() {}
+	FConversationChoiceReference(const FGuid& InNodeGUID) : NodeReference(InNodeGUID) { }
+
+	bool IsValid() const { return NodeReference.IsValid(); }
+
+	FString ToString() const;
 };
 static_assert(alignof(FConversationChoiceReference) == 0x000008, "Wrong alignment on FConversationChoiceReference");
 static_assert(sizeof(FConversationChoiceReference) == 0x000020, "Wrong size on FConversationChoiceReference");
 static_assert(offsetof(FConversationChoiceReference, NodeReference) == 0x000000, "Member 'FConversationChoiceReference::NodeReference' has a wrong offset!");
 static_assert(offsetof(FConversationChoiceReference, NodeParameters) == 0x000010, "Member 'FConversationChoiceReference::NodeParameters' has a wrong offset!");
+
+inline bool operator==(const FConversationChoiceReference& Lhs, const FConversationChoiceReference& Rhs) { return Lhs.NodeReference == Rhs.NodeReference && ArraysEqual(Lhs.NodeParameters, Rhs.NodeParameters); }
+inline bool operator!=(const FConversationChoiceReference& Lhs, const FConversationChoiceReference& Rhs) { return !(Lhs == Rhs); }
 
 // ScriptStruct CommonConversationRuntime.AdvanceConversationRequest
 // 0x0030 (0x0030 - 0x0000)
@@ -118,6 +227,15 @@ struct FAdvanceConversationRequest final
 public:
 	struct FConversationChoiceReference           Choice;                                            // 0x0000(0x0020)(BlueprintVisible, NativeAccessSpecifierPublic)
 	TArray<struct FConversationNodeParameterPair> UserParameters;                                    // 0x0020(0x0010)(BlueprintVisible, ZeroConstructor, NativeAccessSpecifierPublic)
+
+public:
+	static const FAdvanceConversationRequest Any;
+
+	FAdvanceConversationRequest() {}
+	FAdvanceConversationRequest(const FConversationChoiceReference& InChoice) : Choice(InChoice) {}
+
+public:
+	FString ToString() const;
 };
 static_assert(alignof(FAdvanceConversationRequest) == 0x000008, "Wrong alignment on FAdvanceConversationRequest");
 static_assert(sizeof(FAdvanceConversationRequest) == 0x000030, "Wrong size on FAdvanceConversationRequest");
@@ -132,6 +250,9 @@ public:
 	struct FGameplayTag                           SpeakerID;                                         // 0x0000(0x0008)(BlueprintVisible, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class FText                                   ParticipantDisplayName;                            // 0x0008(0x0018)(BlueprintVisible, NativeAccessSpecifierPublic)
 	class FText                                   Text;                                              // 0x0020(0x0018)(BlueprintVisible, NativeAccessSpecifierPublic)
+
+public:
+	FString ToString() const { return Text.GetStringRef(); }
 };
 static_assert(alignof(FClientConversationMessage) == 0x000008, "Wrong alignment on FClientConversationMessage");
 static_assert(sizeof(FClientConversationMessage) == 0x000038, "Wrong size on FClientConversationMessage");
@@ -148,6 +269,62 @@ public:
 	uint8                                         Pad_1[0x7];                                        // 0x0001(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FAdvanceConversationRequest            AdvanceToChoice;                                   // 0x0008(0x0030)(NativeAccessSpecifierPrivate)
 	struct FClientConversationMessage             Message;                                           // 0x0038(0x0038)(NativeAccessSpecifierPrivate)
+
+public:
+	static FConversationTaskResult AbortConversation()
+	{
+		return FConversationTaskResult(EConversationTaskResultType::AbortConversation, FAdvanceConversationRequest(), FClientConversationMessage());
+	}
+
+	static FConversationTaskResult AdvanceConversation()
+	{
+		return FConversationTaskResult(EConversationTaskResultType::AdvanceConversation, FAdvanceConversationRequest(), FClientConversationMessage());
+	}
+
+	static FConversationTaskResult AdvanceConversationWithChoice(const FAdvanceConversationRequest& InAdvanceToChoice)
+	{
+		return FConversationTaskResult(EConversationTaskResultType::AdvanceConversationWithChoice, InAdvanceToChoice, FClientConversationMessage());
+	}
+
+	static FConversationTaskResult PauseConversationAndSendClientChoices(const FClientConversationMessage& InMessage)
+	{
+		return FConversationTaskResult(EConversationTaskResultType::PauseConversationAndSendClientChoices, FAdvanceConversationRequest(), InMessage);
+	}
+
+	static FConversationTaskResult ReturnToLastClientChoice()
+	{
+		return FConversationTaskResult(EConversationTaskResultType::ReturnToLastClientChoice, FAdvanceConversationRequest(), FClientConversationMessage());
+	}
+
+	static FConversationTaskResult ReturnToCurrentClientChoice()
+	{
+		return FConversationTaskResult(EConversationTaskResultType::ReturnToCurrentClientChoice, FAdvanceConversationRequest(), FClientConversationMessage());
+	}
+
+	static FConversationTaskResult ReturnToConversationStart()
+	{
+		return FConversationTaskResult(EConversationTaskResultType::ReturnToConversationStart, FAdvanceConversationRequest(), FClientConversationMessage());
+	}
+
+	EConversationTaskResultType GetType() const { return Type; }
+	const FAdvanceConversationRequest& GetChoice() const;
+	const FClientConversationMessage& GetMessage() const;
+
+	bool CanConversationContinue() const
+	{
+		return !(Type == EConversationTaskResultType::Invalid || Type == EConversationTaskResultType::AbortConversation);
+	}
+
+public:
+	FConversationTaskResult() : Type(EConversationTaskResultType::Invalid) { }
+
+private:
+	FConversationTaskResult(EConversationTaskResultType InType, const FAdvanceConversationRequest& InAdvanceToChoice, const FClientConversationMessage& InMessage)
+		: Type(InType)
+		, AdvanceToChoice(InAdvanceToChoice)
+		, Message(InMessage)
+	{
+	}
 };
 static_assert(alignof(FConversationTaskResult) == 0x000008, "Wrong alignment on FConversationTaskResult");
 static_assert(sizeof(FConversationTaskResult) == 0x000070, "Wrong size on FConversationTaskResult");
@@ -207,6 +384,29 @@ public:
 	uint8                                         Pad_39[0x7];                                       // 0x0039(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FConversationChoiceReference           ChoiceReference;                                   // 0x0040(0x0020)(BlueprintVisible, NativeAccessSpecifierPublic)
 	TArray<struct FConversationNodeParameterPair> ExtraData;                                         // 0x0060(0x0010)(BlueprintVisible, ZeroConstructor, NativeAccessSpecifierPublic)
+
+public:
+	/**
+	 * Tries to resolve the node, this may fail, the guid might be bogus, or the node might not be
+	 * in memory.
+	 */
+	template<class TConversationNodeClass = UConversationNode>
+	const TConversationNodeClass* TryToResolveChoiceNode(const FConversationContext& Context) const;
+
+	template<class TConversationNodeClass = UConversationNode>
+	const TConversationNodeClass* TryToResolveChoiceNode_Slow(UWorld* InWorld) const;
+
+	void SetChoiceAvailable(bool bIsAvailable) { ChoiceType = bIsAvailable ? EConversationChoiceType::UserChoiceAvailable : EConversationChoiceType::UserChoiceUnavailable; }
+	bool IsChoiceAvailable() const { return ChoiceType != EConversationChoiceType::UserChoiceUnavailable; }
+
+	const FConversationChoiceReference& ToChoiceReference() const { return ChoiceReference; }
+	FAdvanceConversationRequest ToAdvanceConversationRequest(const TArray<FConversationNodeParameterPair>& InUserParameters = TArray<FConversationNodeParameterPair>()) const;
+
+public:
+	FClientConversationOptionEntry()
+		: ChoiceType(EConversationChoiceType::ServerOnly)
+	{
+	}
 };
 static_assert(alignof(FClientConversationOptionEntry) == 0x000008, "Wrong alignment on FClientConversationOptionEntry");
 static_assert(sizeof(FClientConversationOptionEntry) == 0x000070, "Wrong size on FClientConversationOptionEntry");
@@ -216,6 +416,12 @@ static_assert(offsetof(FClientConversationOptionEntry, ChoiceType) == 0x000038, 
 static_assert(offsetof(FClientConversationOptionEntry, ChoiceReference) == 0x000040, "Member 'FClientConversationOptionEntry::ChoiceReference' has a wrong offset!");
 static_assert(offsetof(FClientConversationOptionEntry, ExtraData) == 0x000060, "Member 'FClientConversationOptionEntry::ExtraData' has a wrong offset!");
 
+inline bool operator==(const FClientConversationOptionEntry& Lhs, const FClientConversationOptionEntry& Rhs) { return Lhs.ChoiceText.GetStringRef() == Rhs.ChoiceText.GetStringRef() && Lhs.ChoiceTags.GameplayTags.Num() == Rhs.ChoiceTags.GameplayTags.Num() && Lhs.ChoiceTags.HasAllExact(Rhs.ChoiceTags) && Lhs.ChoiceType == Rhs.ChoiceType && Lhs.ChoiceReference == Rhs.ChoiceReference && ArraysEqual(Lhs.ExtraData, Rhs.ExtraData); }
+inline bool operator!=(const FClientConversationOptionEntry& Lhs, const FClientConversationOptionEntry& Rhs) { return !(Lhs == Rhs); }
+
+inline bool operator==(const FClientConversationOptionEntry& Lhs, const FConversationChoiceReference& Rhs) { return Lhs.ChoiceReference == Rhs; }
+inline bool operator!=(const FClientConversationOptionEntry& Lhs, const FConversationChoiceReference& Rhs) { return !(Lhs == Rhs); }
+
 // ScriptStruct CommonConversationRuntime.ConversationParticipantEntry
 // 0x0010 (0x0010 - 0x0000)
 struct FConversationParticipantEntry final
@@ -223,6 +429,16 @@ struct FConversationParticipantEntry final
 public:
 	class AActor*                                 Actor;                                             // 0x0000(0x0008)(BlueprintVisible, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	struct FGameplayTag                           ParticipantID;                                     // 0x0008(0x0008)(BlueprintVisible, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	template<class TParticipantComponentClass = UConversationParticipantComponent>
+	TParticipantComponentClass* GetParticipantComponent() const;
+
+public:
+	FConversationParticipantEntry()
+		: Actor(nullptr)
+	{
+	}
 };
 static_assert(alignof(FConversationParticipantEntry) == 0x000008, "Wrong alignment on FConversationParticipantEntry");
 static_assert(sizeof(FConversationParticipantEntry) == 0x000010, "Wrong size on FConversationParticipantEntry");
@@ -235,6 +451,13 @@ struct FConversationParticipants final
 {
 public:
 	TArray<struct FConversationParticipantEntry>  List;                                              // 0x0000(0x0010)(BlueprintVisible, ZeroConstructor, NativeAccessSpecifierPublic)
+
+public:
+	const FConversationParticipantEntry* GetParticipant(FGameplayTag ParticipantID) const;
+
+	UConversationParticipantComponent* GetParticipantComponent(FGameplayTag ParticipantID) const;
+
+	bool Contains(AActor* PotentialParticipant) const;
 };
 static_assert(alignof(FConversationParticipants) == 0x000008, "Wrong alignment on FConversationParticipants");
 static_assert(sizeof(FConversationParticipants) == 0x000010, "Wrong size on FConversationParticipants");
@@ -249,6 +472,9 @@ public:
 	struct FConversationParticipants              Participants;                                      // 0x0038(0x0010)(BlueprintVisible, NativeAccessSpecifierPublic)
 	struct FConversationNodeHandle                CurrentNode;                                       // 0x0048(0x0010)(BlueprintVisible, NoDestructor, NativeAccessSpecifierPublic)
 	TArray<struct FClientConversationOptionEntry> Options;                                           // 0x0058(0x0010)(BlueprintVisible, ZeroConstructor, NativeAccessSpecifierPublic)
+
+public:
+	FString ToString() const { return Message.ToString(); }
 };
 static_assert(alignof(FClientConversationMessagePayload) == 0x000008, "Wrong alignment on FClientConversationMessagePayload");
 static_assert(sizeof(FClientConversationMessagePayload) == 0x000068, "Wrong size on FClientConversationMessagePayload");
@@ -264,6 +490,12 @@ struct FConversationBranchPoint final
 public:
 	TArray<struct FConversationNodeHandle>        ReturnScopeStack;                                  // 0x0000(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
 	struct FClientConversationOptionEntry         ClientChoice;                                      // 0x0010(0x0070)(NativeAccessSpecifierPublic)
+
+public:
+	FConversationBranchPoint() { }
+	FConversationBranchPoint(const FClientConversationOptionEntry& InClientChoice) : ClientChoice(InClientChoice) { }
+
+	const FConversationNodeHandle& GetNodeHandle() const { return ClientChoice.ChoiceReference.NodeReference; }
 };
 static_assert(alignof(FConversationBranchPoint) == 0x000008, "Wrong alignment on FConversationBranchPoint");
 static_assert(sizeof(FConversationBranchPoint) == 0x000080, "Wrong size on FConversationBranchPoint");

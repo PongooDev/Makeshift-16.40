@@ -6558,6 +6558,13 @@ public:
 	int32                                         ReplicationID;                                     // 0x0000(0x0004)(ZeroConstructor, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int32                                         ReplicationKey;                                    // 0x0004(0x0004)(ZeroConstructor, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int32                                         MostRecentArrayReplicationKey;                     // 0x0008(0x0004)(ZeroConstructor, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	FFastArraySerializerItem()
+		: ReplicationID(INDEX_NONE), ReplicationKey(INDEX_NONE), MostRecentArrayReplicationKey(INDEX_NONE)
+	{
+
+	}
 };
 static_assert(alignof(FFastArraySerializerItem) == 0x000004, "Wrong alignment on FFastArraySerializerItem");
 static_assert(sizeof(FFastArraySerializerItem) == 0x00000C, "Wrong size on FFastArraySerializerItem");

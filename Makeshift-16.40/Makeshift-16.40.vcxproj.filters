@@ -154,6 +154,54 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\AI">
       <UniqueIdentifier>{f46be08d-6a79-40c4-8f9b-6e46b6eb3250}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject">
+      <UniqueIdentifier>{0ce3157c-6c63-497e-9bbf-2d902b6b9b17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject\Public">
+      <UniqueIdentifier>{be002186-3120-4dbb-9a55-f6ceedce6035}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Source\Runtime\CoreUObject\Public\UObject">
+      <UniqueIdentifier>{92a293fa-5913-43df-8c4d-c518faaa7c20}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Experimental">
+      <UniqueIdentifier>{6683e3f2-9ee4-4c45-aa2a-c7ec01a33de1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Experimental\CommonConversation">
+      <UniqueIdentifier>{0a03efe8-218c-49ee-ace4-bb51b3c64b3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Experimental\CommonConversation\Source">
+      <UniqueIdentifier>{cca0e49b-1f8f-4953-bc6b-1b20439c773d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime">
+      <UniqueIdentifier>{7ae25921-68e7-4ce9-b752-e8dbb05512a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public">
+      <UniqueIdentifier>{4231595a-da69-4f0a-8249-5b373b0e905a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private">
+      <UniqueIdentifier>{2fa073b6-25ef-4274-9485-f44c560aa001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins">
+      <UniqueIdentifier>{eec79d85-cbeb-46ee-bc39-124eb671622b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures">
+      <UniqueIdentifier>{70de0641-da7c-4e62-a679-ff69c21296ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\FortniteConversation">
+      <UniqueIdentifier>{7922cbdb-5429-49e0-b1b5-f3c63d764d96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\FortniteConversation\Source">
+      <UniqueIdentifier>{30262608-1f1a-4a9b-bc2e-ded74867920f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\FortniteConversation\Source\FortniteConversationRuntime">
+      <UniqueIdentifier>{b42bd42a-814a-4073-9e46-7bff3fabc7ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\FortniteConversation\Source\FortniteConversationRuntime\Private">
+      <UniqueIdentifier>{9935a2ca-d9d0-4915-b5d1-bacbf5ce1d74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Conversation">
+      <UniqueIdentifier>{91f8cf0a-e679-41b3-8718-a89fb75bd81c}</UniqueIdentifier>
+    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public">
       <UniqueIdentifier>{bbe523ec-6409-46a4-86eb-c7c3f3e145cd}</UniqueIdentifier>
     </Filter>
@@ -570,6 +618,15 @@
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortAssets.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectGlobals.h">
+      <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\CommonConversationRuntimeLogging.h">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\ConversationTypes.h">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\VectorRegister.h">
       <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
     </ClInclude>
@@ -627,6 +684,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SDK\SDK\GameplayAbilities_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\SDK\CommonConversationRuntime_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SDK\SDK\Basic.cpp">
@@ -721,6 +781,48 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\FortAIFunctionLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortIndicatedActorManagementLibrary.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortControllerComponent_IndicatedActorManagement.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortMissionLibrary.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationTypes.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationContext.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationLibrary.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationInstance.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationParticipantComponent.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationTaskNode.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationRegistry.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationLinkNode.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationSideEffectNode.cpp">
+      <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Conversation\FortNonPlayerConversationParticipantComponent.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Conversation</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Plugins\GameFeatures\FortniteConversation\Source\FortniteConversationRuntime\Private\FortPlayerConversationComponent.cpp">
+      <Filter>FortniteGame\Plugins\GameFeatures\FortniteConversation\Source\FortniteConversationRuntime\Private</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp">
       <Filter>Engine\Source\Runtime\Core\Private\Math</Filter>

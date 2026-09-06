@@ -65355,6 +65355,17 @@ public:
 	{
 		return GetDefaultObjImpl<UFortIndicatedActorManagementLibrary>();
 	}
+
+	DECLARE_FUNCTION(execAddActorsInRadiusToIndicatedList);
+	DECLARE_FUNCTION(execAddActorsInRadiusToStenciledList);
+	DECLARE_FUNCTION(execAddActorsToIndicatedList);
+	DECLARE_FUNCTION(execAddActorsToStenciledList);
+	DECLARE_FUNCTION(execRemoveActorFromIndicatedList);
+	DECLARE_FUNCTION(execRemoveActorFromStenciledList);
+	DECLARE_FUNCTION(execRemoveGroupFromIndicatedList);
+	DECLARE_FUNCTION(execRemoveGroupFromStenciledList);
+
+	static void Init();
 };
 static_assert(alignof(UFortIndicatedActorManagementLibrary) == 0x000008, "Wrong alignment on UFortIndicatedActorManagementLibrary");
 static_assert(sizeof(UFortIndicatedActorManagementLibrary) == 0x000028, "Wrong size on UFortIndicatedActorManagementLibrary");
@@ -71545,6 +71556,15 @@ public:
 	{
 		return GetDefaultObjImpl<UFortControllerComponent_IndicatedActorManagement>();
 	}
+
+	DECLARE_FUNCTION(execAddActorsToIndicatedList);
+	DECLARE_FUNCTION(execAddActorsToStenciledList);
+	DECLARE_FUNCTION(execRemoveActorFromIndicatedList);
+	DECLARE_FUNCTION(execRemoveActorFromStenciledList);
+	DECLARE_FUNCTION(execRemoveGroupFromIndicatedList);
+	DECLARE_FUNCTION(execRemoveGroupFromStenciledList);
+
+	static void Init();
 };
 static_assert(alignof(UFortControllerComponent_IndicatedActorManagement) == 0x000008, "Wrong alignment on UFortControllerComponent_IndicatedActorManagement");
 static_assert(sizeof(UFortControllerComponent_IndicatedActorManagement) == 0x000538, "Wrong size on UFortControllerComponent_IndicatedActorManagement");
@@ -100767,6 +100787,10 @@ public:
 	{
 		return GetDefaultObjImpl<UFortMissionLibrary>();
 	}
+
+	DECLARE_FUNCTION(execFindActorsWithTags);
+
+	static void Init();
 };
 static_assert(alignof(UFortMissionLibrary) == 0x000008, "Wrong alignment on UFortMissionLibrary");
 static_assert(sizeof(UFortMissionLibrary) == 0x000028, "Wrong size on UFortMissionLibrary");
@@ -103744,6 +103768,11 @@ public:
 	{
 		return GetDefaultObjImpl<UFortNonPlayerConversationParticipantComponent>();
 	}
+
+public:
+	DECLARE_FUNCTION(execStartConversation);
+
+	static void Init();
 };
 static_assert(alignof(UFortNonPlayerConversationParticipantComponent) == 0x000008, "Wrong alignment on UFortNonPlayerConversationParticipantComponent");
 static_assert(sizeof(UFortNonPlayerConversationParticipantComponent) == 0x000298, "Wrong size on UFortNonPlayerConversationParticipantComponent");

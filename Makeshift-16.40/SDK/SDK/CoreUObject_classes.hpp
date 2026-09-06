@@ -40,6 +40,25 @@ public:
 	template <typename T> inline bool IsA() { return IsA(T::StaticClass()); }
 	template <typename T> inline T* Cast() { return IsA(T::StaticClass()) ? (T*)this : nullptr; }
 	bool IsDefaultObject() const;
+	class UWorld* GetWorld() const
+	{
+		return reinterpret_cast<class UWorld* (*)(const UObject*)>(VTable[44])(this);
+	}
+
+	/**
+	 * Returns a pointer to this object safely converted to a pointer of the specified interface class.
+	 *
+	 * @param	InterfaceClass	the interface class to use for the returned type
+	 *
+	 * @return	a pointer that can be assigned to a variable of the interface type specified, or NULL if this object's
+	 *			class doesn't implement the interface indicated.  Will be the same value as 'this' if the interface class
+	 *			isn't native.
+	 */
+	void* GetInterfaceAddress( class UClass* InterfaceClass )
+	{
+		void* (*Fn)(UObject*, class UClass*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC91D60);
+		return Fn(this, InterfaceClass);
+	}
 
 	/** Returns the UClass of this object */
 	FORCEINLINE class UClass* GetClass() const

@@ -221,6 +221,12 @@ public:
 	{
 		return GetDefaultObjImpl<UFortPlayerConversationComponent>();
 	}
+
+public:
+	void RequestServerAbortConversation_Implementation();
+
+	static void RequestServerAbortConversationHook(UFortPlayerConversationComponent* This);
+	static void Init();
 };
 static_assert(alignof(UFortPlayerConversationComponent) == 0x000008, "Wrong alignment on UFortPlayerConversationComponent");
 static_assert(sizeof(UFortPlayerConversationComponent) == 0x000340, "Wrong size on UFortPlayerConversationComponent");

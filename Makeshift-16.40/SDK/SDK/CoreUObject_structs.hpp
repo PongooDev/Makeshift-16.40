@@ -696,6 +696,14 @@ public:
 	 *
 	 * @return A new GUID.
 	 */
+	FString ToString() const
+	{
+		FString Result;
+		void (*Fn)(const FGuid*, FString*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE1D248);
+		Fn(this, &Result, 0);
+		return Result;
+	}
+
 	static FGuid NewGuid()
 	{
 		FGuid Result;
@@ -1463,6 +1471,64 @@ protected:
 	void MutateSeed() const
 	{
 		Seed = (Seed * 196314165U) + 907633515U;
+	}
+
+public:
+	/**
+	 * Default constructor.
+	 *
+	 * The seed should be set prior to use.
+	 */
+	FRandomStream()
+		: InitialSeed(0)
+		, Seed(0)
+	{ }
+
+	/**
+	 * Creates and initializes a new random stream from the specified seed value.
+	 *
+	 * @param InSeed The seed value.
+	 */
+	FRandomStream( int32 InSeed )
+	{
+		Initialize(InSeed);
+	}
+
+public:
+
+	/**
+	 * Initializes this random stream with the specified seed value.
+	 *
+	 * @param InSeed The seed value.
+	 */
+	void Initialize( int32 InSeed )
+	{
+		InitialSeed = InSeed;
+		Seed = uint32(InSeed);
+	}
+
+
+	/**
+	 * Helper function for rand implementations.
+	 *
+	 * @return A random number in [0..A)
+	 */
+	FORCEINLINE int32 RandHelper( int32 A ) const
+	{
+		// GetFraction guarantees a result in the [0,1) range.
+		return ((A > 0) ? FMath::TruncToInt(GetFraction() * float(A)) : 0);
+	}
+
+	/**
+	 * Helper function for rand implementations.
+	 *
+	 * @return A random number >= Min and <= Max
+	 */
+	FORCEINLINE int32 RandRange( int32 Min, int32 Max ) const
+	{
+		const int32 Range = (Max - Min) + 1;
+
+		return Min + RandHelper(Range);
 	}
 };
 static_assert(alignof(FRandomStream) == 0x000004, "Wrong alignment on FRandomStream");

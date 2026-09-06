@@ -534,31 +534,6 @@ float UActorComponent::GetComponentTickInterval() const
 }
 
 
-// Function Engine.ActorComponent.GetOwner
-// (Final, Native, Public, BlueprintCallable, BlueprintPure, Const)
-// Parameters:
-// class AActor*                           ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class AActor* UActorComponent::GetOwner() const
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("ActorComponent", "GetOwner");
-
-	Params::ActorComponent_GetOwner Parms{};
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function Engine.ActorComponent.IsActive
 // (Final, Native, Public, BlueprintCallable, BlueprintPure, Const)
 // Parameters:

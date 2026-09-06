@@ -286,6 +286,58 @@ struct TForceInitAtBoot
 	}
 };
 
+/**
+ * utility template for a class that should not be copyable.
+ * Derive from this class to make your class non-copyable
+ */
+class FNoncopyable
+{
+protected:
+	// ensure the class cannot be constructed directly
+	FNoncopyable() {}
+	// the class should not be used polymorphically
+	~FNoncopyable() {}
+private:
+	FNoncopyable(const FNoncopyable&);
+	FNoncopyable& operator=(const FNoncopyable&);
+};
+
+/**
+ * exception-safe guard around saving/restoring a value.
+ * Commonly used to make sure a value is restored
+ * even if the code early outs in the future.
+ * Usage:
+ *  	TGuardValue<bool> GuardSomeBool(bSomeBool, false); // Sets bSomeBool to false, and restores it in dtor.
+ */
+template <typename RefType, typename AssignedType = RefType>
+struct TGuardValue : private FNoncopyable
+{
+	TGuardValue(RefType& ReferenceValue, const AssignedType& NewValue)
+	: RefValue(ReferenceValue), OldValue(ReferenceValue)
+	{
+		RefValue = NewValue;
+	}
+	~TGuardValue()
+	{
+		RefValue = OldValue;
+	}
+
+	/**
+	 * Overloaded dereference operator.
+	 * Provides read-only access to the original value of the data being tracked by this struct
+	 *
+	 * @return	a const reference to the original data value
+	 */
+	FORCEINLINE const AssignedType& operator*() const
+	{
+		return OldValue;
+	}
+
+private:
+	RefType& RefValue;
+	AssignedType OldValue;
+};
+
 /** Used to avoid cluttering code with ifdefs. */
 struct FNoopStruct
 {

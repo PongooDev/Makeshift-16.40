@@ -28,4 +28,21 @@ FORCEINLINE FString GetNameSafe(const UObject *Object)
 	}
 }
 
+/**
+ * Returns the path name of this object
+ * @param Object object to retrieve the path name for; NULL gives "None"
+ * @return path name of the object.
+*/
+FORCEINLINE FString GetPathNameSafe(const UObject *Object)
+{
+	if( Object == NULL )
+	{
+		return TEXT("None");
+	}
+	else
+	{
+		return Object->GetPathName();
+	}
+}
+
 #define SCOPE_CYCLE_UOBJECT(Name, Object)

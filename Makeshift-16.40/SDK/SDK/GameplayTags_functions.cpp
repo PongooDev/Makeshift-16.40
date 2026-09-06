@@ -907,32 +907,6 @@ bool UBlueprintGameplayTagLibrary::RemoveGameplayTag(struct FGameplayTagContaine
 }
 
 
-// Function GameplayTags.GameplayTagAssetInterface.GetOwnedGameplayTags
-// (Native, Public, HasOutParams, BlueprintCallable, BlueprintPure, Const)
-// Parameters:
-// struct FGameplayTagContainer            TagContainer                                           (Parm, OutParm, NativeAccessSpecifierPublic)
-
-void IGameplayTagAssetInterface::GetOwnedGameplayTags(struct FGameplayTagContainer* TagContainer) const
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("GameplayTagAssetInterface", "GetOwnedGameplayTags");
-
-	Params::GameplayTagAssetInterface_GetOwnedGameplayTags Parms{};
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	if (TagContainer != nullptr)
-		*TagContainer = std::move(Parms.TagContainer);
-}
-
-
 // Function GameplayTags.GameplayTagAssetInterface.HasAllMatchingGameplayTags
 // (Native, Public, HasOutParams, BlueprintCallable, BlueprintPure, Const)
 // Parameters:

@@ -300,6 +300,9 @@
     <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities\GameplayAbilityTypes.h" />
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortPickup.h" />
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortAssets.h" />
+    <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectGlobals.h" />
+    <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\CommonConversationRuntimeLogging.h" />
+    <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\ConversationTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server\dllmain.cpp" />
@@ -332,6 +335,7 @@
     <ClCompile Include="SDK\SDK\Engine_functions.cpp" />
     <ClCompile Include="SDK\SDK\FortniteGame_functions.cpp" />
     <ClCompile Include="SDK\SDK\GameplayAbilities_functions.cpp" />
+    <ClCompile Include="SDK\SDK\CommonConversationRuntime_functions.cpp" />
     <ClCompile Include="SDK\SDK\Basic.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -354,6 +358,20 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerController.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\InventoryManagementLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\FortAIFunctionLibrary.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortIndicatedActorManagementLibrary.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortControllerComponent_IndicatedActorManagement.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortMissionLibrary.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationTypes.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationContext.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationLibrary.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationInstance.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationParticipantComponent.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationTaskNode.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationRegistry.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationLinkNode.cpp" />
+    <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationSideEffectNode.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Conversation\FortNonPlayerConversationParticipantComponent.cpp" />
+    <ClCompile Include="FortniteGame\Plugins\GameFeatures\FortniteConversation\Source\FortniteConversationRuntime\Private\FortPlayerConversationComponent.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp" />
     <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp" />
     <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayPrediction.cpp" />

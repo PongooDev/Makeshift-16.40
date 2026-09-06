@@ -17,6 +17,7 @@
 #include "GameplayTags_structs.hpp"
 #include "CommonConversationRuntime_structs.hpp"
 
+struct FConversationBranchPointBuilder;
 
 namespace SDK
 {
@@ -26,7 +27,7 @@ namespace SDK
 class UConversationNode : public UObject
 {
 public:
-	class UObject*                                EvalWorldContextObj;                               // 0x0028(0x0008)(BlueprintReadOnly, ZeroConstructor, Transient, DuplicateTransient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+	mutable class UObject*                        EvalWorldContextObj;                               // 0x0028(0x0008)(BlueprintReadOnly, ZeroConstructor, Transient, DuplicateTransient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class FString                                 NodeName;                                          // 0x0030(0x0010)(Edit, BlueprintReadOnly, ZeroConstructor, AdvancedDisplay, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	struct FGuid                                  Compiled_NodeGUID;                                 // 0x0040(0x0010)(BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	class UConversationNode*                      ParentNode;                                        // 0x0050(0x0008)(BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
@@ -43,6 +44,10 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationNode>();
 	}
+
+public:
+	/** The node's unique ID. */
+	FGuid GetNodeGuid() const { return Compiled_NodeGUID; }
 };
 static_assert(alignof(UConversationNode) == 0x000008, "Wrong alignment on UConversationNode");
 static_assert(sizeof(UConversationNode) == 0x000058, "Wrong size on UConversationNode");
@@ -68,16 +73,42 @@ public:
 static_assert(alignof(UConversationSubNode) == 0x000008, "Wrong alignment on UConversationSubNode");
 static_assert(sizeof(UConversationSubNode) == 0x000058, "Wrong size on UConversationSubNode");
 
+class FConversationStatusChangedEvent final
+{
+public:
+	uint8                                         Pad_0[0x18];
+};
+static_assert(sizeof(FConversationStatusChangedEvent) == 0x000018, "Wrong size on FConversationStatusChangedEvent");
+
+class FConversationStartedEvent final
+{
+public:
+	uint8                                         Pad_0[0x18];
+};
+static_assert(sizeof(FConversationStartedEvent) == 0x000018, "Wrong size on FConversationStartedEvent");
+
+class FConversationUpdatedEvent final
+{
+public:
+	uint8                                         Pad_0[0x18];
+};
+static_assert(sizeof(FConversationUpdatedEvent) == 0x000018, "Wrong size on FConversationUpdatedEvent");
+
 // Class CommonConversationRuntime.ConversationParticipantComponent
 // 0x00D8 (0x0188 - 0x00B0)
 class UConversationParticipantComponent : public UActorComponent
 {
 public:
-	uint8                                         Pad_B0[0xB4];                                      // 0x00B0(0x00B4)(Fixing Size After Last Property [ Dumper-7 ])
+	class FConversationStatusChangedEvent          ConversationStatusChanged;
+	class FConversationStartedEvent               ConversationStarted;
+	class FConversationUpdatedEvent               ConversationUpdated;
+	struct FClientConversationMessagePayload      LastMessage;
+	int32                                         MessageIndex;
 	int32                                         ConversationsActive;                               // 0x0164(0x0004)(Net, ZeroConstructor, IsPlainOldData, RepNotify, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UConversationInstance*                  Auth_CurrentConversation;                          // 0x0168(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TArray<class UConversationInstance*>          Auth_Conversations;                                // 0x0170(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_180[0x8];                                      // 0x0180(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	bool                                          bIsFirstConversationUpdateBroadcasted;
+	uint8                                         Pad_181[0x7];
 
 public:
 	void ClientExecuteTaskAndSideEffects(const struct FConversationNodeHandle& Handle);
@@ -99,9 +130,56 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationParticipantComponent>();
 	}
+
+public:
+	void SendClientConversationMessage(const FConversationContext& Context, const FClientConversationMessagePayload& Payload);
+	void SendClientUpdatedChoices(const FConversationContext& Context);
+
+	void ServerNotifyConversationStarted(UConversationInstance* Conversation, FGameplayTag AsParticipant);
+	void ServerNotifyConversationEnded(UConversationInstance* Conversation);
+	void ServerNotifyExecuteTaskAndSideEffects(const FConversationNodeHandle& Handle);
+	void ServerForAllConversationsRefreshChoices(UConversationInstance* IgnoreConversation = nullptr);
+
+	/** Ask this actor to abort all active conversations */
+	void ServerAbortAllConversations();
+
+	bool IsInActiveConversation() const;
+
+public:
+
+	FConversationNodeHandle GetCurrentNodeHandle() const;
+
+	const FConversationParticipantEntry* GetParticipant(const FGameplayTag& ParticipantTag) const;
+
+	void ServerAdvanceConversation_Implementation(const FAdvanceConversationRequest& InChoicePicked);
+
+	void OnEnterConversationState()
+	{
+		reinterpret_cast<void (*)(UConversationParticipantComponent*)>(VTable[136])(this);
+	}
+	void OnLeaveConversationState()
+	{
+		reinterpret_cast<void (*)(UConversationParticipantComponent*)>(VTable[137])(this);
+	}
+
+	UConversationInstance* GetCurrentConversationForAuthority() const { return Auth_CurrentConversation; }
+	const TArray<UConversationInstance*>& GetConversationsForAuthority() const { return Auth_Conversations; }
+
+	int32 GetConversationsActive() const { return ConversationsActive; }
+
+	bool GetIsFirstConversationUpdateBroadcasted() const { return bIsFirstConversationUpdateBroadcasted; }
+
+	static void ServerAdvanceConversationHook(UConversationParticipantComponent* This, const FAdvanceConversationRequest& InChoicePicked);
+	static void Init();
 };
 static_assert(alignof(UConversationParticipantComponent) == 0x000008, "Wrong alignment on UConversationParticipantComponent");
 static_assert(sizeof(UConversationParticipantComponent) == 0x000188, "Wrong size on UConversationParticipantComponent");
+static_assert(offsetof(UConversationParticipantComponent, ConversationStatusChanged) == 0x0000B0, "Member 'UConversationParticipantComponent::ConversationStatusChanged' has a wrong offset!");
+static_assert(offsetof(UConversationParticipantComponent, ConversationStarted) == 0x0000C8, "Member 'UConversationParticipantComponent::ConversationStarted' has a wrong offset!");
+static_assert(offsetof(UConversationParticipantComponent, ConversationUpdated) == 0x0000E0, "Member 'UConversationParticipantComponent::ConversationUpdated' has a wrong offset!");
+static_assert(offsetof(UConversationParticipantComponent, LastMessage) == 0x0000F8, "Member 'UConversationParticipantComponent::LastMessage' has a wrong offset!");
+static_assert(offsetof(UConversationParticipantComponent, MessageIndex) == 0x000160, "Member 'UConversationParticipantComponent::MessageIndex' has a wrong offset!");
+static_assert(offsetof(UConversationParticipantComponent, bIsFirstConversationUpdateBroadcasted) == 0x000180, "Member 'UConversationParticipantComponent::bIsFirstConversationUpdateBroadcasted' has a wrong offset!");
 static_assert(offsetof(UConversationParticipantComponent, ConversationsActive) == 0x000164, "Member 'UConversationParticipantComponent::ConversationsActive' has a wrong offset!");
 static_assert(offsetof(UConversationParticipantComponent, Auth_CurrentConversation) == 0x000168, "Member 'UConversationParticipantComponent::Auth_CurrentConversation' has a wrong offset!");
 static_assert(offsetof(UConversationParticipantComponent, Auth_Conversations) == 0x000170, "Member 'UConversationParticipantComponent::Auth_Conversations' has a wrong offset!");
@@ -125,6 +203,12 @@ public:
 	static class UConversationChoiceNode* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UConversationChoiceNode>();
+	}
+
+public:
+	bool GenerateChoice(const FConversationContext& Context, FClientConversationOptionEntry& ChoiceEntry) const
+	{
+		return reinterpret_cast<bool (*)(const UConversationChoiceNode*, const FConversationContext*, FClientConversationOptionEntry*)>(VTable[82])(this, &Context, &ChoiceEntry);
 	}
 };
 static_assert(alignof(UConversationChoiceNode) == 0x000008, "Wrong alignment on UConversationChoiceNode");
@@ -159,6 +243,26 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationContextHelpers>();
 	}
+
+public:
+	// Constructs and returns a FConversationTaskResult configured with EConversationTaskResultType::AbortConversation
+	static FConversationTaskResult AbortConversation(const FConversationContext& Context);
+
+	/**
+	 * Checks the provided task result against any which would end the conversation e.g. EConversationTaskResultType::Invalid
+	 * or EConversationTaskResultType::AbortConversation
+	 */
+	static bool CanConversationContinue(const FConversationTaskResult& ConversationTasResult);
+
+	DECLARE_FUNCTION(execAdvanceConversation);
+	DECLARE_FUNCTION(execAdvanceConversationWithChoice);
+	DECLARE_FUNCTION(execMakeConversationParticipant);
+	DECLARE_FUNCTION(execPauseConversationAndSendClientChoices);
+	DECLARE_FUNCTION(execReturnToConversationStart);
+	DECLARE_FUNCTION(execReturnToCurrentClientChoice);
+	DECLARE_FUNCTION(execReturnToLastClientChoice);
+
+	static void Init();
 };
 static_assert(alignof(UConversationContextHelpers) == 0x000008, "Wrong alignment on UConversationContextHelpers");
 static_assert(sizeof(UConversationContextHelpers) == 0x000028, "Wrong size on UConversationContextHelpers");
@@ -239,14 +343,42 @@ static_assert(alignof(UConversationEntryPointNode) == 0x000008, "Wrong alignment
 static_assert(sizeof(UConversationEntryPointNode) == 0x000070, "Wrong size on UConversationEntryPointNode");
 static_assert(offsetof(UConversationEntryPointNode, EntryTag) == 0x000068, "Member 'UConversationEntryPointNode::EntryTag' has a wrong offset!");
 
+class FOnAllParticipantsNotifiedOfStartEvent final
+{
+public:
+	uint8                                         Pad_0[0x18];
+
+public:
+	void Broadcast(class UConversationInstance* ConversationInstance)
+	{
+	}
+};
+static_assert(sizeof(FOnAllParticipantsNotifiedOfStartEvent) == 0x000018, "Wrong size on FOnAllParticipantsNotifiedOfStartEvent");
+
 // Class CommonConversationRuntime.ConversationInstance
 // 0x0180 (0x01A8 - 0x0028)
 class UConversationInstance : public UObject
 {
 public:
-	uint8                                         Pad_28[0x18];                                      // 0x0028(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FCheckpoint
+	{
+		FConversationBranchPoint ClientBranchPoint;
+		TArray<FConversationChoiceReference> ScopeStack;
+	};
+
+	// Server notification sent after all participants have been individually notified of conversation start
+	class FOnAllParticipantsNotifiedOfStartEvent    OnAllParticipantsNotifiedOfStart;
 	struct FConversationParticipants              Participants;                                      // 0x0040(0x0010)(NativeAccessSpecifierPrivate)
-	uint8                                         Pad_50[0x158];                                     // 0x0050(0x0158)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	struct FGameplayTag                           StartingEntryGameplayTag;
+	struct FConversationBranchPoint               StartingBranchPoint;
+	struct FConversationBranchPoint               CurrentBranchPoint;
+	TArray<struct FCheckpoint>                    ClientBranchPoints;
+	TArray<struct FConversationBranchPoint>       CurrentBranchPoints;
+	TArray<struct FConversationChoiceReference>   ScopeStack;
+	TArray<struct FClientConversationOptionEntry> CurrentUserChoices;
+	struct FRandomStream                          ConversationRNG;
+	bool                                          bConversationStarted;
+	uint8                                         Pad_1A1[0x7];
 
 public:
 	static class UClass* StaticClass()
@@ -257,10 +389,90 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationInstance>();
 	}
+
+public:
+	void ServerRemoveParticipant(FGameplayTag ParticipantID);
+
+	void ServerAssignParticipant(FGameplayTag ParticipantID, AActor* ParticipantActor);
+
+	void ServerStartConversation(FGameplayTag EntryPoint);
+
+	void ServerAdvanceConversation(const FAdvanceConversationRequest& InChoicePicked);
+
+	void ServerAbortConversation();
+
+	void ServerRefreshConversationChoices();
+
+	TArray<FGuid> DetermineBranches(const TArray<FGuid>& SourceList, EConversationRequirementResult MaximumRequirementResult = EConversationRequirementResult::Passed);
+
+	//@TODO: Conversation: Meh
+	TArray<FConversationParticipantEntry> GetParticipantListCopy() const
+	{
+		return Participants.List;
+	}
+
+	FConversationParticipants GetParticipantsCopy() const
+	{
+		return Participants;
+	}
+
+	const FConversationParticipantEntry* GetParticipant(FGameplayTag ParticipantID) const
+	{
+		return Participants.GetParticipant(ParticipantID);
+	}
+
+	UConversationParticipantComponent* GetParticipantComponent(FGameplayTag ParticipantID) const
+	{
+		return Participants.GetParticipantComponent(ParticipantID);
+	}
+
+	const FConversationNodeHandle& GetCurrentNodeHandle() const { return CurrentBranchPoint.GetNodeHandle(); }
+	const TArray<FClientConversationOptionEntry>& GetCurrentUserConversationChoices() const { return CurrentUserChoices; }
+
+protected:
+	void OnStarted()
+	{
+		reinterpret_cast<void (*)(UConversationInstance*)>(VTable[78])(this);
+	}
+	void OnEnded()
+	{
+		reinterpret_cast<void (*)(UConversationInstance*)>(VTable[79])(this);
+	}
+
+	void ModifyCurrentConversationNode(const FConversationChoiceReference& NewChoice);
+	void ModifyCurrentConversationNode(const FConversationBranchPoint& NewBranchPoint);
+	void ReturnToLastClientChoice(const FConversationContext& Context);
+	void ReturnToCurrentClientChoice(const FConversationContext& Context);
+	void ReturnToStart(const FConversationContext& Context);
+	void PauseConversationAndSendClientChoices(const FConversationContext& Context, const FClientConversationMessage& ClientMessage);
+
+private:
+	bool AreAllParticipantsReadyToConverse() const;
+	void TryStartingConversation();
+
+	const FConversationBranchPoint& GetCurrentBranchPoint() const { return CurrentBranchPoint; }
+	const FConversationChoiceReference& GetCurrentChoiceReference() const { return CurrentBranchPoint.ClientChoice.ChoiceReference; }
+
+	void ResetConversationProgress();
+	void UpdateNextChoices(const FConversationContext& Context);
+	void SetNextChoices(const TArray<FConversationBranchPoint>& InAllChoices);
+	const FConversationBranchPoint* FindBranchPointFromClientChoice(const FConversationChoiceReference& InChoice) const;
+
+	void OnCurrentConversationNodeModified();
 };
 static_assert(alignof(UConversationInstance) == 0x000008, "Wrong alignment on UConversationInstance");
 static_assert(sizeof(UConversationInstance) == 0x0001A8, "Wrong size on UConversationInstance");
+static_assert(offsetof(UConversationInstance, OnAllParticipantsNotifiedOfStart) == 0x000028, "Member 'UConversationInstance::OnAllParticipantsNotifiedOfStart' has a wrong offset!");
 static_assert(offsetof(UConversationInstance, Participants) == 0x000040, "Member 'UConversationInstance::Participants' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, StartingEntryGameplayTag) == 0x000050, "Member 'UConversationInstance::StartingEntryGameplayTag' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, StartingBranchPoint) == 0x000058, "Member 'UConversationInstance::StartingBranchPoint' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, CurrentBranchPoint) == 0x0000D8, "Member 'UConversationInstance::CurrentBranchPoint' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, ClientBranchPoints) == 0x000158, "Member 'UConversationInstance::ClientBranchPoints' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, CurrentBranchPoints) == 0x000168, "Member 'UConversationInstance::CurrentBranchPoints' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, ScopeStack) == 0x000178, "Member 'UConversationInstance::ScopeStack' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, CurrentUserChoices) == 0x000188, "Member 'UConversationInstance::CurrentUserChoices' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, ConversationRNG) == 0x000198, "Member 'UConversationInstance::ConversationRNG' has a wrong offset!");
+static_assert(offsetof(UConversationInstance, bConversationStarted) == 0x0001A0, "Member 'UConversationInstance::bConversationStarted' has a wrong offset!");
 
 // Class CommonConversationRuntime.ConversationLibrary
 // 0x0000 (0x0028 - 0x0028)
@@ -278,6 +490,11 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationLibrary>();
 	}
+
+public:
+	DECLARE_FUNCTION(execStartConversation);
+
+	static void Init();
 };
 static_assert(alignof(UConversationLibrary) == 0x000008, "Wrong alignment on UConversationLibrary");
 static_assert(sizeof(UConversationLibrary) == 0x000028, "Wrong size on UConversationLibrary");
@@ -304,6 +521,45 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationTaskNode>();
 	}
+
+public:
+	//@TODO: CONVERSATION: Comment me
+	FConversationTaskResult ExecuteTaskNodeWithSideEffects(const FConversationContext& Context) const;
+
+public:
+	/**
+	 * Returns the highest priority EConversationRequirementResult, so Passed, having the least priority
+	 * and FailedHidden having the highest priority.
+	 */
+	EConversationRequirementResult CheckRequirements(const FConversationContext& InContext) const
+	{
+		EConversationRequirementResult (*Fn)(const UConversationTaskNode*, const FConversationContext*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x3760274);
+		return Fn(this, &InContext);
+	}
+
+	static void GenerateChoicesForDestinations(FConversationBranchPointBuilder& BranchBuilder, const FConversationContext& InContext, const TArray<FGuid>& CandidateDestinations);
+
+protected:
+	void GatherChoices(FConversationBranchPointBuilder& BranchBuilder, const FConversationContext& Context) const
+	{
+		reinterpret_cast<void (*)(const UConversationTaskNode*, FConversationBranchPointBuilder*, const FConversationContext*)>(VTable[85])(this, &BranchBuilder, &Context);
+	}
+
+	void GatherStaticChoices(FConversationBranchPointBuilder& BranchBuilder, const FConversationContext& Context) const
+	{
+		reinterpret_cast<void (*)(const UConversationTaskNode*, FConversationBranchPointBuilder*, const FConversationContext*)>(VTable[86])(this, &BranchBuilder, &Context);
+	}
+	void GatherDynamicChoices(FConversationBranchPointBuilder& BranchBuilder, const FConversationContext& Context) const
+	{
+		reinterpret_cast<void (*)(const UConversationTaskNode*, FConversationBranchPointBuilder*, const FConversationContext*)>(VTable[87])(this, &BranchBuilder, &Context);
+	}
+	void GatherStaticExtraData(const FConversationContext& Context, TArray<FConversationNodeParameterPair>& InOutExtraData) const
+	{
+		reinterpret_cast<void (*)(const UConversationTaskNode*, const FConversationContext*, TArray<FConversationNodeParameterPair>*)>(VTable[88])(this, &Context, &InOutExtraData);
+	}
+
+	friend class UConversationInstance;
+	friend class UConversationLinkNode;
 };
 static_assert(alignof(UConversationTaskNode) == 0x000008, "Wrong alignment on UConversationTaskNode");
 static_assert(sizeof(UConversationTaskNode) == 0x000078, "Wrong size on UConversationTaskNode");
@@ -325,6 +581,12 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationLinkNode>();
 	}
+
+public:
+	FGameplayTag GetRemoteEntryTag() const { return RemoteEntryTag; }
+
+	static void GatherChoicesHook(const UConversationLinkNode* This, FConversationBranchPointBuilder& BranchBuilder, const FConversationContext& Context);
+	static void Init();
 };
 static_assert(alignof(UConversationLinkNode) == 0x000008, "Wrong alignment on UConversationLinkNode");
 static_assert(sizeof(UConversationLinkNode) == 0x000080, "Wrong size on UConversationLinkNode");
@@ -336,7 +598,12 @@ class UConversationRegistry final : public UWorldSubsystem
 {
 public:
 	struct FNetSerializeScriptStructCache_ConvVersion ConversationChoiceDataStructCache;                 // 0x0030(0x0060)(Transient, NativeAccessSpecifierPublic)
-	uint8                                         Pad_90[0x148];                                     // 0x0090(0x0148)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	TMap<struct FSoftObjectPath, TArray<struct FSoftObjectPath>> RuntimeDependencyGraph;
+	TMap<struct FGameplayTag, TArray<struct FSoftObjectPath>> EntryTagToConversations;
+	TMap<struct FGameplayTag, TArray<struct FGuid>>  EntryTagToEntryList;
+	TMap<struct FGuid, struct FSoftObjectPath>    NodeGuidToConversation;
+	bool                                          bDependenciesBuilt;
+	uint8                                         Pad_1D1[0x7];
 
 public:
 	static class UClass* StaticClass()
@@ -347,10 +614,45 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationRegistry>();
 	}
+
+public:
+	static UConversationRegistry* GetFromWorld(const UWorld* World)
+	{
+		return World->GetSubsystem<UConversationRegistry>();
+	}
+
+	UConversationNode* GetRuntimeNodeFromGUID(const FGuid& NodeGUID) const
+	{
+		UConversationNode* (*Fn)(const UConversationRegistry*, const FGuid*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x3761170);
+		return Fn(this, &NodeGUID);
+	}
+	TArray<FGuid> GetEntryPointGUIDs(FGameplayTag EntryPoint) const;
+
+	TArray<FGuid> GetOutputLinkGUIDs(FGameplayTag EntryPoint) const;
+	TArray<FGuid> GetOutputLinkGUIDs(const FGuid& SourceGUID) const;
+	TArray<FGuid> GetOutputLinkGUIDs(const TArray<FGuid>& SourceGUIDs) const;
+
+private:
+	UConversationDatabase* GetConversationFromNodeGUID(const FGuid& NodeGUID) const
+	{
+		UConversationDatabase* (*Fn)(const UConversationRegistry*, const FGuid*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x3760E7C);
+		return Fn(this, &NodeGUID);
+	}
+
+	void BuildDependenciesGraph()
+	{
+		void (*Fn)(UConversationRegistry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xEDC850);
+		Fn(this);
+	}
 };
 static_assert(alignof(UConversationRegistry) == 0x000008, "Wrong alignment on UConversationRegistry");
 static_assert(sizeof(UConversationRegistry) == 0x0001D8, "Wrong size on UConversationRegistry");
 static_assert(offsetof(UConversationRegistry, ConversationChoiceDataStructCache) == 0x000030, "Member 'UConversationRegistry::ConversationChoiceDataStructCache' has a wrong offset!");
+static_assert(offsetof(UConversationRegistry, RuntimeDependencyGraph) == 0x000090, "Member 'UConversationRegistry::RuntimeDependencyGraph' has a wrong offset!");
+static_assert(offsetof(UConversationRegistry, EntryTagToConversations) == 0x0000E0, "Member 'UConversationRegistry::EntryTagToConversations' has a wrong offset!");
+static_assert(offsetof(UConversationRegistry, EntryTagToEntryList) == 0x000130, "Member 'UConversationRegistry::EntryTagToEntryList' has a wrong offset!");
+static_assert(offsetof(UConversationRegistry, NodeGuidToConversation) == 0x000180, "Member 'UConversationRegistry::NodeGuidToConversation' has a wrong offset!");
+static_assert(offsetof(UConversationRegistry, bDependenciesBuilt) == 0x0001D0, "Member 'UConversationRegistry::bDependenciesBuilt' has a wrong offset!");
 
 // Class CommonConversationRuntime.ConversationRequirementNode
 // 0x0000 (0x0058 - 0x0058)
@@ -388,6 +690,9 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationSettings>();
 	}
+
+public:
+	UClass* GetConversationInstanceClass() const;
 };
 static_assert(alignof(UConversationSettings) == 0x000008, "Wrong alignment on UConversationSettings");
 static_assert(sizeof(UConversationSettings) == 0x000060, "Wrong size on UConversationSettings");
@@ -410,9 +715,33 @@ public:
 	{
 		return GetDefaultObjImpl<UConversationSideEffectNode>();
 	}
+
+public:
+	/** Called by the client and server code executes the side effect. */
+	void CauseSideEffect(const FConversationContext& Context) const;
 };
 static_assert(alignof(UConversationSideEffectNode) == 0x000008, "Wrong alignment on UConversationSideEffectNode");
 static_assert(sizeof(UConversationSideEffectNode) == 0x000058, "Wrong size on UConversationSideEffectNode");
 
+
+template<class TConversationNodeClass>
+const TConversationNodeClass* FClientConversationOptionEntry::TryToResolveChoiceNode(const FConversationContext& Context) const
+{
+	const UConversationNode* Node = ChoiceReference.NodeReference.TryToResolve(Context);
+	return Node ? const_cast<UConversationNode*>(Node)->Cast<TConversationNodeClass>() : nullptr;
 }
 
+template<class TConversationNodeClass>
+const TConversationNodeClass* FClientConversationOptionEntry::TryToResolveChoiceNode_Slow(UWorld* InWorld) const
+{
+	const UConversationNode* Node = ChoiceReference.NodeReference.TryToResolve_Slow(InWorld);
+	return Node ? const_cast<UConversationNode*>(Node)->Cast<TConversationNodeClass>() : nullptr;
+}
+
+template<class TParticipantComponentClass>
+TParticipantComponentClass* FConversationParticipantEntry::GetParticipantComponent() const
+{
+	return Actor ? Actor->FindComponentByClass<TParticipantComponentClass>() : nullptr;
+}
+
+}

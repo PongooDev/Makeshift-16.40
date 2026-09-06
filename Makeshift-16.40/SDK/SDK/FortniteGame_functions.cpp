@@ -122846,33 +122846,6 @@ void UFortAIFunctionLibrary::RequestNavUpdateForBuilding(class ABuildingActor* B
 }
 
 
-// Function FortniteGame.FortAIFunctionLibrary.SetHearingRange
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// class AActor*                           AIAgent                                                (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// float                                   Range                                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortAIFunctionLibrary::SetHearingRange(class AActor* AIAgent, float Range)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortAIFunctionLibrary", "SetHearingRange");
-
-	Params::FortAIFunctionLibrary_SetHearingRange Parms{};
-
-	Parms.AIAgent = AIAgent;
-	Parms.Range = Range;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
 // Function FortniteGame.FortCurieUpdraftActor.OnUpdraftBeginOverlap
 // (Native, Protected, HasOutParams)
 // Parameters:
@@ -292178,68 +292151,6 @@ void UInteractionPointWidget::UpdateDistance()
 }
 
 
-// Function FortniteGame.InventoryManagementLibrary.AddItem
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// class UFortItemDefinition*              ItemDefinition                                         (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   Count                                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class UFortWorldItem*                   ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class UFortWorldItem* UInventoryManagementLibrary::AddItem(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const class UFortItemDefinition* ItemDefinition, int32 Count)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("InventoryManagementLibrary", "AddItem");
-
-	Params::InventoryManagementLibrary_AddItem Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.ItemDefinition = ItemDefinition;
-	Parms.Count = Count;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.InventoryManagementLibrary.AddItems
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// TArray<struct FItemAndCount>            Items                                                  (Parm, ZeroConstructor, NativeAccessSpecifierPublic)
-// TArray<class UFortWorldItem*>           ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, NativeAccessSpecifierPublic)
-
-TArray<class UFortWorldItem*> UInventoryManagementLibrary::AddItems(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const TArray<struct FItemAndCount>& Items)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("InventoryManagementLibrary", "AddItems");
-
-	Params::InventoryManagementLibrary_AddItems Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.Items = std::move(Items);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.InventoryManagementLibrary.FindExistingItemForDefinition
 // (Final, Native, Static, Public, BlueprintCallable)
 // Parameters:
@@ -292357,95 +292268,6 @@ void UInventoryManagementLibrary::GetItemsFromInventoryOwnerForRarity(TScriptInt
 
 	if (Items != nullptr)
 		*Items = std::move(Parms.Items);
-}
-
-
-// Function FortniteGame.InventoryManagementLibrary.GiveItemEntryToInventoryOwner
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// struct FFortItemEntry                   ItemInstance                                           (ConstParm, Parm, OutParm, ReferenceParm, NativeAccessSpecifierPublic)
-// bool                                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-bool UInventoryManagementLibrary::GiveItemEntryToInventoryOwner(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const struct FFortItemEntry& ItemInstance)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("InventoryManagementLibrary", "GiveItemEntryToInventoryOwner");
-
-	Params::InventoryManagementLibrary_GiveItemEntryToInventoryOwner Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.ItemInstance = std::move(ItemInstance);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.InventoryManagementLibrary.RemoveItem
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// struct FGuid                            ItemGuid                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   Count                                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-bool UInventoryManagementLibrary::RemoveItem(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const struct FGuid& ItemGuid, int32 Count)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("InventoryManagementLibrary", "RemoveItem");
-
-	Params::InventoryManagementLibrary_RemoveItem Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.ItemGuid = std::move(ItemGuid);
-	Parms.Count = Count;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.InventoryManagementLibrary.RemoveItems
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// TArray<struct FItemGuidAndCount>        Items                                                  (Parm, ZeroConstructor, NativeAccessSpecifierPublic)
-
-void UInventoryManagementLibrary::RemoveItems(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const TArray<struct FItemGuidAndCount>& Items)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("InventoryManagementLibrary", "RemoveItems");
-
-	Params::InventoryManagementLibrary_RemoveItems Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.Items = std::move(Items);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
 }
 
 

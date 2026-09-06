@@ -973,6 +973,13 @@ public:
 	{
 		return GetDefaultObjImpl<UAIPerceptionComponent>();
 	}
+
+public:
+	void ConfigureSense(class UAISenseConfig& Config)
+	{
+		void (*Fn)(UAIPerceptionComponent*, class UAISenseConfig*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x63180B4);
+		Fn(this, &Config);
+	}
 };
 static_assert(alignof(UAIPerceptionComponent) == 0x000008, "Wrong alignment on UAIPerceptionComponent");
 static_assert(sizeof(UAIPerceptionComponent) == 0x000190, "Wrong size on UAIPerceptionComponent");
@@ -989,7 +996,11 @@ class UAIBlueprintHelperLibrary final : public UBlueprintFunctionLibrary
 {
 public:
 	static class UAIAsyncTaskBlueprintProxy* CreateMoveToProxyObject(class UObject* WorldContextObject, class APawn* Pawn, const struct FVector& Destination, class AActor* TargetActor, float AcceptanceRadius, bool bStopOnOverlap);
-	static class AAIController* GetAIController(class AActor* ControlledActor);
+	static class AAIController* GetAIController(class AActor* ControlledActor)
+	{
+		class AAIController* (*Fn)(class AActor*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1F8771C);
+		return Fn(ControlledActor);
+	}
 	static class UBlackboardComponent* GetBlackboard(class AActor* Target);
 	static class UNavigationPath* GetCurrentPath(class AController* Controller);
 	static int32 GetCurrentPathIndex(const class AController* Controller);

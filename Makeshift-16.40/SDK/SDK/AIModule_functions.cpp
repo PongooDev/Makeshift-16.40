@@ -1017,34 +1017,6 @@ class UAIAsyncTaskBlueprintProxy* UAIBlueprintHelperLibrary::CreateMoveToProxyOb
 }
 
 
-// Function AIModule.AIBlueprintHelperLibrary.GetAIController
-// (Final, Native, Static, Public, BlueprintCallable, BlueprintPure)
-// Parameters:
-// class AActor*                           ControlledActor                                        (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AAIController*                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class AAIController* UAIBlueprintHelperLibrary::GetAIController(class AActor* ControlledActor)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("AIBlueprintHelperLibrary", "GetAIController");
-
-	Params::AIBlueprintHelperLibrary_GetAIController Parms{};
-
-	Parms.ControlledActor = ControlledActor;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function AIModule.AIBlueprintHelperLibrary.GetBlackboard
 // (Final, Native, Static, Public, BlueprintCallable, BlueprintPure)
 // Parameters:

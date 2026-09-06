@@ -68,6 +68,8 @@ DWORD WINAPI Main(LPVOID) {
     UAbilitySystemComponent::Init();
     AFortPlayerControllerZone::Init();
     UFortKismetLibrary::Init();
+    UInventoryManagementLibrary::Init();
+    UFortAIFunctionLibrary::Init();
     UNetDriver::Init();
 
     UWorld* World = GWorld;

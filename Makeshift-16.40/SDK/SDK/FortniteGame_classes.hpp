@@ -6025,6 +6025,13 @@ public:
 		return reinterpret_cast<class UObject* (*)(IFortInventoryOwnerInterface*)>(VTable[1])(this);
 	}
 
+	ENetRole GetNetworkRole()
+	{
+		ENetRole Result = ENetRole::ROLE_None;
+		reinterpret_cast<ENetRole* (*)(IFortInventoryOwnerInterface*, ENetRole*)>(VTable[5])(this, &Result);
+		return Result;
+	}
+
 	class AFortPawn* GetFortPawn()
 	{
 		return reinterpret_cast<class AFortPawn* (*)(IFortInventoryOwnerInterface*)>(VTable[8])(this);
@@ -17393,6 +17400,13 @@ public:
 	static class UFortAIPerceptionComponent* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortAIPerceptionComponent>();
+	}
+
+public:
+	class UAISenseConfig* GetSenseConfigForPerceptionType(ECorePerceptionTypes Type)
+	{
+		const int32 Index = static_cast<int32>(Type);
+		return Index >= 0 && Index < SensesConfig.Num() ? SensesConfig[Index] : nullptr;
 	}
 };
 static_assert(alignof(UFortAIPerceptionComponent) == 0x000008, "Wrong alignment on UFortAIPerceptionComponent");
@@ -48710,6 +48724,10 @@ public:
 	{
 		return GetDefaultObjImpl<UFortAIFunctionLibrary>();
 	}
+
+	DECLARE_FUNCTION(execSetHearingRange);
+
+	static void Init();
 };
 static_assert(alignof(UFortAIFunctionLibrary) == 0x000008, "Wrong alignment on UFortAIFunctionLibrary");
 static_assert(sizeof(UFortAIFunctionLibrary) == 0x000028, "Wrong size on UFortAIFunctionLibrary");
@@ -129957,6 +129975,14 @@ public:
 	{
 		return GetDefaultObjImpl<UInventoryManagementLibrary>();
 	}
+
+	DECLARE_FUNCTION(execAddItem);
+	DECLARE_FUNCTION(execAddItems);
+	DECLARE_FUNCTION(execGiveItemEntryToInventoryOwner);
+	DECLARE_FUNCTION(execRemoveItem);
+	DECLARE_FUNCTION(execRemoveItems);
+
+	static void Init();
 };
 static_assert(alignof(UInventoryManagementLibrary) == 0x000008, "Wrong alignment on UInventoryManagementLibrary");
 static_assert(sizeof(UInventoryManagementLibrary) == 0x000028, "Wrong size on UInventoryManagementLibrary");

@@ -352,6 +352,8 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortLootTierData.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortInventory.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerController.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\InventoryManagementLibrary.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\FortAIFunctionLibrary.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp" />
     <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp" />
     <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayPrediction.cpp" />

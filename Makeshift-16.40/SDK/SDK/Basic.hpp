@@ -1514,6 +1514,25 @@ public:
 static_assert(alignof(FIntProperty) == 0x000008, "Wrong alignment on FIntProperty");
 static_assert(sizeof(FIntProperty) == 0x000078, "Wrong size on FIntProperty");
 
+class FFloatProperty final : public FNumericProperty
+{
+public:
+	typedef float TCppType;
+
+	static TCppType GetDefaultPropertyValue()
+	{
+		return TCppType();
+	}
+
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC5BB40);
+		return Fn();
+	}
+};
+static_assert(alignof(FFloatProperty) == 0x000008, "Wrong alignment on FFloatProperty");
+static_assert(sizeof(FFloatProperty) == 0x000078, "Wrong size on FFloatProperty");
+
 class FNameProperty final : public FProperty
 {
 public:

@@ -125,6 +125,8 @@ DECLARE_LOG_CATEGORY_OFFSET(LogFortInventory, Warning, All)
 #define LogFortInventory UE_LOG_CATEGORY_AT(LogFortInventory, 0x93CAB38)
 DECLARE_LOG_CATEGORY_OFFSET(LogFortBuilding, Log, All)
 #define LogFortBuilding UE_LOG_CATEGORY_AT(LogFortBuilding, 0x93CAB68)
+DECLARE_LOG_CATEGORY_OFFSET(LogFortAI, Warning, All)
+#define LogFortAI UE_LOG_CATEGORY_AT(LogFortAI, 0x93CAB88)
 DECLARE_LOG_CATEGORY_OFFSET(LogFortReplicationGraph, Display, All)
 #define LogFortReplicationGraph UE_LOG_CATEGORY_AT(LogFortReplicationGraph, 0x93CC700)
 

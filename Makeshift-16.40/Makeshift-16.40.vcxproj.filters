@@ -148,6 +148,9 @@
     <Filter Include="Engine\Source\Runtime\GameplayTags\Private">
       <UniqueIdentifier>{eb472d43-9d3c-457c-9414-8bb76b7512d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Player">
+      <UniqueIdentifier>{57cb0607-2c86-4127-ad7b-a42e13a8284c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -658,6 +661,12 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp">
       <Filter>Engine\Source\Runtime\Core\Private\Math</Filter>

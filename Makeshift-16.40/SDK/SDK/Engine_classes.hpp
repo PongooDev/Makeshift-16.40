@@ -6468,6 +6468,13 @@ public:
 	uint8                                         Pad_564[0x134];                                    // 0x0564(0x0134)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	void ServerAcknowledgePossession_Implementation(APawn* P)
+	{
+		void (*Fn)(APlayerController*, APawn*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x6000090);
+		Fn(this, P);
+	}
+
+public:
 	void ActivateTouchInterface(class UTouchInterface* NewTouchInterface);
 	void AddPitchInput(float Val);
 	void AddRollInput(float Val);

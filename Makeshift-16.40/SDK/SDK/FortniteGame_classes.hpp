@@ -19415,6 +19415,14 @@ public:
 	uint8                                         Pad_30B0[0x50];                                    // 0x30B0(0x0050)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	typedef AFortPlayerControllerGameplay Super;
+
+	void ServerAcknowledgePossession_Implementation(class APawn* P);
+	static void ServerAcknowledgePossessionHook(AFortPlayerControllerZone* This, class APawn* P);
+
+	static void Init();
+
+public:
 	void AllowLoadoutRefresh();
 	void ClientAckLoadoutConfig(int32 LoadoutSeed);
 	void ClientClearDeathNotification();
@@ -110345,6 +110353,9 @@ public:
 	bool                                          bInGhostMode;                                      // 0x09E8(0x0001)(Net, ZeroConstructor, Transient, IsPlainOldData, RepNotify, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_9E9[0x1F];                                     // 0x09E9(0x001F)(Fixing Size After Last Property [ Dumper-7 ])
 	TMulticastInlineDelegate<void(struct FPawnDamageData& PawnDamageInfo)> OnPawnDiedDelegate;                                // 0x0A08(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, Protected, NativeAccessSpecifierProtected)
+
+public:
+	void SetHasStartedPlaying(const bool bHasStarted);
 
 public:
 	static bool AreUniqueIDsIdentical(const struct FUniqueNetIdRepl& A, const struct FUniqueNetIdRepl& B);

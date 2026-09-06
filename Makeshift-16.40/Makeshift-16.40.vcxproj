@@ -336,6 +336,8 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortGameModeAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameMode.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp" />
     <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp" />
     <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayPrediction.cpp" />

@@ -1997,6 +1997,17 @@ public:
 	{
 		return GetDefaultObjImpl<UDataTable>();
 	}
+
+public:
+	const TMap<FName, uint8*>& GetRowMap() const { return RowMap; }
+	const TMap<FName, uint8*>& GetRowMap() { return RowMap; }
+
+	/** Get all of the rows in the table, regardless of name */
+	template <class T>
+	void GetAllRows(const TCHAR* ContextString, TArray<T*>& OutRowArray) const;
+
+	template <class T>
+	void GetAllRows(const FString& ContextString, TArray<T*>& OutRowArray) const;
 };
 static_assert(alignof(UDataTable) == 0x000008, "Wrong alignment on UDataTable");
 static_assert(sizeof(UDataTable) == 0x0000B0, "Wrong size on UDataTable");

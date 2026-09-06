@@ -35730,6 +35730,19 @@ public:
 	bool                                          bAllowBonusLootDrops;                              // 0x00C8(0x0001)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_C9[0x7];                                       // 0x00C9(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
 	class FString                                 Annotation;                                        // 0x00D0(0x0010)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	static class UScriptStruct* StaticStruct()
+	{
+		static class UScriptStruct* Struct = nullptr;
+		if (!Struct)
+		{
+			Struct = static_cast<class UScriptStruct*>(UObject::FindObjectImpl("ScriptStruct FortniteGame.FortLootTierData"));
+		}
+		return Struct;
+	}
+
+	float GetTrueWeight(class UWorld* World, const TMap<class FName, float>* NamedWeightsMap) const;
 };
 static_assert(alignof(FFortLootTierData) == 0x000008, "Wrong alignment on FFortLootTierData");
 static_assert(sizeof(FFortLootTierData) == 0x0000E0, "Wrong size on FFortLootTierData");
@@ -46796,6 +46809,20 @@ public:
 	bool                                          bAllowBonusDrops;                                  // 0x00B0(0x0001)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_B1[0x7];                                       // 0x00B1(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
 	class FString                                 Annotation;                                        // 0x00B8(0x0010)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	static class UScriptStruct* StaticStruct()
+	{
+		static class UScriptStruct* Struct = nullptr;
+		if (!Struct)
+		{
+			Struct = static_cast<class UScriptStruct*>(UObject::FindObjectImpl("ScriptStruct FortniteGame.FortLootPackageData"));
+		}
+		return Struct;
+	}
+
+	float GetTrueWeight(class UWorld* World, const TMap<class FName, float>* NamedWeightsMap) const;
+	float GetTrueCount(class UWorld* World) const;
 };
 static_assert(alignof(FFortLootPackageData) == 0x000008, "Wrong alignment on FFortLootPackageData");
 static_assert(sizeof(FFortLootPackageData) == 0x0000C8, "Wrong size on FFortLootPackageData");

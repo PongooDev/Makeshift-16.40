@@ -198,6 +198,7 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Windows\WindowsPlatformString.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Private\Misc\VarargsHelper.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\Engine.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\DataTable.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineBaseTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
@@ -348,6 +349,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortPickup.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\GameDataBR.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortLootTierData.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp" />
     <ClCompile Include="Engine\Restricted\NotForLicensees\Plugins\OnlineGameplayFramework\Source\McpProfileSys\Private\McpProfileGroup.cpp" />
     <ClCompile Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Private\GameplayPrediction.cpp" />

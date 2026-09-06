@@ -102,6 +102,14 @@ public:
 	{
 		InSDKUtils::CallGameFunction(InSDKUtils::GetVirtualFunction<void(*)(const UObject*, class UFunction*, void*)>(this, Offsets::ProcessEventIdx), this, Function, Parms);
 	}
+
+public:
+	FString GetPathName() const
+	{
+		const std::string FullName = GetFullName();
+		const std::string::size_type ClassNameEnd = FullName.find(' ');
+		return FString(std::wstring(FullName.begin() + (ClassNameEnd == std::string::npos ? 0 : ClassNameEnd + 1), FullName.end()).c_str());
+	}
 };
 static_assert(alignof(UObject) == 0x000008, "Wrong alignment on UObject");
 static_assert(sizeof(UObject) == 0x000028, "Wrong size on UObject");
@@ -225,6 +233,10 @@ public:
 
 public:
 	bool IsSubclassOf(const UStruct* Base) const;
+	bool IsChildOf(const UStruct* SomeBase) const
+	{
+		return IsSubclassOf(SomeBase);
+	}
 
 	/** Returns the struct/ class/ function this struct is derived from */
 	FORCEINLINE class UStruct* GetSuperStruct() const

@@ -8074,31 +8074,6 @@ class AFortAthenaAircraft* AFortGameStateAthena::GetAircraft(int32 AircraftIndex
 }
 
 
-// Function FortniteGame.FortGameStateAthena.GetAthenaPlaylistContextTags
-// (Final, RequiredAPI, Native, Public, BlueprintCallable, BlueprintPure, Const)
-// Parameters:
-// struct FGameplayTagContainer            ReturnValue                                            (Parm, OutParm, ReturnParm, NativeAccessSpecifierPublic)
-
-struct FGameplayTagContainer AFortGameStateAthena::GetAthenaPlaylistContextTags() const
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortGameStateAthena", "GetAthenaPlaylistContextTags");
-
-	Params::FortGameStateAthena_GetAthenaPlaylistContextTags Parms{};
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortGameStateAthena.GetAvgPlayerMMR
 // (Final, Native, Public, BlueprintCallable, BlueprintPure, Const)
 // Parameters:
@@ -159610,78 +159585,6 @@ bool UFortKismetLibrary::DoesItemDefinitionHaveGameplayTag(const class UFortItem
 }
 
 
-// Function FortniteGame.FortKismetLibrary.DropInstancedLoot
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, BlueprintCallable)
-// Parameters:
-// class AFortPawn*                        PawnContext                                            (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class FName                             LootTierGroup                                          (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<class AFortPlayerController*>    RelevantPlayers                                        (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, NativeAccessSpecifierPublic)
-// bool                                    bAllowCombining                                        (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<class AFortPickup*>              ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, NativeAccessSpecifierPublic)
-
-TArray<class AFortPickup*> UFortKismetLibrary::DropInstancedLoot(class AFortPawn* PawnContext, const class FName& LootTierGroup, const TArray<class AFortPlayerController*>& RelevantPlayers, bool bAllowCombining)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "DropInstancedLoot");
-
-	Params::FortKismetLibrary_DropInstancedLoot Parms{};
-
-	Parms.PawnContext = PawnContext;
-	Parms.LootTierGroup = LootTierGroup;
-	Parms.RelevantPlayers = std::move(RelevantPlayers);
-	Parms.bAllowCombining = bAllowCombining;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.FortKismetLibrary.DropInstancedLootAtLocation
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class FName                             LootTierGroup                                          (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<class AFortPlayerController*>    RelevantPlayers                                        (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, NativeAccessSpecifierPublic)
-// bool                                    bAllowCombining                                        (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          DropLocation                                           (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// EFortPickupSourceTypeFlag               SourceTypeFlag                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<class AFortPickup*>              ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, NativeAccessSpecifierPublic)
-
-TArray<class AFortPickup*> UFortKismetLibrary::DropInstancedLootAtLocation(class UObject* WorldContextObject, const class FName& LootTierGroup, const TArray<class AFortPlayerController*>& RelevantPlayers, bool bAllowCombining, const struct FVector& DropLocation, EFortPickupSourceTypeFlag SourceTypeFlag)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "DropInstancedLootAtLocation");
-
-	Params::FortKismetLibrary_DropInstancedLootAtLocation Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.LootTierGroup = LootTierGroup;
-	Parms.RelevantPlayers = std::move(RelevantPlayers);
-	Parms.bAllowCombining = bAllowCombining;
-	Parms.DropLocation = std::move(DropLocation);
-	Parms.SourceTypeFlag = SourceTypeFlag;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.EffectContextAddSourceObject
 // (Final, Native, Static, Public, BlueprintCallable)
 // Parameters:
@@ -165248,46 +165151,6 @@ int32 UFortKismetLibrary::K2_RemoveItemsFromPlayerByNameStateValue(class AFortPl
 }
 
 
-// Function FortniteGame.FortKismetLibrary.K2_SpawnPickupInWorldWithLootTier
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class FName                             LootTierName                                           (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          Position                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   OverrideMaxStackCount                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bToss                                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// EFortPickupSourceTypeFlag               SourceType                                             (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// EFortPickupSpawnSource                  Source                                                 (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<class AFortPickup*>              ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, NativeAccessSpecifierPublic)
-
-TArray<class AFortPickup*> UFortKismetLibrary::K2_SpawnPickupInWorldWithLootTier(class UObject* WorldContextObject, class FName LootTierName, const struct FVector& Position, int32 OverrideMaxStackCount, bool bToss, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "K2_SpawnPickupInWorldWithLootTier");
-
-	Params::FortKismetLibrary_K2_SpawnPickupInWorldWithLootTier Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.LootTierName = LootTierName;
-	Parms.Position = std::move(Position);
-	Parms.OverrideMaxStackCount = OverrideMaxStackCount;
-	Parms.bToss = bToss;
-	Parms.SourceType = SourceType;
-	Parms.Source = Source;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.KeepCGPathOptimizations
 // (Final, Native, Static, Public, BlueprintCallable)
 // Parameters:
@@ -165780,84 +165643,6 @@ bool UFortKismetLibrary::OpenActor(class AActor* OpenableInterfaceActor, class A
 	GetDefaultObj()->ProcessEvent(Func, &Parms);
 
 	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.FortKismetLibrary.PickLootDrops
-// (Final, RequiredAPI, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<struct FFortItemEntry>           OutLootToDrop                                          (Parm, OutParm, ZeroConstructor, NativeAccessSpecifierPublic)
-// class FName                             TierGroupName                                          (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   WorldLevel                                             (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   ForcedLootTier                                         (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-bool UFortKismetLibrary::PickLootDrops(class UObject* WorldContextObject, TArray<struct FFortItemEntry>* OutLootToDrop, const class FName TierGroupName, const int32 WorldLevel, const int32 ForcedLootTier)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "PickLootDrops");
-
-	Params::FortKismetLibrary_PickLootDrops Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.TierGroupName = TierGroupName;
-	Parms.WorldLevel = WorldLevel;
-	Parms.ForcedLootTier = ForcedLootTier;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	if (OutLootToDrop != nullptr)
-		*OutLootToDrop = std::move(Parms.OutLootToDrop);
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.FortKismetLibrary.PickLootDropsWithNamedWeights
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<struct FFortItemEntry>           OutLootToDrop                                          (Parm, OutParm, ZeroConstructor, NativeAccessSpecifierPublic)
-// class FName                             TierGroupName                                          (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   WorldLevel                                             (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TMap<class FName, float>                NamedWeightsMap                                        (ConstParm, Parm, OutParm, ReferenceParm, NativeAccessSpecifierPublic)
-// int32                                   ForcedLootTier                                         (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-bool UFortKismetLibrary::PickLootDropsWithNamedWeights(class UObject* WorldContextObject, TArray<struct FFortItemEntry>* OutLootToDrop, const class FName TierGroupName, const int32 WorldLevel, const TMap<class FName, float>& NamedWeightsMap, const int32 ForcedLootTier)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "PickLootDropsWithNamedWeights");
-
-	Params::FortKismetLibrary_PickLootDropsWithNamedWeights Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.TierGroupName = TierGroupName;
-	Parms.WorldLevel = WorldLevel;
-	Parms.NamedWeightsMap = std::move(NamedWeightsMap);
-	Parms.ForcedLootTier = ForcedLootTier;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	if (OutLootToDrop != nullptr)
-		*OutLootToDrop = std::move(Parms.OutLootToDrop);
 
 	return Parms.ReturnValue;
 }

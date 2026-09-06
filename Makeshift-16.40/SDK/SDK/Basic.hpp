@@ -1372,6 +1372,25 @@ public:
 static_assert(alignof(FIntProperty) == 0x000008, "Wrong alignment on FIntProperty");
 static_assert(sizeof(FIntProperty) == 0x000078, "Wrong size on FIntProperty");
 
+class FNameProperty final : public FProperty
+{
+public:
+	typedef FName TCppType;
+
+	static TCppType GetDefaultPropertyValue()
+	{
+		return TCppType();
+	}
+
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC5C3F4);
+		return Fn();
+	}
+};
+static_assert(alignof(FNameProperty) == 0x000008, "Wrong alignment on FNameProperty");
+static_assert(sizeof(FNameProperty) == 0x000078, "Wrong size on FNameProperty");
+
 // Predefined struct FByteProperty
 // 0x0008 (0x0080 - 0x0078)
 class FByteProperty final : public FProperty
@@ -1473,6 +1492,13 @@ class FArrayProperty final : public FProperty
 {
 public:
 	class FProperty*                              InnerProperty;                                     // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC59A28);
+		return Fn();
+	}
 };
 static_assert(alignof(FArrayProperty) == 0x000008, "Wrong alignment on FArrayProperty");
 static_assert(sizeof(FArrayProperty) == 0x000080, "Wrong size on FArrayProperty");
@@ -1496,6 +1522,13 @@ class FMapProperty final : public FProperty
 public:
 	class FProperty*                              KeyProperty;                                       // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
 	class FProperty*                              ValueProperty;                                     // 0x0080(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xB8C8E4);
+		return Fn();
+	}
 };
 static_assert(alignof(FMapProperty) == 0x000008, "Wrong alignment on FMapProperty");
 static_assert(sizeof(FMapProperty) == 0x000088, "Wrong size on FMapProperty");

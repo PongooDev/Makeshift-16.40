@@ -1610,7 +1610,13 @@ public:
 	struct FEvaluationResult CanSpawnActorOfClass(const class AActor* InstigatorActor, class UClass* ActorClassToSpawn, const struct FVector& Location, const struct FRotator& Rotation) const;
 	void DoesPlayerHaveLimitedLives(class AFortPlayerState* PlayerState, bool* bPlayerLivesAreLimited, int32* RespawnsRemaining) const;
 	class AFortAthenaAircraft* GetAircraft(int32 AircraftIndex) const;
-	struct FGameplayTagContainer GetAthenaPlaylistContextTags() const;
+	struct FGameplayTagContainer GetAthenaPlaylistContextTags() const
+	{
+		struct FGameplayTagContainer Result;
+		void (*Fn)(const AFortGameStateAthena*, struct FGameplayTagContainer*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xD42EE8);
+		Fn(this, &Result);
+		return Result;
+	}
 	int32 GetAvgPlayerMMR() const;
 	class UAthenaBattleBusItemDefinition* GetBattleBusForPlayer(class AFortPlayerControllerAthena* PC) const;
 	class FName GetCurrentPlaylistName() const;
@@ -20826,6 +20832,19 @@ public:
 	static class AFortGameMode* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AFortGameMode>();
+	}
+
+public:
+	float GetLootChanceMultiplier(const struct FGameplayTagContainer& InTags) const
+	{
+		float (*Fn)(const AFortGameMode*, const struct FGameplayTagContainer*) = decltype(Fn)(VTable[347]);
+		return Fn(this, &InTags);
+	}
+
+	float GetLootCountMultiplier(const struct FGameplayTagContainer& InTags) const
+	{
+		float (*Fn)(const AFortGameMode*, const struct FGameplayTagContainer*) = decltype(Fn)(VTable[348]);
+		return Fn(this, &InTags);
 	}
 };
 static_assert(alignof(AFortGameMode) == 0x000008, "Wrong alignment on AFortGameMode");
@@ -67057,8 +67076,13 @@ public:
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithLevel);
 	DECLARE_FUNCTION(execSpawnInstancedPickupInWorld);
 	DECLARE_FUNCTION(execSpawnItemVariantPickupInWorld);
+	DECLARE_FUNCTION(execPickLootDrops);
+	DECLARE_FUNCTION(execPickLootDropsWithNamedWeights);
+	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithLootTier);
+	DECLARE_FUNCTION(execDropInstancedLoot);
+	DECLARE_FUNCTION(execDropInstancedLootAtLocation);
 
-	static class AFortPickup* K2_SpawnPickupInWorldWithClassAndItemEntry(class UObject* WorldContextObject, const struct FFortItemEntry& ItemEntry, TSubclassOf<class AFortPickup> PickupClass, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, class AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner);
+	static class AFortPickup* K2_SpawnPickupInWorldWithClassAndItemEntry(class UObject* WorldContextObject, const struct FFortItemEntry& ItemEntry, TSubclassOf<class AFortPickup> PickupClass, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, class AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner, bool bShouldCombinePickupsWhenTossCompletes = true);
 
 	static void Init();
 
@@ -67335,8 +67359,8 @@ public:
 	static bool OnSameSquad(const class AFortPlayerPawnAthena* PlayerPawnA, const class AFortPlayerPawnAthena* PlayerPawnB);
 	static bool OnSameTeam(const class AActor* ActorA, const class AActor* ActorB);
 	static bool OpenActor(class AActor* OpenableInterfaceActor, class AController* OptionalControllerInstigator);
-	static bool PickLootDrops(class UObject* WorldContextObject, TArray<struct FFortItemEntry>* OutLootToDrop, const class FName TierGroupName, const int32 WorldLevel, const int32 ForcedLootTier);
-	static bool PickLootDropsWithNamedWeights(class UObject* WorldContextObject, TArray<struct FFortItemEntry>* OutLootToDrop, const class FName TierGroupName, const int32 WorldLevel, const TMap<class FName, float>& NamedWeightsMap, const int32 ForcedLootTier);
+	static bool PickLootDrops(class UObject* WorldContextObject, TArray<struct FFortItemEntry>& OutLootToDrop, const class FName TierGroupName, const int32 WorldLevel, const int32 ForcedLootTier);
+	static bool PickLootDropsWithNamedWeights(class UObject* WorldContextObject, TArray<struct FFortItemEntry>& OutLootToDrop, const class FName TierGroupName, const int32 WorldLevel, const TMap<class FName, float>& NamedWeightsMap, const int32 ForcedLootTier);
 	static void PlayLocalForceFeedbackAtLocation(class UObject* WorldContextObject, class UForceFeedbackEffect* ForceFeedbackEffect, const struct FVector& Location, float Radius, class FName Tag);
 	static void PlayLocalForceFeedbackAtLocationMulti(class UObject* WorldContextObject, class UForceFeedbackEffect* NearForceFeedbackEffect, class UForceFeedbackEffect* FarForceFeedbackEffect, const struct FVector& Location, float InnerRadius, float OuterRadius, class FName Tag);
 	static struct FVector PushOffHitLocation(class AActor* RequestedBy, const struct FHitResult& Hit, float Distance);
@@ -128507,6 +128531,9 @@ public:
 
 public:
 	static const UGameDataBR* Get();
+
+	void GetLootTierDataTablesBR(TArray<class UDataTable*>& OutArray) const;
+	void GetLootPackageDataTablesBR(TArray<class UDataTable*>& OutArray) const;
 
 	class UFortItemVariantData* GetItemVariantDataFromItemDefTags(const struct FGameplayTagContainer& ItemDefTags, struct FGameplayTag& OutItemVariantTag, int32& OutItemVariantDataMappingIndex) const;
 };

@@ -1,6 +1,14 @@
 #include "pch.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortAssets.h"
 
+void UGameDataBR::GetLootTierDataTablesBR(TArray<UDataTable*>& OutArray) const {
+	FFortAssets::GetAssetArray<UDataTable>(LootTierDataTablesBR, OutArray);
+}
+
+void UGameDataBR::GetLootPackageDataTablesBR(TArray<UDataTable*>& OutArray) const {
+	FFortAssets::GetAssetArray<UDataTable>(LootPackageDataTablesBR, OutArray);
+}
+
 const UGameDataBR* UGameDataBR::Get() {
 	return UFortAssetManager::Get().GetGameDataBR();
 }

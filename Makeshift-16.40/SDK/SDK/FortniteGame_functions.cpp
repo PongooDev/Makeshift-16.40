@@ -158798,37 +158798,6 @@ bool UFortKismetLibrary::CanPerformNativeAction(const class UFortAbilitySystemCo
 }
 
 
-// Function FortniteGame.FortKismetLibrary.ChangeTeam
-// (Final, RequiredAPI, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// class AActor*                           PlayerToSwitch                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AActor*                           Instigator                                             (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// uint8                                   NewTeam                                                (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FGameplayTagContainer            ChangeTeamTags                                         (Parm, NativeAccessSpecifierPublic)
-
-void UFortKismetLibrary::ChangeTeam(class AActor* PlayerToSwitch, class AActor* Instigator, uint8 NewTeam, const struct FGameplayTagContainer& ChangeTeamTags)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "ChangeTeam");
-
-	Params::FortKismetLibrary_ChangeTeam Parms{};
-
-	Parms.PlayerToSwitch = PlayerToSwitch;
-	Parms.Instigator = Instigator;
-	Parms.NewTeam = NewTeam;
-	Parms.ChangeTeamTags = std::move(ChangeTeamTags);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.CheckHasEnoughResourcesForSmartConsume
 // (Final, Native, Static, Public, BlueprintCallable)
 // Parameters:
@@ -161580,34 +161549,6 @@ EPhysicalSurface UFortKismetLibrary::GetFortPhysicalSurface(const struct FHitRes
 	Params::FortKismetLibrary_GetFortPhysicalSurface Parms{};
 
 	Parms.Hit = std::move(Hit);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.FortKismetLibrary.GetFortPlayerControllerFromActor
-// (Final, Native, Static, Public, BlueprintCallable, BlueprintPure)
-// Parameters:
-// class AActor*                           Actor                                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AFortPlayerController*            ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class AFortPlayerController* UFortKismetLibrary::GetFortPlayerControllerFromActor(class AActor* Actor)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "GetFortPlayerControllerFromActor");
-
-	Params::FortKismetLibrary_GetFortPlayerControllerFromActor Parms{};
-
-	Parms.Actor = Actor;
 
 	auto Flgs = Func->FunctionFlags;
 	Func->FunctionFlags |= 0x400;

@@ -1378,6 +1378,20 @@ class FByteProperty final : public FProperty
 {
 public:
 	class UEnum*                                  Enum;                                              // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	typedef uint8 TCppType;
+
+	static TCppType GetDefaultPropertyValue()
+	{
+		return TCppType();
+	}
+
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC5A4F0);
+		return Fn();
+	}
 };
 static_assert(alignof(FByteProperty) == 0x000008, "Wrong alignment on FByteProperty");
 static_assert(sizeof(FByteProperty) == 0x000080, "Wrong size on FByteProperty");
@@ -1434,6 +1448,13 @@ class FStructProperty final : public FProperty
 {
 public:
 	class UStruct*                                Struct;                                            // 0x0078(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC4D618);
+		return Fn();
+	}
 };
 static_assert(alignof(FStructProperty) == 0x000008, "Wrong alignment on FStructProperty");
 static_assert(sizeof(FStructProperty) == 0x000080, "Wrong size on FStructProperty");

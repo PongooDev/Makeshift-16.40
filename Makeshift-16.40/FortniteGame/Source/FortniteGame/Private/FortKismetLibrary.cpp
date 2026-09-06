@@ -31,6 +31,40 @@ DEFINE_FUNCTION(UFortKismetLibrary::execIncrementAnalyticMatchCount)
 	P_NATIVE_END;
 }
 
+AFortPlayerController* UFortKismetLibrary::GetFortPlayerControllerFromActor(AActor* Actor) {
+	AFortPlayerController* (*Fn)(AActor*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1F9B498);
+	return Fn(Actor);
+}
+
+void UFortKismetLibrary::ChangeTeam(AActor* PlayerToSwitch, AActor* Instigator, uint8 NewTeam, const FGameplayTagContainer& ChangeTeamTags) {
+	AFortPlayerController* PlayerController = GetFortPlayerControllerFromActor(PlayerToSwitch);
+	AFortPlayerControllerAthena* PlayerControllerAthena = PlayerController ? PlayerController->Cast<AFortPlayerControllerAthena>() : nullptr;
+	if (!PlayerControllerAthena) {
+		return;
+	}
+
+	AFortPlayerStateAthena* PlayerState = PlayerControllerAthena->PlayerState ? PlayerControllerAthena->PlayerState->Cast<AFortPlayerStateAthena>() : nullptr;
+	if (PlayerState) {
+		PlayerState->ChangeTeamInfo.Instigator = Instigator;
+		PlayerState->ChangeTeamInfo.ChangeTeamTags = ChangeTeamTags;
+	}
+
+	PlayerControllerAthena->ServerSetTeam_Implementation(NewTeam);
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execChangeTeam)
+{
+	P_GET_OBJECT(AActor,Z_Param_PlayerToSwitch);
+	P_GET_OBJECT(AActor,Z_Param_Instigator);
+	P_GET_PROPERTY(FByteProperty,Z_Param_NewTeam);
+	P_GET_STRUCT_REF(FGameplayTagContainer,Z_Param_Out_ChangeTeamTags);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UFortKismetLibrary::ChangeTeam(Z_Param_PlayerToSwitch,Z_Param_Instigator,Z_Param_NewTeam,Z_Param_Out_ChangeTeamTags);
+	P_NATIVE_END;
+}
+
 void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x5098E58, execIncrementAnalyticMatchCount, nullptr);
+	Memory::HookDetour(ImageBase + 0x508ADCC, execChangeTeam, nullptr);
 }

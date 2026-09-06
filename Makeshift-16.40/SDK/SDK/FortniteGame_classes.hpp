@@ -19905,6 +19905,11 @@ public:
 	void ServerSetRespawnData(const struct FVector& RespawnLoc, const struct FRotator& RespawnRot, float RespawnCameraDist);
 	void ServerSetStreamingTestStreamingLevels(bool streaming);
 	void ServerSetTeam(uint8 InTeam);
+	void ServerSetTeam_Implementation(uint8 InTeam)
+	{
+		void (*Fn)(AFortPlayerControllerAthena*, uint8) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x45DDD20);
+		Fn(this, InTeam);
+	}
 	void ServerShowSeasonLevel();
 	void ServerSimulateLevelUp(int32 ClientSimulatedLevel);
 	void ServerSpawnCreativeSupplyDrop(const struct FVector& Position, TSubclassOf<class AActor> InSupplyDropClass);
@@ -67025,6 +67030,7 @@ class UFortKismetLibrary final : public UBlueprintFunctionLibrary
 {
 public:
 	DECLARE_FUNCTION(execIncrementAnalyticMatchCount);
+	DECLARE_FUNCTION(execChangeTeam);
 
 	static void Init();
 

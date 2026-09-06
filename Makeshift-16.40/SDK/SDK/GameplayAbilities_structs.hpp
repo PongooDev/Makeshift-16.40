@@ -777,6 +777,13 @@ public:
 	struct FCurveTableRowHandle                   Curve;                                             // 0x0008(0x0010)(Edit, BlueprintVisible, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	struct FDataRegistryType                      RegistryType;                                      // 0x0018(0x0008)(Edit, BlueprintVisible, ZeroConstructor, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_20[0x8];                                       // 0x0020(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	float GetValueAtLevel(float Level, const FString* ContextString = nullptr) const
+	{
+		float (*Fn)(const FScalableFloat*, float, const FString*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC2B198);
+		return Fn(this, Level, ContextString);
+	}
 };
 static_assert(alignof(FScalableFloat) == 0x000008, "Wrong alignment on FScalableFloat");
 static_assert(sizeof(FScalableFloat) == 0x000028, "Wrong size on FScalableFloat");

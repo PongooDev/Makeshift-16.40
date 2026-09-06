@@ -20714,6 +20714,30 @@ public:
 		void (*Fn)(FFortItemEntry*, EFortItemEntryState, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4811490);
 		Fn(this, StateType, InValue);
 	}
+
+	void SetToDirty()
+	{
+		void (*Fn)(FFortItemEntry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A738);
+		Fn(this);
+	}
+
+	void SetPickupVariantIndex(int32 NewValue)
+	{
+		if (NewValue != PickupVariantIndex)
+		{
+			PickupVariantIndex = NewValue;
+			SetToDirty();
+		}
+	}
+
+	void SetItemVariantDataMappingIndex(int32 NewValue)
+	{
+		if (NewValue != ItemVariantDataMappingIndex)
+		{
+			ItemVariantDataMappingIndex = NewValue;
+			SetToDirty();
+		}
+	}
 };
 static_assert(alignof(FFortItemEntry) == 0x000008, "Wrong alignment on FFortItemEntry");
 static_assert(sizeof(FFortItemEntry) == 0x000190, "Wrong size on FFortItemEntry");

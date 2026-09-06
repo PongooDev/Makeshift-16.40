@@ -53362,6 +53362,19 @@ public:
 	{
 		return GetDefaultObjImpl<UFortAssetManager>();
 	}
+
+public:
+	static UFortAssetManager& Get()
+	{
+		UFortAssetManager* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF72AD4);
+		return *Fn();
+	}
+
+	class UGameDataBR* GetGameDataBR()
+	{
+		class UGameDataBR* (*Fn)(UFortAssetManager*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1346328);
+		return Fn(this);
+	}
 };
 static_assert(alignof(UFortAssetManager) == 0x000008, "Wrong alignment on UFortAssetManager");
 static_assert(sizeof(UFortAssetManager) == 0x0008C8, "Wrong size on UFortAssetManager");
@@ -67043,6 +67056,9 @@ public:
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithClassAndLevel);
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithLevel);
 	DECLARE_FUNCTION(execSpawnInstancedPickupInWorld);
+	DECLARE_FUNCTION(execSpawnItemVariantPickupInWorld);
+
+	static class AFortPickup* K2_SpawnPickupInWorldWithClassAndItemEntry(class UObject* WorldContextObject, const struct FFortItemEntry& ItemEntry, TSubclassOf<class AFortPickup> PickupClass, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, class AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner);
 
 	static void Init();
 
@@ -128488,6 +128504,11 @@ public:
 	{
 		return GetDefaultObjImpl<UGameDataBR>();
 	}
+
+public:
+	static const UGameDataBR* Get();
+
+	class UFortItemVariantData* GetItemVariantDataFromItemDefTags(const struct FGameplayTagContainer& ItemDefTags, struct FGameplayTag& OutItemVariantTag, int32& OutItemVariantDataMappingIndex) const;
 };
 static_assert(alignof(UGameDataBR) == 0x000008, "Wrong alignment on UGameDataBR");
 static_assert(sizeof(UGameDataBR) == 0x000688, "Wrong size on UGameDataBR");

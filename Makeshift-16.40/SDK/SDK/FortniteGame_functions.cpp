@@ -166895,36 +166895,6 @@ class ABuildingGameplayActor* UFortKismetLibrary::SpawnBuildingGameplayActorFrom
 }
 
 
-// Function FortniteGame.FortKismetLibrary.SpawnItemVariantPickupInWorld
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FSpawnItemVariantParams          Params_0                                               (Parm, NativeAccessSpecifierPublic)
-// class AFortPickup*                      ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class AFortPickup* UFortKismetLibrary::SpawnItemVariantPickupInWorld(class UObject* WorldContextObject, const struct FSpawnItemVariantParams& Params_0)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "SpawnItemVariantPickupInWorld");
-
-	Params::FortKismetLibrary_SpawnItemVariantPickupInWorld Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.Params_0 = std::move(Params_0);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.SpawnProjectile
 // (Final, RequiredAPI, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, HasDefaults, BlueprintCallable)
 // Parameters:

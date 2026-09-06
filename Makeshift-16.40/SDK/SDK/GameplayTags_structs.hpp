@@ -80,6 +80,23 @@ public:
 	class FName                                   TagName;                                           // 0x0000(0x0008)(Edit, ZeroConstructor, EditConst, SaveGame, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 
 public:
+	/** Operators */
+	FORCEINLINE bool operator==(FGameplayTag const& Other) const
+	{
+		return TagName == Other.TagName;
+	}
+
+	FORCEINLINE bool operator!=(FGameplayTag const& Other) const
+	{
+		return TagName != Other.TagName;
+	}
+
+	/** Returns whether the tag is valid or not; Invalid tags are set to NAME_None and do not exist in the game-specific global dictionary */
+	FORCEINLINE bool IsValid() const
+	{
+		return (TagName != NAME_None);
+	}
+
 	/** Displays gameplay tag as a string for blueprint graph usage */
 	FORCEINLINE FString ToString() const
 	{
@@ -101,6 +118,127 @@ public:
 	TArray<struct FGameplayTag>                   ParentTags;                                        // 0x0010(0x0010)(ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
 
 public:
+	/**
+	 * Determine if TagToCheck is present in this container, also checking against parent tags
+	 * {"A.1"}.HasTag("A") will return True, {"A"}.HasTag("A.1") will return False
+	 * If TagToCheck is not Valid it will always return False
+	 * 
+	 * @return True if TagToCheck is in this container, false if it is not
+	 */
+	FORCEINLINE_DEBUGGABLE bool HasTag(const FGameplayTag& TagToCheck) const
+	{
+		if (!TagToCheck.IsValid())
+		{
+			return false;
+		}
+		// Check explicit and parent tag list 
+		return GameplayTags.Contains(TagToCheck) || ParentTags.Contains(TagToCheck);
+	}
+
+	/**
+	 * Determine if TagToCheck is explicitly present in this container, only allowing exact matches
+	 * {"A.1"}.HasTagExact("A") will return False
+	 * If TagToCheck is not Valid it will always return False
+	 * 
+	 * @return True if TagToCheck is in this container, false if it is not
+	 */
+	FORCEINLINE_DEBUGGABLE bool HasTagExact(const FGameplayTag& TagToCheck) const
+	{
+		if (!TagToCheck.IsValid())
+		{
+			return false;
+		}
+		// Only check check explicit tag list
+		return GameplayTags.Contains(TagToCheck);
+	}
+
+	/**
+	 * Checks if this container contains ANY of the tags in the specified container, also checks against parent tags
+	 * {"A.1"}.HasAny({"A","B"}) will return True, {"A"}.HasAny({"A.1","B"}) will return False
+	 * If ContainerToCheck is empty/invalid it will always return False
+	 *
+	 * @return True if this container has ANY of the tags of in ContainerToCheck
+	 */
+	FORCEINLINE_DEBUGGABLE bool HasAny(const FGameplayTagContainer& ContainerToCheck) const
+	{
+		if (ContainerToCheck.IsEmpty())
+		{
+			return false;
+		}
+		for (const FGameplayTag& OtherTag : ContainerToCheck.GameplayTags)
+		{
+			if (GameplayTags.Contains(OtherTag) || ParentTags.Contains(OtherTag))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Checks if this container contains ALL of the tags in the specified container, also checks against parent tags
+	 * {"A.1","B.1"}.HasAll({"A","B"}) will return True, {"A","B"}.HasAll({"A.1","B.1"}) will return False
+	 * If ContainerToCheck is empty/invalid it will always return True, because there were no failed checks
+	 *
+	 * @return True if this container has ALL of the tags of in ContainerToCheck, including if ContainerToCheck is empty
+	 */
+	FORCEINLINE_DEBUGGABLE bool HasAll(const FGameplayTagContainer& ContainerToCheck) const
+	{
+		if (ContainerToCheck.IsEmpty())
+		{
+			return true;
+		}
+		for (const FGameplayTag& OtherTag : ContainerToCheck.GameplayTags)
+		{
+			if (!GameplayTags.Contains(OtherTag) && !ParentTags.Contains(OtherTag))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Checks if this container contains ALL of the tags in the specified container, only allowing exact matches
+	 * {"A.1","B.1"}.HasAll({"A","B"}) will return False
+	 * If ContainerToCheck is empty/invalid it will always return True, because there were no failed checks
+	 *
+	 * @return True if this container has ALL of the tags of in ContainerToCheck, including if ContainerToCheck is empty
+	 */
+	FORCEINLINE_DEBUGGABLE bool HasAllExact(const FGameplayTagContainer& ContainerToCheck) const
+	{
+		if (ContainerToCheck.IsEmpty())
+		{
+			return true;
+		}
+		for (const FGameplayTag& OtherTag : ContainerToCheck.GameplayTags)
+		{
+			if (!GameplayTags.Contains(OtherTag))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/** Returns the number of explicitly added tags */
+	FORCEINLINE int32 Num() const
+	{
+		return GameplayTags.Num();
+	}
+
+	/** Returns whether the container has any valid tags */
+	FORCEINLINE bool IsValid() const
+	{
+		return GameplayTags.Num() > 0;
+	}
+
+	/** Returns true if container is empty */
+	FORCEINLINE bool IsEmpty() const
+	{
+		return GameplayTags.Num() == 0;
+	}
+
 	/** Returns abbreviated human readable Tag list without parens or property names. If bQuoted is true it will quote each tag */
 	FString ToStringSimple(bool bQuoted = false) const;
 };

@@ -561,6 +561,9 @@
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortPickup.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortAssets.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\VectorRegister.h">
       <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
     </ClInclude>
@@ -693,6 +696,9 @@
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortPickup.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\GameDataBR.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp">

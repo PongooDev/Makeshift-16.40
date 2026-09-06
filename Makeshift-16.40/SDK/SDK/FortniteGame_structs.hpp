@@ -20709,6 +20709,58 @@ public:
 		Fn(this, InItemDefinition, InCount, InLevel);
 	}
 
+	FFortItemEntry(const FFortItemEntry& Other)
+	{
+		void (*Fn)(FFortItemEntry*, const FFortItemEntry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x14B00D4);
+		Fn(this, &Other);
+	}
+
+	FFortItemEntry& operator=(const FFortItemEntry& Other)
+	{
+		void (*Fn)(FFortItemEntry*, const FFortItemEntry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE463E4);
+		Fn(this, &Other);
+		return *this;
+	}
+
+	const class UFortItemDefinition* GetItemDefinition() const
+	{
+		return ItemDefinition;
+	}
+
+	struct FGuid GetItemGuid()
+	{
+		FGuid Result;
+		FGuid* (*Fn)(FFortItemEntry*, FGuid*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF201DC);
+		Fn(this, &Result);
+		return Result;
+	}
+
+	void SetItemGuid(const struct FGuid& InItemGuid)
+	{
+		void (*Fn)(FFortItemEntry*, const FGuid*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A540);
+		Fn(this, &InItemGuid);
+	}
+
+	void SetCount(int32 InCount)
+	{
+		void (*Fn)(FFortItemEntry*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A19C);
+		Fn(this, InCount);
+	}
+
+	void SetItemLevel(int32 InLevel)
+	{
+		void (*Fn)(FFortItemEntry*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A58C);
+		Fn(this, InLevel);
+	}
+
+	bool GetStateValue(EFortItemEntryState StateType, int32& OutValue) const
+	{
+		bool (*Fn)(const FFortItemEntry*, EFortItemEntryState, int32*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1583D20);
+		return Fn(this, StateType, &OutValue);
+	}
+
+	void SetParentInventory(class AFortInventory* InParentInventory, bool InIsReplicatedCopy);
+
 	void SetStateValue(EFortItemEntryState StateType, int32 InValue)
 	{
 		void (*Fn)(FFortItemEntry*, EFortItemEntryState, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4811490);

@@ -615,6 +615,94 @@ public:
 	int32                                         B;                                                 // 0x0004(0x0004)(Edit, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int32                                         C;                                                 // 0x0008(0x0004)(Edit, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	int32                                         D;                                                 // 0x000C(0x0004)(Edit, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+
+	/** Default constructor. */
+	FGuid()
+		: A(0)
+		, B(0)
+		, C(0)
+		, D(0)
+	{ }
+
+	/**
+	 * Creates and initializes a new GUID from the specified components.
+	 *
+	 * @param InA The first component.
+	 * @param InB The second component.
+	 * @param InC The third component.
+	 * @param InD The fourth component.
+	 */
+	explicit FGuid(uint32 InA, uint32 InB, uint32 InC, uint32 InD)
+		: A(InA), B(InB), C(InC), D(InD)
+	{ }
+
+public:
+
+	/**
+	 * Compares two GUIDs for equality.
+	 *
+	 * @param X The first GUID to compare.
+	 * @param Y The second GUID to compare.
+	 * @return true if the GUIDs are equal, false otherwise.
+	 */
+	friend bool operator==(const FGuid& X, const FGuid& Y)
+	{
+		return ((X.A ^ Y.A) | (X.B ^ Y.B) | (X.C ^ Y.C) | (X.D ^ Y.D)) == 0;
+	}
+
+	/**
+	 * Compares two GUIDs for inequality.
+	 *
+	 * @param X The first GUID to compare.
+	 * @param Y The second GUID to compare.
+	 * @return true if the GUIDs are not equal, false otherwise.
+	 */
+	friend bool operator!=(const FGuid& X, const FGuid& Y)
+	{
+		return ((X.A ^ Y.A) | (X.B ^ Y.B) | (X.C ^ Y.C) | (X.D ^ Y.D)) != 0;
+	}
+
+public:
+
+	/**
+	 * Invalidates the GUID.
+	 *
+	 * @see IsValid
+	 */
+	void Invalidate()
+	{
+		A = B = C = D = 0;
+	}
+
+	/**
+	 * Checks whether this GUID is valid or not.
+	 *
+	 * A GUID that has all its components set to zero is considered invalid.
+	 *
+	 * @return true if valid, false otherwise.
+	 * @see Invalidate
+	 */
+	bool IsValid() const
+	{
+		return ((A | B | C | D) != 0);
+	}
+
+public:
+
+	/**
+	 * Returns a new GUID.
+	 *
+	 * @return A new GUID.
+	 */
+	static FGuid NewGuid()
+	{
+		FGuid Result;
+		FGuid* (*Fn)(FGuid*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x116EAE8);
+		Fn(&Result);
+		return Result;
+	}
 };
 static_assert(alignof(FGuid) == 0x000004, "Wrong alignment on FGuid");
 static_assert(sizeof(FGuid) == 0x000010, "Wrong size on FGuid");

@@ -7306,15 +7306,18 @@ public:
 	uint8                                         Pad_101[0x7];                                      // 0x0101(0x0007)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	/** This must be called if you add or change an item in the array */
+	void MarkItemDirty(FFastArraySerializerItem & Item)
+	{
+		void (*Fn)(FFastArraySerializer*, FFastArraySerializerItem*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x18724AC);
+		Fn(this, &Item);
+	}
+
 	/** This must be called if you just remove something from the array */
 	void MarkArrayDirty()
 	{
-		ItemMap.Reset();		// This allows to clients to add predictive elements to arrays without affecting replication.
-		IncrementArrayReplicationKey();
-
-		// Invalidate the cached item counts so that they're recomputed during the next write
-		CachedNumItems = INDEX_NONE;
-		CachedNumItemsToConsiderForWriting = INDEX_NONE;
+		void (*Fn)(FFastArraySerializer*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x18725FC);
+		Fn(this);
 	}
 
 	void IncrementArrayReplicationKey()

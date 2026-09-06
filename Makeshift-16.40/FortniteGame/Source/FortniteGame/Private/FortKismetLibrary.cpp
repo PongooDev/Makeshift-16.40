@@ -658,6 +658,47 @@ DEFINE_FUNCTION(UFortKismetLibrary::execDropInstancedLootAtLocation)
 	P_NATIVE_END;
 }
 
+void UFortKismetLibrary::GiveItemToInventoryOwner(TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner, const UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer, int32 ItemLevel, int32 PickupInstigatorHandle, bool bUseItemPickupAnalyticEvent) {
+	UObject* InventoryOwnerObject = InventoryOwner.GetObjectRef();
+	AFortPlayerController* PlayerController = InventoryOwnerObject ? InventoryOwnerObject->Cast<AFortPlayerController>() : nullptr;
+	if (!PlayerController || !ItemDefinition || NumberToGive <= 0) {
+		return;
+	}
+
+	FFortItemEntry ItemEntry(ItemDefinition, NumberToGive, ItemLevel);
+	if (PickupInstigatorHandle != INDEX_NONE) {
+		ItemEntry.SetStateValue(EFortItemEntryState::PickupInstigatorHandle, PickupInstigatorHandle);
+	}
+	if (bNotifyPlayer) {
+		ItemEntry.SetStateValue(EFortItemEntryState::ShouldShowItemToast, 1);
+	}
+
+	PlayerController->AddInventoryItem(ItemEntry);
+}
+
+void UFortKismetLibrary::K2_GiveItemToPlayer(AFortPlayerController* PlayerController, const UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer) {
+	if (!PlayerController) {
+		return;
+	}
+
+	TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner;
+	InventoryOwner.ObjectPointer = PlayerController;
+	InventoryOwner.InterfacePointer = &PlayerController->InventoryOwnerInterface;
+	GiveItemToInventoryOwner(InventoryOwner, ItemDefinition, NumberToGive, bNotifyPlayer, INDEX_NONE, INDEX_NONE, false);
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_GiveItemToPlayer)
+{
+	P_GET_OBJECT(AFortPlayerController,Z_Param_PlayerController);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToGive);
+	P_GET_UBOOL(Z_Param_bNotifyPlayer);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UFortKismetLibrary::K2_GiveItemToPlayer(Z_Param_PlayerController,Z_Param_ItemDefinition,Z_Param_NumberToGive,Z_Param_bNotifyPlayer);
+	P_NATIVE_END;
+}
+
 void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x5098E58, execIncrementAnalyticMatchCount, nullptr);
 	Memory::HookDetour(ImageBase + 0x508ADCC, execChangeTeam, nullptr);
@@ -672,4 +713,5 @@ void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x509C6D8, execK2_SpawnPickupInWorldWithLootTier, nullptr);
 	Memory::HookDetour(ImageBase + 0x508DB48, execDropInstancedLoot, nullptr);
 	Memory::HookDetour(ImageBase + 0x508DCE0, execDropInstancedLootAtLocation, nullptr);
+	Memory::HookDetour(ImageBase + 0x509A70C, execK2_GiveItemToPlayer, nullptr);
 }

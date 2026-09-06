@@ -10113,31 +10113,6 @@ class UFortItemDefinition* UFortItem::GetItemDefinitionBP() const
 }
 
 
-// Function FortniteGame.FortItem.GetItemGuid
-// (Native, Public, HasDefaults, BlueprintCallable, BlueprintPure, Const)
-// Parameters:
-// struct FGuid                            ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-struct FGuid UFortItem::GetItemGuid() const
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortItem", "GetItemGuid");
-
-	Params::FortItem_GetItemGuid Parms{};
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortItem.GetItemTypeName
 // (Native, Public, BlueprintCallable, BlueprintPure, Const)
 // Parameters:
@@ -84664,25 +84639,6 @@ void UAutomationPerfMonitorManager::StopRecordingFTestPerf()
 
 	if (Func == nullptr)
 		Func = Class->GetFunction("AutomationPerfMonitorManager", "StopRecordingFTestPerf");
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, nullptr);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
-// Function FortniteGame.FortInventory.HandleInventoryLocalUpdate
-// (Final, Native, Public)
-
-void AFortInventory::HandleInventoryLocalUpdate()
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortInventory", "HandleInventoryLocalUpdate");
 
 	auto Flgs = Func->FunctionFlags;
 	Func->FunctionFlags |= 0x400;
@@ -163627,43 +163583,6 @@ bool UFortKismetLibrary::GetWeaponStatsRow(const struct FDataTableRowHandle& Dat
 }
 
 
-// Function FortniteGame.FortKismetLibrary.GiveItemToInventoryOwner
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// class UFortWorldItemDefinition*         ItemDefinition                                         (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   NumberToGive                                           (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bNotifyPlayer                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   ItemLevel                                              (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   PickupInstigatorHandle                                 (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bUseItemPickupAnalyticEvent                            (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortKismetLibrary::GiveItemToInventoryOwner(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const class UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer, int32 ItemLevel, int32 PickupInstigatorHandle, bool bUseItemPickupAnalyticEvent)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "GiveItemToInventoryOwner");
-
-	Params::FortKismetLibrary_GiveItemToInventoryOwner Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.ItemDefinition = ItemDefinition;
-	Parms.NumberToGive = NumberToGive;
-	Parms.bNotifyPlayer = bNotifyPlayer;
-	Parms.ItemLevel = ItemLevel;
-	Parms.PickupInstigatorHandle = PickupInstigatorHandle;
-	Parms.bUseItemPickupAnalyticEvent = bUseItemPickupAnalyticEvent;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.HasMultipleVisibleRewards
 // (Final, Native, Static, Public, HasOutParams, BlueprintCallable)
 // Parameters:
@@ -164844,37 +164763,6 @@ void UFortKismetLibrary::K2_GiveItemToAllPlayers(class UObject* WorldContextObje
 	Params::FortKismetLibrary_K2_GiveItemToAllPlayers Parms{};
 
 	Parms.WorldContextObject = WorldContextObject;
-	Parms.ItemDefinition = ItemDefinition;
-	Parms.NumberToGive = NumberToGive;
-	Parms.bNotifyPlayer = bNotifyPlayer;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
-// Function FortniteGame.FortKismetLibrary.K2_GiveItemToPlayer
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// class AFortPlayerController*            PlayerController                                       (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class UFortWorldItemDefinition*         ItemDefinition                                         (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   NumberToGive                                           (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bNotifyPlayer                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortKismetLibrary::K2_GiveItemToPlayer(class AFortPlayerController* PlayerController, const class UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "K2_GiveItemToPlayer");
-
-	Params::FortKismetLibrary_K2_GiveItemToPlayer Parms{};
-
-	Parms.PlayerController = PlayerController;
 	Parms.ItemDefinition = ItemDefinition;
 	Parms.NumberToGive = NumberToGive;
 	Parms.bNotifyPlayer = bNotifyPlayer;

@@ -311,6 +311,52 @@ public:
 	{
 		return GetDefaultObjImpl<UFortItemDefinition>();
 	}
+
+public:
+	class UFortItem* CreateTemporaryItemInstance(const struct FFortItemEntry& ItemEntry) const
+	{
+		return reinterpret_cast<class UFortItem* (*)(const UFortItemDefinition*, const struct FFortItemEntry*)>(VTable[83])(this, &ItemEntry);
+	}
+
+	int32 GetMinLevel() const
+	{
+		return reinterpret_cast<int32 (*)(const UFortItemDefinition*)>(VTable[91])(this);
+	}
+
+	int32 GetMaxLevel() const
+	{
+		return reinterpret_cast<int32 (*)(const UFortItemDefinition*)>(VTable[92])(this);
+	}
+
+	int32 ClampItemLevel(int32 Level) const
+	{
+		return reinterpret_cast<int32 (*)(const UFortItemDefinition*, int32)>(VTable[94])(this, Level);
+	}
+
+	bool DoesAllowMultipleStacks() const
+	{
+		return reinterpret_cast<bool (*)(const UFortItemDefinition*)>(VTable[115])(this);
+	}
+
+	int32 GetMaxNumStacks() const
+	{
+		return reinterpret_cast<int32 (*)(const UFortItemDefinition*)>(VTable[116])(this);
+	}
+
+	int32 GetMaxStackSize(class UAbilitySystemComponent* AbilitySystemComponent) const
+	{
+		return reinterpret_cast<int32 (*)(const UFortItemDefinition*, class UAbilitySystemComponent*)>(VTable[117])(this, AbilitySystemComponent);
+	}
+
+	void OnItemInstanceAdded(class IFortInventoryOwnerInterface* InventoryOwner, class UFortItem* Item, bool bLoadedFromRecord) const
+	{
+		reinterpret_cast<void (*)(const UFortItemDefinition*, class IFortInventoryOwnerInterface*, class UFortItem*, bool)>(VTable[130])(this, InventoryOwner, Item, bLoadedFromRecord);
+	}
+
+	void OnItemCountAdded(class IFortInventoryOwnerInterface* InventoryOwner, int32 Quantity, bool bLoadedFromRecord) const
+	{
+		reinterpret_cast<void (*)(const UFortItemDefinition*, class IFortInventoryOwnerInterface*, int32, bool)>(VTable[132])(this, InventoryOwner, Quantity, bLoadedFromRecord);
+	}
 };
 static_assert(alignof(UFortItemDefinition) == 0x000008, "Wrong alignment on UFortItemDefinition");
 static_assert(sizeof(UFortItemDefinition) == 0x000348, "Wrong size on UFortItemDefinition");
@@ -2015,7 +2061,12 @@ public:
 	EFortInventoryFilter GetFilterCategory() const;
 	TSoftObjectPtr<class UTexture2D> GetInactivePreviewImage() const;
 	class UFortItemDefinition* GetItemDefinitionBP() const;
-	struct FGuid GetItemGuid() const;
+	struct FGuid GetItemGuid() const
+	{
+		FGuid Result;
+		reinterpret_cast<FGuid* (*)(const UFortItem*, FGuid*)>(VTable[150])(this, &Result);
+		return Result;
+	}
 	class FText GetItemTypeName(bool bUsePlural) const;
 	TSoftObjectPtr<class UTexture2D> GetLargePreviewImage() const;
 	int32 GetLevel() const;
@@ -2077,6 +2128,12 @@ public:
 	static class UFortItem* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortItem>();
+	}
+
+public:
+	const class UFortItemDefinition* GetItemDefinition() const
+	{
+		return reinterpret_cast<const class UFortItemDefinition* (*)(const UFortItem*)>(VTable[132])(this);
 	}
 };
 static_assert(alignof(UFortItem) == 0x000008, "Wrong alignment on UFortItem");
@@ -5952,12 +6009,36 @@ static_assert(offsetof(UFortGameplayCueNotify_Burst, DefaultCondition) == 0x0000
 static_assert(offsetof(UFortGameplayCueNotify_Burst, DefaultAttachment) == 0x000078, "Member 'UFortGameplayCueNotify_Burst::DefaultAttachment' has a wrong offset!");
 static_assert(offsetof(UFortGameplayCueNotify_Burst, BurstEffectData) == 0x0000A0, "Member 'UFortGameplayCueNotify_Burst::BurstEffectData' has a wrong offset!");
 
+class IFortInventoryOwnerInterface
+{
+public:
+	void**                                        VTable;
+
+public:
+	class UObject* _getUObject()
+	{
+		return reinterpret_cast<class UObject* (*)(IFortInventoryOwnerInterface*)>(VTable[1])(this);
+	}
+
+	class AFortPawn* GetFortPawn()
+	{
+		return reinterpret_cast<class AFortPawn* (*)(IFortInventoryOwnerInterface*)>(VTable[8])(this);
+	}
+
+	const class AFortInventory* GetWorldInventory()
+	{
+		return reinterpret_cast<const class AFortInventory* (*)(IFortInventoryOwnerInterface*)>(VTable[11])(this);
+	}
+};
+
 // Class FortniteGame.FortPlayerController
 // 0x1EA0 (0x2560 - 0x06C0)
 class alignas(0x10) AFortPlayerController : public APlayspacePlayerController
 {
 public:
-	uint8                                         Pad_6C0[0x28];                                     // 0x06C0(0x0028)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_6C0[0x10];
+	class IFortInventoryOwnerInterface            InventoryOwnerInterface;
+	uint8                                         Pad_6D8[0x10];
 	TMulticastInlineDelegate<void(class APawn* PossessedPawn)> OnPlayerPawnPossessed;                             // 0x06E8(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPublic)
 	TMulticastInlineDelegate<void(class AFortPlayerController* PlayerController, class AFortPickup* Pickup)> OnPickupCreated;                                   // 0x06F8(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPublic)
 	uint8                                         Pad_708[0x30];                                     // 0x0708(0x0030)(Fixing Size After Last Property [ Dumper-7 ])
@@ -6659,6 +6740,9 @@ public:
 	{
 		return GetDefaultObjImpl<AFortPlayerController>();
 	}
+
+public:
+	class UFortWorldItem* AddInventoryItem(const struct FFortItemEntry& ItemEntry);
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");
 static_assert(sizeof(AFortPlayerController) == 0x002560, "Wrong size on AFortPlayerController");
@@ -29879,12 +29963,26 @@ static_assert(alignof(ABattleBusCosmeticInstanceBase) == 0x000008, "Wrong alignm
 static_assert(sizeof(ABattleBusCosmeticInstanceBase) == 0x000230, "Wrong size on ABattleBusCosmeticInstanceBase");
 static_assert(offsetof(ABattleBusCosmeticInstanceBase, ActiveSkin) == 0x000228, "Member 'ABattleBusCosmeticInstanceBase::ActiveSkin' has a wrong offset!");
 
-// Class FortniteGame.FortInventory
-// 0x0250 (0x0470 - 0x0220)
-class AFortInventory : public AActor
+class IFortInventoryInterface
 {
 public:
-	uint8                                         Pad_220[0x9];                                      // 0x0220(0x0009)(Fixing Size After Last Property [ Dumper-7 ])
+	virtual ~IFortInventoryInterface() {}
+	virtual class UObject* _getUObject() = 0;
+	virtual TArray<const class UFortWorldItem*> GetItems_Const() const = 0;
+	virtual class UFortWorldItem* GetItem(struct FGuid ItemGuid) = 0;
+	virtual const class UFortWorldItem* GetItem(struct FGuid ItemGuid) const = 0;
+	virtual int32 GetInventoryCapacity() const = 0;
+	virtual int32 GetInventoryUsed() const = 0;
+	virtual int32 GetInventoryOverflow() const = 0;
+	virtual const TArray<TSharedRef<struct FFortGiftGiver, ESPMode::ThreadSafe>>& GetGiftGivers() const = 0;
+};
+
+// Class FortniteGame.FortInventory
+// 0x0250 (0x0470 - 0x0220)
+class AFortInventory : public AActor, public IFortInventoryInterface
+{
+public:
+	bool                                          bClientDestroyGuard;
 	EFortInventoryType                            InventoryType;                                     // 0x0229(0x0001)(Net, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_22A[0x6];                                      // 0x022A(0x0006)(Fixing Size After Last Property [ Dumper-7 ])
 	struct FFortItemList                          Inventory;                                         // 0x0230(0x01C8)(Net, SaveGame, RepNotify, NativeAccessSpecifierPrivate)
@@ -29900,7 +29998,11 @@ public:
 	uint8                                         Pad_458[0x18];                                     // 0x0458(0x0018)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
-	void HandleInventoryLocalUpdate();
+	void HandleInventoryLocalUpdate()
+	{
+		void (*Fn)(AFortInventory*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x18C8514);
+		Fn(this);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -29910,6 +30012,44 @@ public:
 	static class AFortInventory* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AFortInventory>();
+	}
+
+public:
+	class UFortWorldItem* AddItem(const struct FFortItemEntry& ItemEntry);
+
+	void UpdateItemInstances()
+	{
+		void (*Fn)(AFortInventory*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF210FC);
+		Fn(this);
+	}
+
+	void SetItemRequiresUpdate(struct FFortItemEntry* Item)
+	{
+		void (*Fn)(AFortInventory*, struct FFortItemEntry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A5A8);
+		Fn(this, Item);
+	}
+
+	void SetRequiresUpdate()
+	{
+		void (*Fn)(AFortInventory*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A708);
+		Fn(this);
+	}
+
+	class UFortWorldItem* FindExistingItemForDefinition(const class UFortItemDefinition* ItemDefinition) const
+	{
+		class UFortWorldItem* (*Fn)(const AFortInventory*, const class UFortItemDefinition*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A3C6E8);
+		return Fn(this, ItemDefinition);
+	}
+
+	int32 FindItemInstancesForDefinition(const class UFortItemDefinition* ItemDefinition, TArray<class UFortWorldItem*>& OutItems, bool bIncludeGiftedItems) const
+	{
+		int32 (*Fn)(const AFortInventory*, const class UFortItemDefinition*, TArray<class UFortWorldItem*>*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A3CBD4);
+		return Fn(this, ItemDefinition, &OutItems, bIncludeGiftedItems);
+	}
+
+	void InitializeExistingItemInternal(class UFortWorldItem* ExistingItem)
+	{
+		reinterpret_cast<void (*)(AFortInventory*, class UFortWorldItem*)>(VTable[200])(this, ExistingItem);
 	}
 };
 static_assert(alignof(AFortInventory) == 0x000008, "Wrong alignment on AFortInventory");
@@ -67081,6 +67221,7 @@ public:
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithLootTier);
 	DECLARE_FUNCTION(execDropInstancedLoot);
 	DECLARE_FUNCTION(execDropInstancedLootAtLocation);
+	DECLARE_FUNCTION(execK2_GiveItemToPlayer);
 
 	static class AFortPickup* K2_SpawnPickupInWorldWithClassAndItemEntry(class UObject* WorldContextObject, const struct FFortItemEntry& ItemEntry, TSubclassOf<class AFortPickup> PickupClass, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, class AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner, bool bShouldCombinePickupsWhenTossCompletes = true);
 
@@ -70376,6 +70517,17 @@ public:
 	{
 		return GetDefaultObjImpl<UFortWorldItem>();
 	}
+
+public:
+	const struct FFortItemEntry& GetItemEntry() const
+	{
+		return ItemEntry;
+	}
+
+	bool SetNumInStack(int32 InNumInStack, bool bResetRegenCooldown)
+	{
+		return reinterpret_cast<bool (*)(UFortWorldItem*, int32, bool)>(VTable[167])(this, InNumInStack, bResetRegenCooldown);
+	}
 };
 static_assert(alignof(UFortWorldItem) == 0x000008, "Wrong alignment on UFortWorldItem");
 static_assert(sizeof(UFortWorldItem) == 0x000290, "Wrong size on UFortWorldItem");
@@ -70793,20 +70945,20 @@ static_assert(offsetof(AFortAthenaMutator_RespawnWave, WaveDataArray) == 0x00034
 
 // Class FortniteGame.FortInventoryInterface
 // 0x0000 (0x0028 - 0x0028)
-class IFortInventoryInterface final : public IInterface
+class UFortInventoryInterface final : public IInterface
 {
 public:
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"FortInventoryInterface">();
 	}
-	static class IFortInventoryInterface* GetDefaultObj()
+	static class UFortInventoryInterface* GetDefaultObj()
 	{
-		return GetDefaultObjImpl<IFortInventoryInterface>();
+		return GetDefaultObjImpl<UFortInventoryInterface>();
 	}
 };
-static_assert(alignof(IFortInventoryInterface) == 0x000008, "Wrong alignment on IFortInventoryInterface");
-static_assert(sizeof(IFortInventoryInterface) == 0x000028, "Wrong size on IFortInventoryInterface");
+static_assert(alignof(UFortInventoryInterface) == 0x000008, "Wrong alignment on UFortInventoryInterface");
+static_assert(sizeof(UFortInventoryInterface) == 0x000028, "Wrong size on UFortInventoryInterface");
 
 // Class FortniteGame.FortAthenaMutator_RoundHelper
 // 0x0078 (0x0338 - 0x02C0)
@@ -96340,20 +96492,20 @@ static_assert(sizeof(IFortInventoryOverrideProvider) == 0x000028, "Wrong size on
 
 // Class FortniteGame.FortInventoryOwnerInterface
 // 0x0000 (0x0028 - 0x0028)
-class IFortInventoryOwnerInterface final : public IInterface
+class UFortInventoryOwnerInterface final : public IInterface
 {
 public:
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"FortInventoryOwnerInterface">();
 	}
-	static class IFortInventoryOwnerInterface* GetDefaultObj()
+	static class UFortInventoryOwnerInterface* GetDefaultObj()
 	{
-		return GetDefaultObjImpl<IFortInventoryOwnerInterface>();
+		return GetDefaultObjImpl<UFortInventoryOwnerInterface>();
 	}
 };
-static_assert(alignof(IFortInventoryOwnerInterface) == 0x000008, "Wrong alignment on IFortInventoryOwnerInterface");
-static_assert(sizeof(IFortInventoryOwnerInterface) == 0x000028, "Wrong size on IFortInventoryOwnerInterface");
+static_assert(alignof(UFortInventoryOwnerInterface) == 0x000008, "Wrong alignment on UFortInventoryOwnerInterface");
+static_assert(sizeof(UFortInventoryOwnerInterface) == 0x000028, "Wrong size on UFortInventoryOwnerInterface");
 
 // Class FortniteGame.FortIslandLocalizationComponent
 // 0x0008 (0x00B8 - 0x00B0)

@@ -56960,7 +56960,8 @@ public:
 	TMulticastInlineDelegate<void(class AFortPickup* SelfActor)> OnPickupDestroyed;                                 // 0x0270(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPublic)
 	TMulticastInlineDelegate<void(class AFortPickup* ThisPickup, class AFortPickup* TargetPickup)> OnPickupCombined;                                  // 0x0280(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPublic)
 	TMulticastInlineDelegate<void(class AFortPickup* SelfActor)> OnSetPawnWhoDroppedPickup;                         // 0x0290(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPublic)
-	uint8                                         Pad_2A0[0x8];                                      // 0x02A0(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          bBlockedFromAutoPickup;
+	uint8                                         Pad_2A1[0x7];
 	struct FFortItemEntry                         PrimaryPickupItemEntry;                            // 0x02A8(0x0190)(Net, Transient, RepNotify, Protected, NativeAccessSpecifierProtected)
 	TArray<struct FFortItemEntry>                 MultiItemPickupEntries;                            // 0x0438(0x0010)(Net, ZeroConstructor, Transient, Protected, NativeAccessSpecifierProtected)
 	struct FFortPickupLocationData                PickupLocationData;                                // 0x0448(0x0060)(Net, Transient, RepNotify, NoDestructor, Protected, NativeAccessSpecifierProtected)
@@ -57029,7 +57030,12 @@ public:
 	void SetDespawnTime(float InDespawnTime);
 	void SetOverrideInteractRadius(float NewRadius);
 	void SetPickedUp(const bool bInPickedUp);
-	void TossPickup(const struct FVector& FinalLocation, class AFortPawn* ItemOwner, int32 OverrideMaxStackCount, bool bToss, bool bShouldCombinePickupsWhenTossCompletes, const EFortPickupSourceTypeFlag InPickupSourceTypeFlags, const EFortPickupSpawnSource InPickupSpawnSource);
+	void TossPickup(const struct FVector& FinalLocation, class AFortPawn* ItemOwner, int32 OverrideMaxStackCount, bool bToss, bool bShouldCombinePickupsWhenTossCompletes, const EFortPickupSourceTypeFlag InPickupSourceTypeFlags, const EFortPickupSpawnSource InPickupSpawnSource)
+	{
+		void (*Fn)(AFortPickup*, const struct FVector*, class AFortPawn*, int32, bool, bool, EFortPickupSourceTypeFlag, EFortPickupSpawnSource) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A5C800);
+		Fn(this, &FinalLocation, ItemOwner, OverrideMaxStackCount, bToss, bShouldCombinePickupsWhenTossCompletes, InPickupSourceTypeFlags, InPickupSpawnSource);
+	}
+	static class AFortPickup* CreateFromData(const FFortPickupCreationData& CreationData);
 
 	const struct FFortItemEntry GetItemEntry(int32 ItemIndex) const;
 	int32 GetItemEntryNum() const;
@@ -57064,6 +57070,7 @@ static_assert(offsetof(AFortPickup, OnPickupDespawned) == 0x000260, "Member 'AFo
 static_assert(offsetof(AFortPickup, OnPickupDestroyed) == 0x000270, "Member 'AFortPickup::OnPickupDestroyed' has a wrong offset!");
 static_assert(offsetof(AFortPickup, OnPickupCombined) == 0x000280, "Member 'AFortPickup::OnPickupCombined' has a wrong offset!");
 static_assert(offsetof(AFortPickup, OnSetPawnWhoDroppedPickup) == 0x000290, "Member 'AFortPickup::OnSetPawnWhoDroppedPickup' has a wrong offset!");
+static_assert(offsetof(AFortPickup, bBlockedFromAutoPickup) == 0x0002A0, "Member 'AFortPickup::bBlockedFromAutoPickup' has a wrong offset!");
 static_assert(offsetof(AFortPickup, PrimaryPickupItemEntry) == 0x0002A8, "Member 'AFortPickup::PrimaryPickupItemEntry' has a wrong offset!");
 static_assert(offsetof(AFortPickup, MultiItemPickupEntries) == 0x000438, "Member 'AFortPickup::MultiItemPickupEntries' has a wrong offset!");
 static_assert(offsetof(AFortPickup, PickupLocationData) == 0x000448, "Member 'AFortPickup::PickupLocationData' has a wrong offset!");
@@ -67031,6 +67038,10 @@ class UFortKismetLibrary final : public UBlueprintFunctionLibrary
 public:
 	DECLARE_FUNCTION(execIncrementAnalyticMatchCount);
 	DECLARE_FUNCTION(execChangeTeam);
+	DECLARE_FUNCTION(execK2_SpawnPickupInWorld);
+	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithClass);
+	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithClassAndLevel);
+	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithLevel);
 
 	static void Init();
 

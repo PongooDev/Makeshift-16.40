@@ -73,6 +73,7 @@ struct alignas(8) FAbilityTargetDataSetDelegate { uint8 Pad_0[0x18]; };
 struct FOnGameplayAbilityEnded { struct FDelegate; };
 struct alignas(8) FlowStackType { uint8 Pad_0[0x30]; };
 enum class EGetWorldErrorMode;
+struct FFortPickupCreationData;
 
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/Script.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/ObjectMacros.h"

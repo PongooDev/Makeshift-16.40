@@ -20700,6 +20700,20 @@ public:
 	uint8                                         Pad_138[0x50];                                     // 0x0138(0x0050)(Fixing Size After Last Property [ Dumper-7 ])
 	int32                                         PickupVariantIndex;                                // 0x0188(0x0004)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	int32                                         ItemVariantDataMappingIndex;                       // 0x018C(0x0004)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
+
+public:
+	FFortItemEntry() = default;
+	FFortItemEntry(const class UFortItemDefinition* InItemDefinition, int32 InCount, int32 InLevel)
+	{
+		void (*Fn)(FFortItemEntry*, const class UFortItemDefinition*, int32, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x14AFE1C);
+		Fn(this, InItemDefinition, InCount, InLevel);
+	}
+
+	void SetStateValue(EFortItemEntryState StateType, int32 InValue)
+	{
+		void (*Fn)(FFortItemEntry*, EFortItemEntryState, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4811490);
+		Fn(this, StateType, InValue);
+	}
 };
 static_assert(alignof(FFortItemEntry) == 0x000008, "Wrong alignment on FFortItemEntry");
 static_assert(sizeof(FFortItemEntry) == 0x000190, "Wrong size on FFortItemEntry");

@@ -73,4 +73,5 @@ FQuat FRotator::Quaternion() const
 	return RotationQuat;
 }
 
+CORE_API const FRotator FRotator::ZeroRotator(0.f,0.f,0.f);
 CORE_API const FQuat FQuat::Identity(0,0,0,1);

@@ -151,6 +151,9 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Player">
       <UniqueIdentifier>{57cb0607-2c86-4127-ad7b-a42e13a8284c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public">
+      <UniqueIdentifier>{bbe523ec-6409-46a4-86eb-c7c3f3e145cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -555,6 +558,9 @@
     <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities\GameplayAbilityTypes.h">
       <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortPickup.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Math\VectorRegister.h">
       <Filter>Engine\Source\Runtime\Core\Public\Math</Filter>
     </ClInclude>
@@ -684,6 +690,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortPickup.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Math\UnrealMath.cpp">

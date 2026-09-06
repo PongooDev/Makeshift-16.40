@@ -1406,6 +1406,13 @@ public:
 	uint8                                         ByteOffset;                                        // 0x0079(0x0001)(NOT AUTO-GENERATED PROPERTY)
 	uint8                                         ByteMask;                                          // 0x007A(0x0001)(NOT AUTO-GENERATED PROPERTY)
 	uint8                                         FieldMask;                                         // 0x007B(0x0001)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	static class FFieldClass* StaticClass()
+	{
+		class FFieldClass* (*Fn)() = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC5AE08);
+		return Fn();
+	}
 };
 static_assert(alignof(FBoolProperty) == 0x000008, "Wrong alignment on FBoolProperty");
 static_assert(sizeof(FBoolProperty) == 0x000080, "Wrong size on FBoolProperty");

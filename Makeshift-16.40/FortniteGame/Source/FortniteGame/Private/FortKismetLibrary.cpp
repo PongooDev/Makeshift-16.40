@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Engine/Source/Runtime/Core/Public/HAL/UnrealMemory.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
+#include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
 
 int32 UFortKismetLibrary::IncrementAnalyticMatchCount(const UObject* WorldContextObject, const EAnalyticMatchCounts MatchCountID, const int32 AmountToAdd) {
 	static const UWorld* AnalyticMatchCountsWorld = nullptr;
@@ -64,7 +65,141 @@ DEFINE_FUNCTION(UFortKismetLibrary::execChangeTeam)
 	P_NATIVE_END;
 }
 
+AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClassAndLevel(UObject* WorldContextObject, UFortWorldItemDefinition* ItemDefinition, int32 WorldLevel, TSubclassOf<AFortPickup> PickupClass, int32 NumberToSpawn, const FVector& Position, const FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, int32 PickupInstigatorHandle, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner) {
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	if (!World || !ItemDefinition || NumberToSpawn <= 0) {
+		return nullptr;
+	}
+
+	FFortItemEntry ItemEntry(ItemDefinition, NumberToSpawn, WorldLevel);
+	if (PickupInstigatorHandle != INDEX_NONE) {
+		ItemEntry.SetStateValue(EFortItemEntryState::PickupInstigatorHandle, PickupInstigatorHandle);
+	}
+
+	FFortPickupCreationData CreationData(World, ItemEntry, Position, FRotator::ZeroRotator, OptionalOwnerPC, PickupClass, nullptr);
+	CreationData.SourceTypeFlags = SourceType;
+	CreationData.SpawnSource = Source;
+	CreationData.bRandomRotation = bRandomRotation;
+	CreationData.bPickupOnlyRelevantToOwner = bPickupOnlyRelevantToOwner;
+
+	AFortPickup* Pickup = AFortPickup::CreateFromData(CreationData);
+	if (Pickup) {
+		Pickup->bBlockedFromAutoPickup = bBlockedFromAutoPickup;
+		Pickup->TossPickup(bToss ? Position + Direction : Position, nullptr, OverrideMaxStackCount, bToss, true, SourceType, Source);
+	}
+
+	return Pickup;
+}
+
+AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorld(UObject* WorldContextObject, UFortWorldItemDefinition* ItemDefinition, int32 NumberToSpawn, const FVector& Position, const FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, int32 PickupInstigatorHandle, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner) {
+	return K2_SpawnPickupInWorldWithClassAndLevel(WorldContextObject, ItemDefinition, 0, nullptr, NumberToSpawn, Position, Direction, OverrideMaxStackCount, bToss, bRandomRotation, bBlockedFromAutoPickup, PickupInstigatorHandle, SourceType, Source, OptionalOwnerPC, bPickupOnlyRelevantToOwner);
+}
+
+AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithClass(UObject* WorldContextObject, UFortWorldItemDefinition* ItemDefinition, TSubclassOf<AFortPickup> PickupClass, int32 NumberToSpawn, const FVector& Position, const FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, int32 PickupInstigatorHandle, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner) {
+	return K2_SpawnPickupInWorldWithClassAndLevel(WorldContextObject, ItemDefinition, 0, PickupClass, NumberToSpawn, Position, Direction, OverrideMaxStackCount, bToss, bRandomRotation, bBlockedFromAutoPickup, PickupInstigatorHandle, SourceType, Source, OptionalOwnerPC, bPickupOnlyRelevantToOwner);
+}
+
+AFortPickup* UFortKismetLibrary::K2_SpawnPickupInWorldWithLevel(UObject* WorldContextObject, UFortWorldItemDefinition* ItemDefinition, int32 WorldLevel, int32 NumberToSpawn, const FVector& Position, const FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, int32 PickupInstigatorHandle, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner) {
+	return K2_SpawnPickupInWorldWithClassAndLevel(WorldContextObject, ItemDefinition, WorldLevel, nullptr, NumberToSpawn, Position, Direction, OverrideMaxStackCount, bToss, bRandomRotation, bBlockedFromAutoPickup, PickupInstigatorHandle, SourceType, Source, OptionalOwnerPC, bPickupOnlyRelevantToOwner);
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_SpawnPickupInWorld)
+{
+	P_GET_OBJECT(UObject,Z_Param_WorldContextObject);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToSpawn);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Position);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Direction);
+	P_GET_PROPERTY(FIntProperty,Z_Param_OverrideMaxStackCount);
+	P_GET_UBOOL(Z_Param_bToss);
+	P_GET_UBOOL(Z_Param_bRandomRotation);
+	P_GET_UBOOL(Z_Param_bBlockedFromAutoPickup);
+	P_GET_PROPERTY(FIntProperty,Z_Param_PickupInstigatorHandle);
+	P_GET_ENUM(EFortPickupSourceTypeFlag,Z_Param_SourceType);
+	P_GET_ENUM(EFortPickupSpawnSource,Z_Param_Source);
+	P_GET_OBJECT(AFortPlayerController,Z_Param_OptionalOwnerPC);
+	P_GET_UBOOL(Z_Param_bPickupOnlyRelevantToOwner);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(AFortPickup**)Z_Param__Result=UFortKismetLibrary::K2_SpawnPickupInWorld(Z_Param_WorldContextObject,Z_Param_ItemDefinition,Z_Param_NumberToSpawn,Z_Param_Out_Position,Z_Param_Out_Direction,Z_Param_OverrideMaxStackCount,Z_Param_bToss,Z_Param_bRandomRotation,Z_Param_bBlockedFromAutoPickup,Z_Param_PickupInstigatorHandle,EFortPickupSourceTypeFlag(Z_Param_SourceType),EFortPickupSpawnSource(Z_Param_Source),Z_Param_OptionalOwnerPC,Z_Param_bPickupOnlyRelevantToOwner);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_SpawnPickupInWorldWithClass)
+{
+	P_GET_OBJECT(UObject,Z_Param_WorldContextObject);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_OBJECT(UClass,Z_Param_PickupClass);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToSpawn);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Position);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Direction);
+	P_GET_PROPERTY(FIntProperty,Z_Param_OverrideMaxStackCount);
+	P_GET_UBOOL(Z_Param_bToss);
+	P_GET_UBOOL(Z_Param_bRandomRotation);
+	P_GET_UBOOL(Z_Param_bBlockedFromAutoPickup);
+	P_GET_PROPERTY(FIntProperty,Z_Param_PickupInstigatorHandle);
+	P_GET_ENUM(EFortPickupSourceTypeFlag,Z_Param_SourceType);
+	P_GET_ENUM(EFortPickupSpawnSource,Z_Param_Source);
+	P_GET_OBJECT(AFortPlayerController,Z_Param_OptionalOwnerPC);
+	P_GET_UBOOL(Z_Param_bPickupOnlyRelevantToOwner);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(AFortPickup**)Z_Param__Result=UFortKismetLibrary::K2_SpawnPickupInWorldWithClass(Z_Param_WorldContextObject,Z_Param_ItemDefinition,Z_Param_PickupClass,Z_Param_NumberToSpawn,Z_Param_Out_Position,Z_Param_Out_Direction,Z_Param_OverrideMaxStackCount,Z_Param_bToss,Z_Param_bRandomRotation,Z_Param_bBlockedFromAutoPickup,Z_Param_PickupInstigatorHandle,EFortPickupSourceTypeFlag(Z_Param_SourceType),EFortPickupSpawnSource(Z_Param_Source),Z_Param_OptionalOwnerPC,Z_Param_bPickupOnlyRelevantToOwner);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_SpawnPickupInWorldWithClassAndLevel)
+{
+	P_GET_OBJECT(UObject,Z_Param_WorldContextObject);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_WorldLevel);
+	P_GET_OBJECT(UClass,Z_Param_PickupClass);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToSpawn);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Position);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Direction);
+	P_GET_PROPERTY(FIntProperty,Z_Param_OverrideMaxStackCount);
+	P_GET_UBOOL(Z_Param_bToss);
+	P_GET_UBOOL(Z_Param_bRandomRotation);
+	P_GET_UBOOL(Z_Param_bBlockedFromAutoPickup);
+	P_GET_PROPERTY(FIntProperty,Z_Param_PickupInstigatorHandle);
+	P_GET_ENUM(EFortPickupSourceTypeFlag,Z_Param_SourceType);
+	P_GET_ENUM(EFortPickupSpawnSource,Z_Param_Source);
+	P_GET_OBJECT(AFortPlayerController,Z_Param_OptionalOwnerPC);
+	P_GET_UBOOL(Z_Param_bPickupOnlyRelevantToOwner);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(AFortPickup**)Z_Param__Result=UFortKismetLibrary::K2_SpawnPickupInWorldWithClassAndLevel(Z_Param_WorldContextObject,Z_Param_ItemDefinition,Z_Param_WorldLevel,Z_Param_PickupClass,Z_Param_NumberToSpawn,Z_Param_Out_Position,Z_Param_Out_Direction,Z_Param_OverrideMaxStackCount,Z_Param_bToss,Z_Param_bRandomRotation,Z_Param_bBlockedFromAutoPickup,Z_Param_PickupInstigatorHandle,EFortPickupSourceTypeFlag(Z_Param_SourceType),EFortPickupSpawnSource(Z_Param_Source),Z_Param_OptionalOwnerPC,Z_Param_bPickupOnlyRelevantToOwner);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execK2_SpawnPickupInWorldWithLevel)
+{
+	P_GET_OBJECT(UObject,Z_Param_WorldContextObject);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_WorldLevel);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToSpawn);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Position);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Direction);
+	P_GET_PROPERTY(FIntProperty,Z_Param_OverrideMaxStackCount);
+	P_GET_UBOOL(Z_Param_bToss);
+	P_GET_UBOOL(Z_Param_bRandomRotation);
+	P_GET_UBOOL(Z_Param_bBlockedFromAutoPickup);
+	P_GET_PROPERTY(FIntProperty,Z_Param_PickupInstigatorHandle);
+	P_GET_ENUM(EFortPickupSourceTypeFlag,Z_Param_SourceType);
+	P_GET_ENUM(EFortPickupSpawnSource,Z_Param_Source);
+	P_GET_OBJECT(AFortPlayerController,Z_Param_OptionalOwnerPC);
+	P_GET_UBOOL(Z_Param_bPickupOnlyRelevantToOwner);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(AFortPickup**)Z_Param__Result=UFortKismetLibrary::K2_SpawnPickupInWorldWithLevel(Z_Param_WorldContextObject,Z_Param_ItemDefinition,Z_Param_WorldLevel,Z_Param_NumberToSpawn,Z_Param_Out_Position,Z_Param_Out_Direction,Z_Param_OverrideMaxStackCount,Z_Param_bToss,Z_Param_bRandomRotation,Z_Param_bBlockedFromAutoPickup,Z_Param_PickupInstigatorHandle,EFortPickupSourceTypeFlag(Z_Param_SourceType),EFortPickupSpawnSource(Z_Param_Source),Z_Param_OptionalOwnerPC,Z_Param_bPickupOnlyRelevantToOwner);
+	P_NATIVE_END;
+}
+
 void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x5098E58, execIncrementAnalyticMatchCount, nullptr);
 	Memory::HookDetour(ImageBase + 0x508ADCC, execChangeTeam, nullptr);
+	Memory::HookDetour(ImageBase + 0x509B410, execK2_SpawnPickupInWorld, nullptr);
+	Memory::HookDetour(ImageBase + 0x509B870, execK2_SpawnPickupInWorldWithClass, nullptr);
+	Memory::HookDetour(ImageBase + 0x509BD24, execK2_SpawnPickupInWorldWithClassAndLevel, nullptr);
+	Memory::HookDetour(ImageBase + 0x509C224, execK2_SpawnPickupInWorldWithLevel, nullptr);
 }

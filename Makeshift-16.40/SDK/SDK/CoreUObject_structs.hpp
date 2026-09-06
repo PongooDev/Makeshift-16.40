@@ -695,6 +695,9 @@ public:
 
 public:
 
+	/** A rotator of zero degrees on each axis. */
+	static CORE_API const FRotator ZeroRotator;
+
 #if ENABLE_NAN_DIAGNOSTIC
 	FORCEINLINE void DiagnosticCheckNaN() const
 	{
@@ -726,6 +729,15 @@ public:
 	/**
 	 * Constructor.
 	 *
+	 * @param InPitch Pitch in degrees.
+	 * @param InYaw Yaw in degrees.
+	 * @param InRoll Roll in degrees.
+	 */
+	FORCEINLINE FRotator( float InPitch, float InYaw, float InRoll );
+
+	/**
+	 * Constructor.
+	 *
 	 * @param EForceInit Force Init Enum.
 	 */
 	explicit FORCEINLINE FRotator( EForceInit );
@@ -749,6 +761,13 @@ static_assert(sizeof(FRotator) == 0x00000C, "Wrong size on FRotator");
 static_assert(offsetof(FRotator, Pitch) == 0x000000, "Member 'FRotator::Pitch' has a wrong offset!");
 static_assert(offsetof(FRotator, Yaw) == 0x000004, "Member 'FRotator::Yaw' has a wrong offset!");
 static_assert(offsetof(FRotator, Roll) == 0x000008, "Member 'FRotator::Roll' has a wrong offset!");
+
+FORCEINLINE FRotator::FRotator( float InPitch, float InYaw, float InRoll )
+	:	Pitch(InPitch), Yaw(InYaw), Roll(InRoll) 
+{
+	DiagnosticCheckNaN();
+}
+
 
 FORCEINLINE FRotator::FRotator(EForceInit)
 	: Pitch(0), Yaw(0), Roll(0)

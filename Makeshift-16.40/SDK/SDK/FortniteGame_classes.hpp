@@ -67042,6 +67042,7 @@ public:
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithClass);
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithClassAndLevel);
 	DECLARE_FUNCTION(execK2_SpawnPickupInWorldWithLevel);
+	DECLARE_FUNCTION(execSpawnInstancedPickupInWorld);
 
 	static void Init();
 
@@ -67134,7 +67135,13 @@ public:
 	static class AFortAIDirector* GetAIDirector(class UObject* WorldContextObject);
 	static class AFortAIGoalManager* GetAIGoalManager(const class UObject* WorldContextObject);
 	static class AFortPawn* GetAimedAtEnemy(const class AFortPlayerController* SourcePlayer, const float RectHalfWidth, const float RectHalfHeight, const float Range, const bool bTargetAIPawns);
-	static TArray<class AFortPlayerController*> GetAllFortPlayerControllers(class UObject* WorldContextObject, bool bIncludeNonSpectators, bool bIncludeSpectators);
+	static TArray<class AFortPlayerController*> GetAllFortPlayerControllers(class UObject* WorldContextObject, bool bIncludeNonSpectators, bool bIncludeSpectators)
+	{
+		TArray<class AFortPlayerController*> Result;
+		TArray<class AFortPlayerController*>* (*Fn)(TArray<class AFortPlayerController*>*, const class UObject*, bool, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1A0E50C);
+		Fn(&Result, WorldContextObject, bIncludeNonSpectators, bIncludeSpectators);
+		return Result;
+	}
 	static void GetAllFortPlayerPawns(class UObject* WorldContextObject, TArray<class AFortPlayerPawn*>* OutFortPlayerPawns);
 	static TArray<struct FAmmoItemState> GetAmmoItemDefinitionsFromInventoryWeapons(class AFortPlayerController* Controller);
 	static float GetAngleDegrees(const struct FVector& Source, const struct FVector& Target);

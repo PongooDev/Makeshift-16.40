@@ -160647,38 +160647,6 @@ class AFortPawn* UFortKismetLibrary::GetAimedAtEnemy(const class AFortPlayerCont
 }
 
 
-// Function FortniteGame.FortKismetLibrary.GetAllFortPlayerControllers
-// (Final, RequiredAPI, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable, BlueprintPure)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bIncludeNonSpectators                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, AdvancedDisplay, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bIncludeSpectators                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, AdvancedDisplay, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// TArray<class AFortPlayerController*>    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, NativeAccessSpecifierPublic)
-
-TArray<class AFortPlayerController*> UFortKismetLibrary::GetAllFortPlayerControllers(class UObject* WorldContextObject, bool bIncludeNonSpectators, bool bIncludeSpectators)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "GetAllFortPlayerControllers");
-
-	Params::FortKismetLibrary_GetAllFortPlayerControllers Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.bIncludeNonSpectators = bIncludeNonSpectators;
-	Parms.bIncludeSpectators = bIncludeSpectators;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.GetAllFortPlayerPawns
 // (Final, Native, Static, Public, HasOutParams, BlueprintCallable)
 // Parameters:
@@ -166915,50 +166883,6 @@ class ABuildingGameplayActor* UFortKismetLibrary::SpawnBuildingGameplayActorFrom
 	Parms.Transform = std::move(Transform);
 	Parms.OptionalOwner = OptionalOwner;
 	Parms.OptionalInstigator = OptionalInstigator;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.FortKismetLibrary.SpawnInstancedPickupInWorld
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class UFortWorldItemDefinition*         ItemDefinition                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   NumberToSpawn                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          Position                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          Direction                                              (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   OverrideMaxStackCount                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bToss                                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bRandomRotation                                        (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bBlockedFromAutoPickup                                 (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-bool UFortKismetLibrary::SpawnInstancedPickupInWorld(class UObject* WorldContextObject, class UFortWorldItemDefinition* ItemDefinition, int32 NumberToSpawn, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "SpawnInstancedPickupInWorld");
-
-	Params::FortKismetLibrary_SpawnInstancedPickupInWorld Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.ItemDefinition = ItemDefinition;
-	Parms.NumberToSpawn = NumberToSpawn;
-	Parms.Position = std::move(Position);
-	Parms.Direction = std::move(Direction);
-	Parms.OverrideMaxStackCount = OverrideMaxStackCount;
-	Parms.bToss = bToss;
-	Parms.bRandomRotation = bRandomRotation;
-	Parms.bBlockedFromAutoPickup = bBlockedFromAutoPickup;
 
 	auto Flgs = Func->FunctionFlags;
 	Func->FunctionFlags |= 0x400;

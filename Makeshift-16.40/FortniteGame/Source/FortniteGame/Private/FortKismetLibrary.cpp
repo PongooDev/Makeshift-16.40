@@ -195,6 +195,36 @@ DEFINE_FUNCTION(UFortKismetLibrary::execK2_SpawnPickupInWorldWithLevel)
 	P_NATIVE_END;
 }
 
+bool UFortKismetLibrary::SpawnInstancedPickupInWorld(UObject* WorldContextObject, UFortWorldItemDefinition* ItemDefinition, int32 NumberToSpawn, const FVector& Position, const FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup) {
+	bool bSpawnedPickup = false;
+
+	TArray<AFortPlayerController*> PlayerControllers = GetAllFortPlayerControllers(WorldContextObject, true, false);
+	for (int32 Index = 0; Index < PlayerControllers.Num(); ++Index) {
+		if (K2_SpawnPickupInWorldWithClassAndLevel(WorldContextObject, ItemDefinition, 0, nullptr, NumberToSpawn, Position, Direction, OverrideMaxStackCount, bToss, bRandomRotation, bBlockedFromAutoPickup, INDEX_NONE, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset, PlayerControllers[Index], true)) {
+			bSpawnedPickup = true;
+		}
+	}
+
+	return bSpawnedPickup;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execSpawnInstancedPickupInWorld)
+{
+	P_GET_OBJECT(UObject,Z_Param_WorldContextObject);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToSpawn);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Position);
+	P_GET_STRUCT_REF(FVector,Z_Param_Out_Direction);
+	P_GET_PROPERTY(FIntProperty,Z_Param_OverrideMaxStackCount);
+	P_GET_UBOOL(Z_Param_bToss);
+	P_GET_UBOOL(Z_Param_bRandomRotation);
+	P_GET_UBOOL(Z_Param_bBlockedFromAutoPickup);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(bool*)Z_Param__Result=UFortKismetLibrary::SpawnInstancedPickupInWorld(Z_Param_WorldContextObject,Z_Param_ItemDefinition,Z_Param_NumberToSpawn,Z_Param_Out_Position,Z_Param_Out_Direction,Z_Param_OverrideMaxStackCount,Z_Param_bToss,Z_Param_bRandomRotation,Z_Param_bBlockedFromAutoPickup);
+	P_NATIVE_END;
+}
+
 void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x5098E58, execIncrementAnalyticMatchCount, nullptr);
 	Memory::HookDetour(ImageBase + 0x508ADCC, execChangeTeam, nullptr);
@@ -202,4 +232,5 @@ void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x509B870, execK2_SpawnPickupInWorldWithClass, nullptr);
 	Memory::HookDetour(ImageBase + 0x509BD24, execK2_SpawnPickupInWorldWithClassAndLevel, nullptr);
 	Memory::HookDetour(ImageBase + 0x509C224, execK2_SpawnPickupInWorldWithLevel, nullptr);
+	Memory::HookDetour(ImageBase + 0x50A0FD8, execSpawnInstancedPickupInWorld, nullptr);
 }

@@ -658,11 +658,11 @@ DEFINE_FUNCTION(UFortKismetLibrary::execDropInstancedLootAtLocation)
 	P_NATIVE_END;
 }
 
-void UFortKismetLibrary::GiveItemToInventoryOwner(TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner, const UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer, int32 ItemLevel, int32 PickupInstigatorHandle, bool bUseItemPickupAnalyticEvent) {
-	UObject* InventoryOwnerObject = InventoryOwner.GetObjectRef();
+UFortWorldItem* UFortKismetLibrary::GiveItemToInventoryOwner(TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner, const UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer, int32 ItemLevel, int32 PickupInstigatorHandle, bool bUseItemPickupAnalyticEvent) {
+	UObject* InventoryOwnerObject = InventoryOwner.GetObject();
 	AFortPlayerController* PlayerController = InventoryOwnerObject ? InventoryOwnerObject->Cast<AFortPlayerController>() : nullptr;
 	if (!PlayerController || !ItemDefinition || NumberToGive <= 0) {
-		return;
+		return nullptr;
 	}
 
 	FFortItemEntry ItemEntry(ItemDefinition, NumberToGive, ItemLevel);
@@ -673,7 +673,7 @@ void UFortKismetLibrary::GiveItemToInventoryOwner(TScriptInterface<IFortInventor
 		ItemEntry.SetStateValue(EFortItemEntryState::ShouldShowItemToast, 1);
 	}
 
-	PlayerController->AddInventoryItem(ItemEntry);
+	return PlayerController->AddInventoryItem(ItemEntry, false);
 }
 
 void UFortKismetLibrary::K2_GiveItemToPlayer(AFortPlayerController* PlayerController, const UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer) {
@@ -682,8 +682,8 @@ void UFortKismetLibrary::K2_GiveItemToPlayer(AFortPlayerController* PlayerContro
 	}
 
 	TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner;
-	InventoryOwner.ObjectPointer = PlayerController;
-	InventoryOwner.InterfacePointer = &PlayerController->InventoryOwnerInterface;
+	InventoryOwner.SetObject(PlayerController);
+	InventoryOwner.SetInterface(&PlayerController->InventoryOwnerInterface);
 	GiveItemToInventoryOwner(InventoryOwner, ItemDefinition, NumberToGive, bNotifyPlayer, INDEX_NONE, INDEX_NONE, false);
 }
 
@@ -696,6 +696,49 @@ DEFINE_FUNCTION(UFortKismetLibrary::execK2_GiveItemToPlayer)
 	P_FINISH;
 	P_NATIVE_BEGIN;
 	UFortKismetLibrary::K2_GiveItemToPlayer(Z_Param_PlayerController,Z_Param_ItemDefinition,Z_Param_NumberToGive,Z_Param_bNotifyPlayer);
+	P_NATIVE_END;
+}
+
+void UFortKismetLibrary::AddRegenItemToInventoryOwner(TScriptInterface<IFortInventoryOwnerInterface> InventoryOwner, const UFortWorldItemDefinition* RegenItemDefinition, int32 NumberToGive, bool bNotifyPlayer, bool bResetRegenCooldown) {
+	UObject* InventoryOwnerObject = InventoryOwner.GetObject();
+	AFortPlayerController* PlayerController = InventoryOwnerObject ? InventoryOwnerObject->Cast<AFortPlayerController>() : nullptr;
+	if (!PlayerController || !RegenItemDefinition || NumberToGive <= 0) {
+		return;
+	}
+
+	FFortItemEntry ItemEntry(RegenItemDefinition, NumberToGive, INDEX_NONE);
+	if (bNotifyPlayer) {
+		ItemEntry.SetStateValue(EFortItemEntryState::ShouldShowItemToast, 1);
+	}
+
+	PlayerController->AddInventoryItem(ItemEntry, bResetRegenCooldown);
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execGiveItemToInventoryOwner)
+{
+	P_GET_TINTERFACE(IFortInventoryOwnerInterface,Z_Param_InventoryOwner);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_ItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToGive);
+	P_GET_UBOOL(Z_Param_bNotifyPlayer);
+	P_GET_PROPERTY(FIntProperty,Z_Param_ItemLevel);
+	P_GET_PROPERTY(FIntProperty,Z_Param_PickupInstigatorHandle);
+	P_GET_UBOOL(Z_Param_bUseItemPickupAnalyticEvent);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UFortKismetLibrary::GiveItemToInventoryOwner(Z_Param_InventoryOwner,Z_Param_ItemDefinition,Z_Param_NumberToGive,Z_Param_bNotifyPlayer,Z_Param_ItemLevel,Z_Param_PickupInstigatorHandle,Z_Param_bUseItemPickupAnalyticEvent);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(UFortKismetLibrary::execAddRegenItemToInventoryOwner)
+{
+	P_GET_TINTERFACE(IFortInventoryOwnerInterface,Z_Param_InventoryOwner);
+	P_GET_OBJECT(UFortWorldItemDefinition,Z_Param_RegenItemDefinition);
+	P_GET_PROPERTY(FIntProperty,Z_Param_NumberToGive);
+	P_GET_UBOOL(Z_Param_bNotifyPlayer);
+	P_GET_UBOOL(Z_Param_bResetRegenCooldown);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	UFortKismetLibrary::AddRegenItemToInventoryOwner(Z_Param_InventoryOwner,Z_Param_RegenItemDefinition,Z_Param_NumberToGive,Z_Param_bNotifyPlayer,Z_Param_bResetRegenCooldown);
 	P_NATIVE_END;
 }
 
@@ -714,4 +757,6 @@ void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x508DB48, execDropInstancedLoot, nullptr);
 	Memory::HookDetour(ImageBase + 0x508DCE0, execDropInstancedLootAtLocation, nullptr);
 	Memory::HookDetour(ImageBase + 0x509A70C, execK2_GiveItemToPlayer, nullptr);
+	Memory::HookDetour(ImageBase + 0x5098800, execGiveItemToInventoryOwner, nullptr);
+	Memory::HookDetour(ImageBase + 0x5087E10, execAddRegenItemToInventoryOwner, nullptr);
 }

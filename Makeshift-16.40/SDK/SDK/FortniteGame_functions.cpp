@@ -157900,39 +157900,6 @@ class UControllerComponent* UFortKismetLibrary::AddControllerComponent(class ACo
 }
 
 
-// Function FortniteGame.FortKismetLibrary.AddRegenItemToInventoryOwner
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, BlueprintCallable)
-// Parameters:
-// TScriptInterface<class IFortInventoryOwnerInterface>InventoryOwner                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// class UFortWorldItemDefinition*         RegenItemDefinition                                    (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   NumberToGive                                           (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bNotifyPlayer                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bResetRegenCooldown                                    (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortKismetLibrary::AddRegenItemToInventoryOwner(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const class UFortWorldItemDefinition* RegenItemDefinition, int32 NumberToGive, bool bNotifyPlayer, bool bResetRegenCooldown)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortKismetLibrary", "AddRegenItemToInventoryOwner");
-
-	Params::FortKismetLibrary_AddRegenItemToInventoryOwner Parms{};
-
-	Parms.InventoryOwner = InventoryOwner;
-	Parms.RegenItemDefinition = RegenItemDefinition;
-	Parms.NumberToGive = NumberToGive;
-	Parms.bNotifyPlayer = bNotifyPlayer;
-	Parms.bResetRegenCooldown = bResetRegenCooldown;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
 // Function FortniteGame.FortKismetLibrary.AddScoringEvent
 // (Final, Native, Static, Public, BlueprintCallable)
 // Parameters:

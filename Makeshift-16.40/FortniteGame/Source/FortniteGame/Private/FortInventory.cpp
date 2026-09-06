@@ -5,14 +5,33 @@ void FFortItemEntry::SetParentInventory(AFortInventory* InParentInventory, bool 
 	bIsReplicatedCopy = InIsReplicatedCopy;
 }
 
+void AFortInventory::InitializeExistingItem(UFortWorldItem* ExistingItem) {
+	if (!ExistingItem) {
+		return;
+	}
+
+	ExistingItem->OwnerInventory = this;
+	ExistingItem->ItemEntry.SetParentInventory(this, false);
+	ExistingItem->bIsTemporaryItem = false;
+	ExistingItem->bNeedsPersistentUpdate = true;
+	ExistingItem->GetItemGuid();
+
+	InitializeExistingItemInternal(ExistingItem);
+}
+
 UFortWorldItem* AFortInventory::AddItem(const FFortItemEntry& ItemEntry) {
-	const int32 EntryIndex = Inventory.ReplicatedEntries.Add(ItemEntry);
-	FFortItemEntry& ReplicatedEntry = Inventory.ReplicatedEntries[EntryIndex];
-	ReplicatedEntry.SetParentInventory(this, true);
-	const FGuid ItemGuid = ReplicatedEntry.GetItemGuid();
-	ReplicatedEntry.SetToDirty();
+	const UFortItemDefinition* ItemDefinition = ItemEntry.GetItemDefinition();
+	if (!ItemDefinition) {
+		return nullptr;
+	}
 
-	UpdateItemInstances();
+	UFortItem* Item = ItemDefinition->CreateTemporaryItemInstance(ItemEntry);
+	UFortWorldItem* WorldItem = Item ? Item->Cast<UFortWorldItem>() : nullptr;
+	if (!WorldItem) {
+		return nullptr;
+	}
 
-	return GetItem(ItemGuid);
+	InitializeExistingItem(WorldItem);
+
+	return WorldItem;
 }

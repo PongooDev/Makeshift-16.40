@@ -6029,6 +6029,11 @@ public:
 	{
 		return reinterpret_cast<const class AFortInventory* (*)(IFortInventoryOwnerInterface*)>(VTable[11])(this);
 	}
+
+	int32 CountInventoryOverflowFromAddingItem(const struct FFortItemEntry& ItemDescription, bool bIsClassItem, bool bFromPickup)
+	{
+		return reinterpret_cast<int32 (*)(IFortInventoryOwnerInterface*, const struct FFortItemEntry*, bool, bool)>(VTable[46])(this, &ItemDescription, bIsClassItem, bFromPickup);
+	}
 };
 
 // Class FortniteGame.FortPlayerController
@@ -6742,7 +6747,7 @@ public:
 	}
 
 public:
-	class UFortWorldItem* AddInventoryItem(const struct FFortItemEntry& ItemEntry);
+	class UFortWorldItem* AddInventoryItem(const struct FFortItemEntry& ItemEntry, bool bResetRegenCooldown);
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");
 static_assert(sizeof(AFortPlayerController) == 0x002560, "Wrong size on AFortPlayerController");
@@ -6885,6 +6890,7 @@ static_assert(offsetof(AFortPlayerController, DelayedQuickBarActions) == 0x0017D
 static_assert(offsetof(AFortPlayerController, ClientProcessedQuickBarActions) == 0x0018F8, "Member 'AFortPlayerController::ClientProcessedQuickBarActions' has a wrong offset!");
 static_assert(offsetof(AFortPlayerController, bShouldForceDeleteDroppedItems) == 0x001948, "Member 'AFortPlayerController::bShouldForceDeleteDroppedItems' has a wrong offset!");
 static_assert(offsetof(AFortPlayerController, QueuedItemsToDrop) == 0x001970, "Member 'AFortPlayerController::QueuedItemsToDrop' has a wrong offset!");
+static_assert(offsetof(AFortPlayerController, InventoryOwnerInterface) == 0x0006D0, "Member 'AFortPlayerController::InventoryOwnerInterface' has a wrong offset!");
 static_assert(offsetof(AFortPlayerController, WorldInventory) == 0x001A20, "Member 'AFortPlayerController::WorldInventory' has a wrong offset!");
 static_assert(offsetof(AFortPlayerController, OutpostInventory) == 0x001A28, "Member 'AFortPlayerController::OutpostInventory' has a wrong offset!");
 static_assert(offsetof(AFortPlayerController, ViewTargetInventory) == 0x001A30, "Member 'AFortPlayerController::ViewTargetInventory' has a wrong offset!");
@@ -29966,22 +29972,41 @@ static_assert(offsetof(ABattleBusCosmeticInstanceBase, ActiveSkin) == 0x000228, 
 class IFortInventoryInterface
 {
 public:
-	virtual ~IFortInventoryInterface() {}
-	virtual class UObject* _getUObject() = 0;
-	virtual TArray<const class UFortWorldItem*> GetItems_Const() const = 0;
-	virtual class UFortWorldItem* GetItem(struct FGuid ItemGuid) = 0;
-	virtual const class UFortWorldItem* GetItem(struct FGuid ItemGuid) const = 0;
-	virtual int32 GetInventoryCapacity() const = 0;
-	virtual int32 GetInventoryUsed() const = 0;
-	virtual int32 GetInventoryOverflow() const = 0;
-	virtual const TArray<TSharedRef<struct FFortGiftGiver, ESPMode::ThreadSafe>>& GetGiftGivers() const = 0;
+	void**                                        VTable;
+
+public:
+	class UObject* _getUObject()
+	{
+		return reinterpret_cast<class UObject* (*)(IFortInventoryInterface*)>(VTable[1])(this);
+	}
+
+	class UFortWorldItem* GetItem(const struct FGuid& ItemGuid)
+	{
+		return reinterpret_cast<class UFortWorldItem* (*)(IFortInventoryInterface*, const struct FGuid*)>(VTable[3])(this, &ItemGuid);
+	}
+
+	int32 GetInventoryCapacity() const
+	{
+		return reinterpret_cast<int32 (*)(const IFortInventoryInterface*)>(VTable[5])(this);
+	}
+
+	int32 GetInventoryUsed() const
+	{
+		return reinterpret_cast<int32 (*)(const IFortInventoryInterface*)>(VTable[6])(this);
+	}
+
+	int32 GetInventoryOverflow() const
+	{
+		return reinterpret_cast<int32 (*)(const IFortInventoryInterface*)>(VTable[7])(this);
+	}
 };
 
 // Class FortniteGame.FortInventory
 // 0x0250 (0x0470 - 0x0220)
-class AFortInventory : public AActor, public IFortInventoryInterface
+class AFortInventory : public AActor
 {
 public:
+	class IFortInventoryInterface                 InventoryInterface;
 	bool                                          bClientDestroyGuard;
 	EFortInventoryType                            InventoryType;                                     // 0x0229(0x0001)(Net, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_22A[0x6];                                      // 0x022A(0x0006)(Fixing Size After Last Property [ Dumper-7 ])
@@ -30016,6 +30041,7 @@ public:
 
 public:
 	class UFortWorldItem* AddItem(const struct FFortItemEntry& ItemEntry);
+	void InitializeExistingItem(class UFortWorldItem* ExistingItem);
 
 	void UpdateItemInstances()
 	{
@@ -30054,6 +30080,8 @@ public:
 };
 static_assert(alignof(AFortInventory) == 0x000008, "Wrong alignment on AFortInventory");
 static_assert(sizeof(AFortInventory) == 0x000470, "Wrong size on AFortInventory");
+static_assert(offsetof(AFortInventory, InventoryInterface) == 0x000220, "Member 'AFortInventory::InventoryInterface' has a wrong offset!");
+static_assert(offsetof(AFortInventory, bClientDestroyGuard) == 0x000228, "Member 'AFortInventory::bClientDestroyGuard' has a wrong offset!");
 static_assert(offsetof(AFortInventory, InventoryType) == 0x000229, "Member 'AFortInventory::InventoryType' has a wrong offset!");
 static_assert(offsetof(AFortInventory, Inventory) == 0x000230, "Member 'AFortInventory::Inventory' has a wrong offset!");
 static_assert(offsetof(AFortInventory, ReplayPawn) == 0x0003F8, "Member 'AFortInventory::ReplayPawn' has a wrong offset!");
@@ -67222,6 +67250,8 @@ public:
 	DECLARE_FUNCTION(execDropInstancedLoot);
 	DECLARE_FUNCTION(execDropInstancedLootAtLocation);
 	DECLARE_FUNCTION(execK2_GiveItemToPlayer);
+	DECLARE_FUNCTION(execGiveItemToInventoryOwner);
+	DECLARE_FUNCTION(execAddRegenItemToInventoryOwner);
 
 	static class AFortPickup* K2_SpawnPickupInWorldWithClassAndItemEntry(class UObject* WorldContextObject, const struct FFortItemEntry& ItemEntry, TSubclassOf<class AFortPickup> PickupClass, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount, bool bToss, bool bRandomRotation, bool bBlockedFromAutoPickup, EFortPickupSourceTypeFlag SourceType, EFortPickupSpawnSource Source, class AFortPlayerController* OptionalOwnerPC, bool bPickupOnlyRelevantToOwner, bool bShouldCombinePickupsWhenTossCompletes = true);
 
@@ -67425,7 +67455,7 @@ public:
 	static class UFortWeaponItemDefinition* GetUpgradedWeaponItemVerticalToRarity(const class UFortWeaponItemDefinition* ItemToUpgrade, EFortRarity NewRarity);
 	static bool GetWeaponDurabilityByRarityStatsRow(const struct FDataTableRowHandle& DataTableRowHandle, struct FFortWeaponDurabilityByRarityStats* OutRow);
 	static bool GetWeaponStatsRow(const struct FDataTableRowHandle& DataTableRowHandle, struct FFortBaseWeaponStats* OutRow);
-	static void GiveItemToInventoryOwner(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const class UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer, int32 ItemLevel, int32 PickupInstigatorHandle, bool bUseItemPickupAnalyticEvent);
+	static class UFortWorldItem* GiveItemToInventoryOwner(TScriptInterface<class IFortInventoryOwnerInterface> InventoryOwner, const class UFortWorldItemDefinition* ItemDefinition, int32 NumberToGive, bool bNotifyPlayer, int32 ItemLevel, int32 PickupInstigatorHandle, bool bUseItemPickupAnalyticEvent);
 	static bool HasMultipleVisibleRewards(const struct FFortRewardInfo& RewardInfo);
 	static bool HasOpenBroadcasterGrantWindow(class UObject* WorldContextObject);
 	static bool HasRewards(const struct FFortRewardInfo& RewardInfo);

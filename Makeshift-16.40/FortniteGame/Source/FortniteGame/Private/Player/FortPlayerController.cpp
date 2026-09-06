@@ -1,6 +1,6 @@
 #include "pch.h"
 
-UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& ItemEntry) {
+UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& ItemEntry, bool bResetRegenCooldown) {
 	const UFortItemDefinition* ItemDefinition = ItemEntry.GetItemDefinition();
 	if (!WorldInventory || !ItemDefinition || ItemEntry.Count <= 0) {
 		return nullptr;
@@ -17,7 +17,8 @@ UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& It
 	int32 ShowItemToast = 0;
 	ItemEntry.GetStateValue(EFortItemEntryState::ShouldShowItemToast, ShowItemToast);
 
-	int32 CountRemaining = ItemEntry.Count;
+	const int32 OverflowCount = FMath::Clamp(InventoryOwner->CountInventoryOverflowFromAddingItem(ItemEntry, false, false), 0, ItemEntry.Count);
+	int32 CountRemaining = ItemEntry.Count - OverflowCount;
 	UFortWorldItem* LastItem = nullptr;
 
 	TArray<UFortWorldItem*> ExistingItems;
@@ -28,7 +29,7 @@ UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& It
 		UFortWorldItem* ExistingItem = ExistingItems[Index];
 		const int32 CurrentCount = ExistingItem->ItemEntry.Count;
 		const int32 CountToAdd = FMath::Min(StackSize - CurrentCount, CountRemaining);
-		if (CountToAdd > 0 && ExistingItem->SetNumInStack(CurrentCount + CountToAdd, false)) {
+		if (CountToAdd > 0 && ExistingItem->SetNumInStack(CurrentCount + CountToAdd, bResetRegenCooldown)) {
 			if (ShowItemToast) {
 				ExistingItem->ItemEntry.SetStateValue(EFortItemEntryState::ShouldShowItemToast, ShowItemToast);
 			}
@@ -56,6 +57,15 @@ UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& It
 		++NumStacks;
 		bFirstNewStack = false;
 		LastItem = NewItem;
+	}
+
+	const int32 CountToDrop = OverflowCount + CountRemaining;
+	if (CountToDrop > 0 && FortPawn) {
+		FFortItemEntry PickupEntry(ItemEntry);
+		PickupEntry.SetParentInventory(nullptr, false);
+		PickupEntry.SetItemGuid(FGuid());
+		PickupEntry.SetCount(CountToDrop);
+		UFortKismetLibrary::K2_SpawnPickupInWorldWithClassAndItemEntry(this, PickupEntry, nullptr, FortPawn->K2_GetActorLocation(), FVector(), 0, true, true, false, EFortPickupSourceTypeFlag::Other, EFortPickupSpawnSource::Unset, this, false, true);
 	}
 
 	if (LastItem) {

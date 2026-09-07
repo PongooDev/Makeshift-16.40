@@ -6765,6 +6765,9 @@ public:
 	void ServerExecuteInventoryItem_Implementation(const struct FGuid& ItemGuid);
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* This, const struct FGuid& ItemGuid);
 
+	void ServerAttemptInventoryDrop_Implementation(const struct FGuid& ItemGuid, int32 Count, bool bTrash);
+	static void ServerAttemptInventoryDropHook(AFortPlayerController* This, const struct FGuid& ItemGuid, int32 Count, bool bTrash);
+
 	static void Init();
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");
@@ -59735,6 +59738,13 @@ public:
 	static class AFortPlayerPawn* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AFortPlayerPawn>();
+	}
+
+public:
+	void UnequipCurrentWeaponById(const struct FGuid& WeaponItemGuid, bool bSetWeaponAttachment)
+	{
+		void (*Fn)(AFortPlayerPawn*, const struct FGuid*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4C6CF24);
+		Fn(this, &WeaponItemGuid, bSetWeaponAttachment);
 	}
 };
 static_assert(alignof(AFortPlayerPawn) == 0x000010, "Wrong alignment on AFortPlayerPawn");

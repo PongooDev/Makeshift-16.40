@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
 
 UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& ItemEntry, bool bResetRegenCooldown) {
 	const UFortItemDefinition* ItemDefinition = ItemEntry.GetItemDefinition();
@@ -102,6 +103,7 @@ int32 AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Co
 			ItemDefinition->OnItemInstanceRemoved(&InventoryOwnerInterface, Item);
 		}
 		WorldInventory->OnRemoveItemStack(Item, ItemGuid);
+		WorldInventory->SetRequiresUpdate();
 	}
 
 	WorldInventory->HandleInventoryLocalUpdate();
@@ -121,6 +123,57 @@ void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController
 	This->ServerExecuteInventoryItem_Implementation(ItemGuid);
 }
 
+void AFortPlayerController::ServerAttemptInventoryDrop_Implementation(const FGuid& ItemGuid, int32 Count, bool bTrash) {
+	if (!WorldInventory) {
+		return;
+	}
+
+	UFortWorldItem* Item = WorldInventory->InventoryInterface.GetItem(ItemGuid);
+	if (!Item || !Item->CanBeDropped()) {
+		return;
+	}
+
+	const UFortItemDefinition* ItemDefinition = Item->GetItemDefinition();
+	if (!ItemDefinition || !ItemDefinition->IsA(UFortWorldItemDefinition::StaticClass())) {
+		return;
+	}
+
+	const UFortWorldItemDefinition* WorldItemDefinition = static_cast<const UFortWorldItemDefinition*>(ItemDefinition);
+	const int32 NumInStack = Item->ItemEntry.Count;
+	if (Count <= 0 || Count > NumInStack) {
+		return;
+	}
+
+	AFortPickup* Pickup = nullptr;
+	if (!bTrash && MyFortPawn && WorldItemDefinition->DropBehavior != EWorldItemDropBehavior::DestroyOnDrop) {
+		FFortItemEntry PickupEntry(Item->ItemEntry);
+		PickupEntry.SetCount(Count);
+		if (Count < NumInStack) {
+			PickupEntry.SetItemGuid(FGuid::NewGuid());
+		}
+
+		FFortPickupCreationData CreationData(GetWorld(), PickupEntry, MyFortPawn->GetActorLocation(), FRotator::ZeroRotator, nullptr, nullptr, nullptr);
+		Pickup = AFortPickup::CreateFromData(CreationData);
+	}
+
+	if (MyFortPawn && Count >= NumInStack) {
+		MyFortPawn->UnequipCurrentWeaponById(ItemGuid, true);
+	}
+
+	const bool bForceRemoval = bTrash || WorldItemDefinition->DropBehavior == EWorldItemDropBehavior::DropAsPickupDestroyOnEmpty;
+	RemoveInventoryItem(ItemGuid, Count, bForceRemoval);
+
+	if (Pickup) {
+		const FVector FinalLocation = MyFortPawn->GetActorLocation() + MyFortPawn->GetActorForwardVector() * 512.f;
+		Pickup->TossPickup(FinalLocation, MyFortPawn, 0, true, true, EFortPickupSourceTypeFlag::Tossed, EFortPickupSpawnSource::Unset);
+	}
+}
+
+void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController* This, const FGuid& ItemGuid, int32 Count, bool bTrash) {
+	This->ServerAttemptInventoryDrop_Implementation(ItemGuid, Count, bTrash);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(548, ServerAttemptInventoryDropHook);
 }

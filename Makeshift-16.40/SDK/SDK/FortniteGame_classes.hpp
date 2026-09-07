@@ -6768,6 +6768,9 @@ public:
 	void ServerAttemptInventoryDrop_Implementation(const struct FGuid& ItemGuid, int32 Count, bool bTrash);
 	static void ServerAttemptInventoryDropHook(AFortPlayerController* This, const struct FGuid& ItemGuid, int32 Count, bool bTrash);
 
+	void ServerCombineInventoryItems_Implementation(const struct FGuid& TargetItemGuid, const struct FGuid& SourceItemGuid);
+	static void ServerCombineInventoryItemsHook(AFortPlayerController* This, const struct FGuid& TargetItemGuid, const struct FGuid& SourceItemGuid);
+
 	static void Init();
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");

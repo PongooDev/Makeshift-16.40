@@ -173,7 +173,44 @@ void AFortPlayerController::ServerAttemptInventoryDropHook(AFortPlayerController
 	This->ServerAttemptInventoryDrop_Implementation(ItemGuid, Count, bTrash);
 }
 
+void AFortPlayerController::ServerCombineInventoryItems_Implementation(const FGuid& TargetItemGuid, const FGuid& SourceItemGuid) {
+	if (!WorldInventory || TargetItemGuid == SourceItemGuid) {
+		return;
+	}
+
+	UFortWorldItem* TargetItem = WorldInventory->InventoryInterface.GetItem(TargetItemGuid);
+	UFortWorldItem* SourceItem = WorldInventory->InventoryInterface.GetItem(SourceItemGuid);
+	if (!TargetItem || !SourceItem) {
+		return;
+	}
+
+	const UFortItemDefinition* ItemDefinition = TargetItem->GetItemDefinition();
+	if (!ItemDefinition || ItemDefinition != SourceItem->GetItemDefinition()) {
+		return;
+	}
+
+	AFortPawn* FortPawn = InventoryOwnerInterface.GetFortPawn();
+	UAbilitySystemComponent* AbilitySystemComponent = FortPawn ? FortPawn->AbilitySystemComponent : nullptr;
+	const int32 MaxStackSize = ItemDefinition->GetMaxStackSize(AbilitySystemComponent);
+	const int32 TargetCount = TargetItem->ItemEntry.Count;
+	const int32 CountToMove = FMath::Min(MaxStackSize - TargetCount, SourceItem->ItemEntry.Count);
+	if (CountToMove <= 0) {
+		return;
+	}
+
+	if (!TargetItem->SetNumInStack(TargetCount + CountToMove, false)) {
+		return;
+	}
+
+	RemoveInventoryItem(SourceItemGuid, CountToMove, true);
+}
+
+void AFortPlayerController::ServerCombineInventoryItemsHook(AFortPlayerController* This, const FGuid& TargetItemGuid, const FGuid& SourceItemGuid) {
+	This->ServerCombineInventoryItems_Implementation(TargetItemGuid, SourceItemGuid);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(548, ServerAttemptInventoryDropHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(550, ServerCombineInventoryItemsHook);
 }

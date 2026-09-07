@@ -6771,6 +6771,12 @@ public:
 	void ServerCombineInventoryItems_Implementation(const struct FGuid& TargetItemGuid, const struct FGuid& SourceItemGuid);
 	static void ServerCombineInventoryItemsHook(AFortPlayerController* This, const struct FGuid& TargetItemGuid, const struct FGuid& SourceItemGuid);
 
+	void ServerAcknowledgeDelayedQuickBarAction_Implementation(const TArray<uint32>& ProcessedActionIds);
+	static void ServerAcknowledgeDelayedQuickBarActionHook(AFortPlayerController* This, const TArray<uint32>& ProcessedActionIds);
+
+	void AddDelayedQuickBarAction(EFortDelayedQuickBarAction Action, const class UFortItem* Item, EFortQuickBars QuickBarType, int32 QuickBarSlot, bool bForceExecution);
+	void AddDelayedQuickBarAction(struct FDelayedQuickBarAction DelayedAction);
+
 	static void Init();
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");

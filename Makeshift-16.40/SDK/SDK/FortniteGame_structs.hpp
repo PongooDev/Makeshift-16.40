@@ -22615,11 +22615,13 @@ struct FDelayedQuickBarActionContainer final : public FFastArraySerializer
 {
 public:
 	TArray<struct FDelayedQuickBarAction>         Items;                                             // 0x0108(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_118[0x8];                                      // 0x0118(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint32                                        CurrentItemId;
+	uint8                                         Pad_11C[0x4];
 };
 static_assert(alignof(FDelayedQuickBarActionContainer) == 0x000008, "Wrong alignment on FDelayedQuickBarActionContainer");
 static_assert(sizeof(FDelayedQuickBarActionContainer) == 0x000120, "Wrong size on FDelayedQuickBarActionContainer");
 static_assert(offsetof(FDelayedQuickBarActionContainer, Items) == 0x000108, "Member 'FDelayedQuickBarActionContainer::Items' has a wrong offset!");
+static_assert(offsetof(FDelayedQuickBarActionContainer, CurrentItemId) == 0x000118, "Member 'FDelayedQuickBarActionContainer::CurrentItemId' has a wrong offset!");
 
 // ScriptStruct FortniteGame.ScreenLabelText
 // 0x0030 (0x0030 - 0x0000)

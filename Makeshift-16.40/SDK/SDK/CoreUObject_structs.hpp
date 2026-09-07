@@ -1640,6 +1640,13 @@ struct FPrimaryAssetType final
 {
 public:
 	class FName                                   Name;                                              // 0x0000(0x0008)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	/** Returns true if this is a valid Type */
+	bool IsValid() const
+	{
+		return Name != FName();
+	}
 };
 static_assert(alignof(FPrimaryAssetType) == 0x000004, "Wrong alignment on FPrimaryAssetType");
 static_assert(sizeof(FPrimaryAssetType) == 0x000008, "Wrong size on FPrimaryAssetType");
@@ -1652,6 +1659,13 @@ struct FPrimaryAssetId final
 public:
 	struct FPrimaryAssetType                      PrimaryAssetType;                                  // 0x0000(0x0008)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class FName                                   PrimaryAssetName;                                  // 0x0008(0x0008)(Edit, BlueprintVisible, ZeroConstructor, SaveGame, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	/** Returns true if this is a valid identifier */
+	bool IsValid() const
+	{
+		return PrimaryAssetType.IsValid() && PrimaryAssetName != FName();
+	}
 };
 static_assert(alignof(FPrimaryAssetId) == 0x000004, "Wrong alignment on FPrimaryAssetId");
 static_assert(sizeof(FPrimaryAssetId) == 0x000010, "Wrong size on FPrimaryAssetId");

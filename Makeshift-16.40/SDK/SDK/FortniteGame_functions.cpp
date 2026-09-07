@@ -238407,77 +238407,6 @@ void UFortMissionLibrary::GiveMissionRewardsToPlayer(class UObject* WorldContext
 }
 
 
-// Function FortniteGame.FortMissionLibrary.GiveMissionRewardsToPlayerAsPickups
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FGuid                            MissionGuid                                            (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AFortPlayerController*            PlayerController                                       (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          StartPosition                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// float                                   Radius                                                 (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class FName                             LootTierGroup                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   LootTier                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortMissionLibrary::GiveMissionRewardsToPlayerAsPickups(class UObject* WorldContextObject, const struct FGuid& MissionGuid, class AFortPlayerController* PlayerController, const struct FVector& StartPosition, float Radius, class FName LootTierGroup, int32 LootTier)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortMissionLibrary", "GiveMissionRewardsToPlayerAsPickups");
-
-	Params::FortMissionLibrary_GiveMissionRewardsToPlayerAsPickups Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.MissionGuid = std::move(MissionGuid);
-	Parms.PlayerController = PlayerController;
-	Parms.StartPosition = std::move(StartPosition);
-	Parms.Radius = Radius;
-	Parms.LootTierGroup = LootTierGroup;
-	Parms.LootTier = LootTier;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
-// Function FortniteGame.FortMissionLibrary.GiveMissionSchematicItemDirectlyToPlayer
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AFortPlayerController*            TargetPlayer                                           (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FGuid                            MissionGuid                                            (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class UFortSchematicItemDefinition*     SchematicDefinition                                    (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-bool UFortMissionLibrary::GiveMissionSchematicItemDirectlyToPlayer(class UObject* WorldContextObject, class AFortPlayerController* TargetPlayer, const struct FGuid& MissionGuid, class UFortSchematicItemDefinition* SchematicDefinition)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortMissionLibrary", "GiveMissionSchematicItemDirectlyToPlayer");
-
-	Params::FortMissionLibrary_GiveMissionSchematicItemDirectlyToPlayer Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.TargetPlayer = TargetPlayer;
-	Parms.MissionGuid = std::move(MissionGuid);
-	Parms.SchematicDefinition = SchematicDefinition;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortMissionLibrary.HasTags
 // (Final, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, BlueprintCallable)
 // Parameters:
@@ -238833,39 +238762,6 @@ bool UFortMissionLibrary::ShouldUseAlternateAIDirectorBalance()
 }
 
 
-// Function FortniteGame.FortMissionLibrary.SpawnAndCollectPlayerPickups
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AFortPlayerController*            PlayerController                                       (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          StartPosition                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class FName                             LootTierGroup                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   LootTier                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortMissionLibrary::SpawnAndCollectPlayerPickups(class UObject* WorldContextObject, class AFortPlayerController* PlayerController, const struct FVector& StartPosition, class FName LootTierGroup, int32 LootTier)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortMissionLibrary", "SpawnAndCollectPlayerPickups");
-
-	Params::FortMissionLibrary_SpawnAndCollectPlayerPickups Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.PlayerController = PlayerController;
-	Parms.StartPosition = std::move(StartPosition);
-	Parms.LootTierGroup = LootTierGroup;
-	Parms.LootTier = LootTier;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
 // Function FortniteGame.FortMissionLibrary.SpawnAtPlacementActorsHelper
 // (Final, BlueprintAuthorityOnly, Native, Static, Public, HasOutParams, BlueprintCallable)
 // Parameters:
@@ -238958,46 +238854,6 @@ class AFortPickup* UFortMissionLibrary::SpawnMissionItemPickup(class UObject* Wo
 	Parms.MissionItemDefinition = MissionItemDefinition;
 	Parms.StartPosition = std::move(StartPosition);
 	Parms.TargetPawn = TargetPawn;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	GetDefaultObj()->ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
-// Function FortniteGame.FortMissionLibrary.SpawnMissionItemPickupInWorld
-// (Final, BlueprintAuthorityOnly, Native, Static, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// class UObject*                          WorldContextObject                                     (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FGuid                            MissionGuid                                            (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class UFortWorldItemDefinition*         ItemDefinition                                         (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   NumberToSpawn                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          Position                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FVector                          Direction                                              (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// int32                                   OverrideMaxStackCount                                  (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class AFortPickup*                      ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class AFortPickup* UFortMissionLibrary::SpawnMissionItemPickupInWorld(class UObject* WorldContextObject, const struct FGuid& MissionGuid, class UFortWorldItemDefinition* ItemDefinition, int32 NumberToSpawn, const struct FVector& Position, const struct FVector& Direction, int32 OverrideMaxStackCount)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = StaticClass()->GetFunction("FortMissionLibrary", "SpawnMissionItemPickupInWorld");
-
-	Params::FortMissionLibrary_SpawnMissionItemPickupInWorld Parms{};
-
-	Parms.WorldContextObject = WorldContextObject;
-	Parms.MissionGuid = std::move(MissionGuid);
-	Parms.ItemDefinition = ItemDefinition;
-	Parms.NumberToSpawn = NumberToSpawn;
-	Parms.Position = std::move(Position);
-	Parms.Direction = std::move(Direction);
-	Parms.OverrideMaxStackCount = OverrideMaxStackCount;
 
 	auto Flgs = Func->FunctionFlags;
 	Func->FunctionFlags |= 0x400;

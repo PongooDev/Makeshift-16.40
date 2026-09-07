@@ -57271,6 +57271,10 @@ public:
 		void (*Fn)(AFortPickup*, const struct FVector*, class AFortPawn*, int32, bool, bool, EFortPickupSourceTypeFlag, EFortPickupSpawnSource) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A5C800);
 		Fn(this, &FinalLocation, ItemOwner, OverrideMaxStackCount, bToss, bShouldCombinePickupsWhenTossCompletes, InPickupSourceTypeFlags, InPickupSpawnSource);
 	}
+	void SetPickupTarget(class AFortPawn* PickupTarget, float InFlyTime, struct FVector InStartDirection, bool bPlayPickupSound)
+	{
+		reinterpret_cast<void (*)(AFortPickup*, class AFortPawn*, float, const struct FVector*, bool)>(VTable[202])(this, PickupTarget, InFlyTime, &InStartDirection, bPlayPickupSound);
+	}
 	static class AFortPickup* CreateFromData(const FFortPickupCreationData& CreationData);
 
 	const struct FFortItemEntry GetItemEntry(int32 ItemIndex) const;
@@ -100789,6 +100793,10 @@ public:
 	}
 
 	DECLARE_FUNCTION(execFindActorsWithTags);
+	DECLARE_FUNCTION(execGiveMissionRewardsToPlayerAsPickups);
+	DECLARE_FUNCTION(execGiveMissionSchematicItemDirectlyToPlayer);
+	DECLARE_FUNCTION(execSpawnAndCollectPlayerPickups);
+	DECLARE_FUNCTION(execSpawnMissionItemPickupInWorld);
 
 	static void Init();
 };

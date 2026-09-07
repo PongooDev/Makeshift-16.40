@@ -44,6 +44,9 @@
 
 inline uint64_t ImageBase = reinterpret_cast<uint64_t>(GetModuleHandleW(nullptr));
 
+namespace SDK { struct FVector; }
+using SDK::FVector;
+
 #include "SDK/PropertyFixup.hpp"
 #include "SDK/UnrealContainers.hpp"
 

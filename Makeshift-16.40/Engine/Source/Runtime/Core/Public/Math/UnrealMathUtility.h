@@ -132,6 +132,9 @@ struct FMath : public FPlatformMath
 		return (RandRange(0,1) == 1) ? true : false;
 	}
 
+	/** Return a uniformly distributed random unit length vector = point on the unit sphere surface. */
+	static FVector VRand();
+
 	// Predicates
 
 	/** Checks if value is within a range, exclusive on MaxValue) */

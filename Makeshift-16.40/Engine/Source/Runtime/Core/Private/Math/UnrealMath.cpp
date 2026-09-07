@@ -75,3 +75,11 @@ FQuat FRotator::Quaternion() const
 
 CORE_API const FRotator FRotator::ZeroRotator(0.f,0.f,0.f);
 CORE_API const FQuat FQuat::Identity(0,0,0,1);
+
+FVector FMath::VRand()
+{
+	FVector Result;
+	void (*Fn)(FVector*) = decltype(Fn)(ImageBase + 0x1F6A018);
+	Fn(&Result);
+	return Result;
+}

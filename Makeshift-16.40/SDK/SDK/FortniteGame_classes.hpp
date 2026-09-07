@@ -6774,6 +6774,9 @@ public:
 	void ServerAcknowledgeDelayedQuickBarAction_Implementation(const TArray<uint32>& ProcessedActionIds);
 	static void ServerAcknowledgeDelayedQuickBarActionHook(AFortPlayerController* This, const TArray<uint32>& ProcessedActionIds);
 
+	void ServerOnMaterialSelection_Implementation(EFortResourceType NewResourceType, EFortResourceLevel NewResourceLevel);
+	static void ServerOnMaterialSelectionHook(AFortPlayerController* This, EFortResourceType NewResourceType, EFortResourceLevel NewResourceLevel);
+
 	void AddDelayedQuickBarAction(EFortDelayedQuickBarAction Action, const class UFortItem* Item, EFortQuickBars QuickBarType, int32 QuickBarSlot, bool bForceExecution);
 	void AddDelayedQuickBarAction(struct FDelayedQuickBarAction DelayedAction);
 

@@ -253,9 +253,19 @@ void AFortPlayerController::ServerAcknowledgeDelayedQuickBarActionHook(AFortPlay
 	This->ServerAcknowledgeDelayedQuickBarAction_Implementation(ProcessedActionIds);
 }
 
+void AFortPlayerController::ServerOnMaterialSelection_Implementation(EFortResourceType NewResourceType, EFortResourceLevel NewResourceLevel) {
+	CurrentResourceType = NewResourceType;
+	CurrentResourceLevel = NewResourceLevel;
+}
+
+void AFortPlayerController::ServerOnMaterialSelectionHook(AFortPlayerController* This, EFortResourceType NewResourceType, EFortResourceLevel NewResourceLevel) {
+	This->ServerOnMaterialSelection_Implementation(NewResourceType, NewResourceLevel);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(548, ServerAttemptInventoryDropHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(550, ServerCombineInventoryItemsHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(552, ServerAcknowledgeDelayedQuickBarActionHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(557, ServerOnMaterialSelectionHook);
 }

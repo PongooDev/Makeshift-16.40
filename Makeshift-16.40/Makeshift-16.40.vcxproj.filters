@@ -752,6 +752,9 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
+    </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>

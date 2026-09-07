@@ -6761,6 +6761,11 @@ public:
 public:
 	class UFortWorldItem* AddInventoryItem(const struct FFortItemEntry& ItemEntry, bool bResetRegenCooldown);
 	int32 RemoveInventoryItem(const struct FGuid& ItemGuid, int32 Count, bool bForceRemoval);
+
+	void ServerExecuteInventoryItem_Implementation(const struct FGuid& ItemGuid);
+	static void ServerExecuteInventoryItemHook(AFortPlayerController* This, const struct FGuid& ItemGuid);
+
+	static void Init();
 };
 static_assert(alignof(AFortPlayerController) == 0x000010, "Wrong alignment on AFortPlayerController");
 static_assert(sizeof(AFortPlayerController) == 0x002560, "Wrong size on AFortPlayerController");
@@ -12952,6 +12957,12 @@ public:
 	static class UFortWorldItemDefinition* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortWorldItemDefinition>();
+	}
+
+public:
+	bool ServerExecute(const class UFortItem* Item, class AFortPlayerController* Instigator) const
+	{
+		return reinterpret_cast<bool (*)(const UFortWorldItemDefinition*, const class UFortItem*, class AFortPlayerController*)>(VTable[158])(this, Item, Instigator);
 	}
 };
 #pragma pack(pop)
@@ -20108,6 +20119,14 @@ public:
 	{
 		return GetDefaultObjImpl<AFortPlayerControllerAthena>();
 	}
+
+public:
+	typedef AFortPlayerControllerZone Super;
+
+	void ServerAcknowledgePossession_Implementation(class APawn* P);
+	static void ServerAcknowledgePossessionHook(AFortPlayerControllerAthena* This, class APawn* P);
+
+	static void Init();
 };
 static_assert(alignof(AFortPlayerControllerAthena) == 0x000010, "Wrong alignment on AFortPlayerControllerAthena");
 static_assert(sizeof(AFortPlayerControllerAthena) == 0x003EB0, "Wrong size on AFortPlayerControllerAthena");
@@ -56671,6 +56690,14 @@ public:
 	static class AFortGameModeAthena* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AFortGameModeAthena>();
+	}
+
+public:
+	TArray<struct FItemAndCount> GetStartingItems(bool bInitialSpawn, class AController* Controller) const
+	{
+		TArray<struct FItemAndCount> Result;
+		reinterpret_cast<TArray<struct FItemAndCount>* (*)(const AFortGameModeAthena*, TArray<struct FItemAndCount>*, bool, class AController*)>(VTable[420])(this, &Result, bInitialSpawn, Controller);
+		return Result;
 	}
 };
 static_assert(alignof(AFortGameModeAthena) == 0x000008, "Wrong alignment on AFortGameModeAthena");

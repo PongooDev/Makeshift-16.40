@@ -348,6 +348,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameMode.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\ScriptCore.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp" />

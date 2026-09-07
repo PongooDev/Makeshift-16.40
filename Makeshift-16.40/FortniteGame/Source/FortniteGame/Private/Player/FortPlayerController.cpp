@@ -108,3 +108,19 @@ int32 AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Co
 
 	return CountToRemove;
 }
+
+void AFortPlayerController::ServerExecuteInventoryItem_Implementation(const FGuid& ItemGuid) {
+	UFortItem* Item = BP_GetInventoryItemWithGuid(ItemGuid);
+	const UFortItemDefinition* ItemDefinition = Item ? Item->GetItemDefinition() : nullptr;
+	if (ItemDefinition && ItemDefinition->IsA(UFortWorldItemDefinition::StaticClass())) {
+		static_cast<const UFortWorldItemDefinition*>(ItemDefinition)->ServerExecute(Item, this);
+	}
+}
+
+void AFortPlayerController::ServerExecuteInventoryItemHook(AFortPlayerController* This, const FGuid& ItemGuid) {
+	This->ServerExecuteInventoryItem_Implementation(ItemGuid);
+}
+
+void AFortPlayerController::Init() {
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
+}

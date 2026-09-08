@@ -6848,6 +6848,9 @@ public:
 	void ServerEditBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToEdit, TSubclassOf<class ABuildingSMActor> NewBuildingClass, uint8 RotationIterations, bool bMirrored);
 	static void ServerEditBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToEdit, TSubclassOf<class ABuildingSMActor> NewBuildingClass, uint8 RotationIterations, bool bMirrored);
 
+	void ServerEndEditingBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToStopEditing);
+	static void ServerEndEditingBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToStopEditing);
+
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{
 		reinterpret_cast<void (*)(AFortPlayerController*, class ABuildingSMActor*)>(VTable[939])(this, BuildingActorToEdit);

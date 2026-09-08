@@ -426,6 +426,19 @@ void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* T
 	This->ServerEditBuildingActor_Implementation(BuildingActorToEdit, NewBuildingClass, RotationIterations, bMirrored);
 }
 
+void AFortPlayerController::ServerEndEditingBuildingActor_Implementation(ABuildingSMActor* BuildingActorToStopEditing) {
+	AFortPlayerStateZone* PlayerStateZone = PlayerState ? PlayerState->Cast<AFortPlayerStateZone>() : nullptr;
+	if (!BuildingActorToStopEditing || !PlayerStateZone || BuildingActorToStopEditing->GetEditingPlayer() != PlayerStateZone) {
+		return;
+	}
+
+	BuildingActorToStopEditing->SetEditingPlayer(nullptr);
+}
+
+void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerController* This, ABuildingSMActor* BuildingActorToStopEditing) {
+	This->ServerEndEditingBuildingActor_Implementation(BuildingActorToStopEditing);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -436,4 +449,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(567, ServerCreateBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(574, ServerBeginEditingBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(569, ServerEditBuildingActorHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(572, ServerEndEditingBuildingActorHook);
 }

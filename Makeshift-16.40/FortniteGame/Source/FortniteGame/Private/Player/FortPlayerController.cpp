@@ -745,6 +745,33 @@ bool AFortPlayerController::ModDurabilityHook(IFortInventoryOwnerInterface* This
 	return PlayerController->ModDurability(ItemGuid, Durability, bForceSet);
 }
 
+bool AFortPlayerController::ForceEquipValidWeapon() {
+	if (Role != ENetRole::ROLE_Authority || !MyFortPawn || !WorldInventory) {
+		return false;
+	}
+
+	const TArray<UFortWorldItem*>& ItemInstances = WorldInventory->Inventory.ItemInstances;
+	for (int32 Index = 0; Index < ItemInstances.Num(); ++Index) {
+		UFortWorldItem* Item = ItemInstances[Index];
+		const UFortItemDefinition* ItemDefinition = Item ? Item->GetItemDefinition() : nullptr;
+		if (!ItemDefinition || !ItemDefinition->IsA(UFortWeaponItemDefinition::StaticClass()) || ItemDefinition->GetItemType() != EFortItemType::WeaponHarvest) {
+			continue;
+		}
+
+		if (MyFortPawn->CurrentWeapon && MyFortPawn->CurrentWeapon->WeaponData == ItemDefinition) {
+			return true;
+		}
+
+		return static_cast<const UFortWorldItemDefinition*>(ItemDefinition)->ServerExecute(Item, this);
+	}
+
+	return false;
+}
+
+bool AFortPlayerController::ForceEquipValidWeaponHook(AFortPlayerController* This) {
+	return This->ForceEquipValidWeapon();
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -768,4 +795,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(524, ServerSetInventoryStateValueHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(522, ServerRemoveInventoryStateValueHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(18, ModDurabilityHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(738, ForceEquipValidWeaponHook);
 }

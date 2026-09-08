@@ -6944,6 +6944,9 @@ public:
 	bool ModDurability(struct FGuid ItemGuid, float Durability, bool bForceSet);
 	static bool ModDurabilityHook(class IFortInventoryOwnerInterface* This, const struct FGuid& ItemGuid, float Durability, bool bForceSet);
 
+	bool ForceEquipValidWeapon();
+	static bool ForceEquipValidWeaponHook(AFortPlayerController* This);
+
 	bool HandleItemZeroDurability(struct FGuid ItemGuid)
 	{
 		return reinterpret_cast<bool (*)(AFortPlayerController*, const struct FGuid*)>(VTable[876])(this, &ItemGuid);

@@ -20745,10 +20745,11 @@ public:
 		return Result;
 	}
 
-	void SetItemGuid(const struct FGuid& InItemGuid)
+	void SetItemGuid(struct FGuid InItemGuid)
 	{
+		alignas(16) const FGuid ItemGuidArg = InItemGuid;
 		void (*Fn)(FFortItemEntry*, const FGuid*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A4A540);
-		Fn(this, &InItemGuid);
+		Fn(this, &ItemGuidArg);
 	}
 
 	void SetCount(int32 InCount)

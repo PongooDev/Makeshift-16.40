@@ -30795,36 +30795,6 @@ class ABattleMapPawnLive* AFortPlayerController::SpawnBattleMapSpectator()
 }
 
 
-// Function FortniteGame.FortPlayerController.SpawnToyInstance
-// (Final, BlueprintAuthorityOnly, Native, Public, HasDefaults, BlueprintCallable)
-// Parameters:
-// TSubclassOf<class AActor>               ToyClass                                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FTransform                       SpawnPosition                                          (Parm, IsPlainOldData, NoDestructor, NativeAccessSpecifierPublic)
-// class AActor*                           ReturnValue                                            (Parm, OutParm, ZeroConstructor, ReturnParm, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-class AActor* AFortPlayerController::SpawnToyInstance(TSubclassOf<class AActor> ToyClass, const struct FTransform& SpawnPosition)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortPlayerController", "SpawnToyInstance");
-
-	Params::FortPlayerController_SpawnToyInstance Parms{};
-
-	Parms.ToyClass = ToyClass;
-	Parms.SpawnPosition = std::move(SpawnPosition);
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-
-	return Parms.ReturnValue;
-}
-
-
 // Function FortniteGame.FortPlayerController.StartReadyCheck
 // (Final, BlueprintAuthorityOnly, Exec, Native, Public, BlueprintCallable)
 // Parameters:

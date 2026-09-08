@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
+#include "Engine/Source/Runtime/Core/Public/HAL/IConsoleManager.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortGlobals.h"
 #include "FortniteGame/Source/FortniteGame/Public/Items/FortPickup.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortAssets.h"
@@ -841,6 +842,73 @@ void AFortPlayerController::ServerSpotActorHook(AFortPlayerController* This, AAc
 	This->ServerSpotActor_Implementation(NewlySpottedActor);
 }
 
+static TAutoConsoleVariable<int32>& CVarNumToysAlivePerPlayer = *reinterpret_cast<TAutoConsoleVariable<int32>*>(ImageBase + 0x93CCFE8);
+
+AActor* AFortPlayerController::SpawnToyInstance(TSubclassOf<AActor> ToyClass, const FTransform& SpawnPosition) {
+	UWorld* World = GetWorld();
+	if (Role != ENetRole::ROLE_Authority || !World || !ToyClass) {
+		return nullptr;
+	}
+
+	for (int32 Index = ActiveToyInstances.Num() - 1; Index >= 0; --Index) {
+		AActor* ActiveToyInstance = ActiveToyInstances[Index];
+		if (!ActiveToyInstance || ActiveToyInstance->IsPendingKillPending()) {
+			ActiveToyInstances.RemoveAt(Index);
+		}
+	}
+
+	const int32 NumToysAlivePerPlayer = CVarNumToysAlivePerPlayer.GetValueOnGameThread();
+	AActor* ToyInstanceToReuse = nullptr;
+	if (ActiveToyInstances.Num() >= NumToysAlivePerPlayer) {
+		for (int32 Index = 0; Index < ActiveToyInstances.Num(); ++Index) {
+			if (ActiveToyInstances[Index]->Class == ToyClass.Get()) {
+				ToyInstanceToReuse = ActiveToyInstances[Index];
+				ActiveToyInstances.RemoveAt(Index);
+				break;
+			}
+		}
+
+		while (!ToyInstanceToReuse && ActiveToyInstances.Num() > 0 && ActiveToyInstances.Num() >= NumToysAlivePerPlayer) {
+			IFortToyInterface::Execute_StartToyFadeOutDueToNewPlacement(ActiveToyInstances[0]);
+			ActiveToyInstances.RemoveAt(0);
+		}
+	}
+
+	int32& NumTimesSummoned = ToySummonCounts.FindOrAdd(ToyClass.Get());
+	++NumTimesSummoned;
+
+	AActor* ToyInstance = ToyInstanceToReuse;
+	if (ToyInstance) {
+		IFortToyInterface::Execute_NotifyToyInstanceOfReuse(ToyInstance);
+		FHitResult SweepHitResult;
+		ToyInstance->K2_SetActorTransform(SpawnPosition, false, &SweepHitResult, true);
+	} else {
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.Owner = this;
+		SpawnInfo.Instigator = MyFortPawn;
+		SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ToyInstance = World->SpawnActor<AActor>(ToyClass, SpawnPosition, SpawnInfo);
+	}
+
+	if (!ToyInstance) {
+		return nullptr;
+	}
+
+	ActiveToyInstances.Add(ToyInstance);
+	IFortToyInterface::Execute_InitializeToyInstance(ToyInstance, this, NumTimesSummoned);
+	return ToyInstance;
+}
+
+DEFINE_FUNCTION(AFortPlayerController::execSpawnToyInstance)
+{
+	P_GET_OBJECT(UClass,Z_Param_ToyClass);
+	P_GET_STRUCT_REF(FTransform,Z_Param_Out_SpawnPosition);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	*(AActor**)Z_Param__Result=P_THIS_CAST(AFortPlayerController)->SpawnToyInstance(Z_Param_ToyClass,Z_Param_Out_SpawnPosition);
+	P_NATIVE_END;
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -867,4 +935,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(738, ForceEquipValidWeaponHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(464, ServerPlayEmoteItemHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(595, ServerSpotActorHook);
+	Memory::HookDetour(ImageBase + 0x513CCDC, execSpawnToyInstance, nullptr);
 }

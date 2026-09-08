@@ -122,6 +122,11 @@ public:
 		InSDKUtils::CallGameFunction(InSDKUtils::GetVirtualFunction<void(*)(const UObject*, class UFunction*, void*)>(this, Offsets::ProcessEventIdx), this, Function, Parms);
 	}
 
+	class UFunction* FindFunction(FName InName) const
+	{
+		return reinterpret_cast<class UFunction* (*)(const class UClass*, FName, int32)>(InSDKUtils::GetImageBase() + 0xBDE060)(Class, InName, 1);
+	}
+
 public:
 	FString GetPathName() const
 	{

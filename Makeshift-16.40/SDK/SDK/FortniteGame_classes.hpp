@@ -6133,9 +6133,10 @@ public:
 		reinterpret_cast<void (*)(IFortInventoryOwnerInterface*, TArray<class UFortWorldItem*>*, class AFortPawn*, class AFortPlayerController*, int32, int32)>(VTable[17])(this, &ItemsToDropViaPickup, DestructionPawn, InFortPlayerController, NumToDrop, OriginalTotalNumItems);
 	}
 
-	bool ModDurability(const struct FGuid& ItemGuid, float Durability, bool bForceSet)
+	bool ModDurability(struct FGuid ItemGuid, float Durability, bool bForceSet)
 	{
-		return reinterpret_cast<bool (*)(IFortInventoryOwnerInterface*, const struct FGuid*, float, bool)>(VTable[18])(this, &ItemGuid, Durability, bForceSet);
+		alignas(16) const FGuid ItemGuidArg = ItemGuid;
+		return reinterpret_cast<bool (*)(IFortInventoryOwnerInterface*, const struct FGuid*, float, bool)>(VTable[18])(this, &ItemGuidArg, Durability, bForceSet);
 	}
 };
 
@@ -6959,6 +6960,8 @@ public:
 	void ServerSpotActor_Implementation(class AActor* NewlySpottedActor);
 	static void ServerSpotActorHook(AFortPlayerController* This, class AActor* NewlySpottedActor);
 
+	DECLARE_FUNCTION(execSpawnToyInstance);
+
 	bool CanProbablyPlayEmote(const class UFortMontageItemDefinitionBase* EmoteAsset) const
 	{
 		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class UFortMontageItemDefinitionBase*)>(InSDKUtils::GetImageBase() + 0x4C780B0)(this, EmoteAsset);
@@ -6966,7 +6969,8 @@ public:
 
 	bool HandleItemZeroDurability(struct FGuid ItemGuid)
 	{
-		return reinterpret_cast<bool (*)(AFortPlayerController*, const struct FGuid*)>(VTable[876])(this, &ItemGuid);
+		alignas(16) const FGuid ItemGuidArg = ItemGuid;
+		return reinterpret_cast<bool (*)(AFortPlayerController*, const struct FGuid*)>(VTable[876])(this, &ItemGuidArg);
 	}
 
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
@@ -30279,9 +30283,10 @@ public:
 		return reinterpret_cast<class UObject* (*)(IFortInventoryInterface*)>(VTable[1])(this);
 	}
 
-	class UFortWorldItem* GetItem(const struct FGuid& ItemGuid)
+	class UFortWorldItem* GetItem(struct FGuid ItemGuid)
 	{
-		return reinterpret_cast<class UFortWorldItem* (*)(IFortInventoryInterface*, const struct FGuid*)>(VTable[3])(this, &ItemGuid);
+		alignas(16) const FGuid ItemGuidArg = ItemGuid;
+		return reinterpret_cast<class UFortWorldItem* (*)(IFortInventoryInterface*, const struct FGuid*)>(VTable[3])(this, &ItemGuidArg);
 	}
 
 	int32 GetInventoryCapacity() const
@@ -40903,6 +40908,39 @@ public:
 	static class IFortToyInterface* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<IFortToyInterface>();
+	}
+
+public:
+	static void Execute_InitializeToyInstance(class UObject* O, class AFortPlayerController* OwningPC, int32 NumTimesSummoned)
+	{
+		static const FName NAME_UFortToyInterface_InitializeToyInstance(L"InitializeToyInstance");
+		if (class UFunction* Function = O->FindFunction(NAME_UFortToyInterface_InitializeToyInstance))
+		{
+			struct
+			{
+				class AFortPlayerController* OwningPC;
+				int32 NumTimesSummoned;
+			} Parms{ OwningPC, NumTimesSummoned };
+			O->ProcessEvent(Function, &Parms);
+		}
+	}
+
+	static void Execute_NotifyToyInstanceOfReuse(class UObject* O)
+	{
+		static const FName NAME_UFortToyInterface_NotifyToyInstanceOfReuse(L"NotifyToyInstanceOfReuse");
+		if (class UFunction* Function = O->FindFunction(NAME_UFortToyInterface_NotifyToyInstanceOfReuse))
+		{
+			O->ProcessEvent(Function, nullptr);
+		}
+	}
+
+	static void Execute_StartToyFadeOutDueToNewPlacement(class UObject* O)
+	{
+		static const FName NAME_UFortToyInterface_StartToyFadeOutDueToNewPlacement(L"StartToyFadeOutDueToNewPlacement");
+		if (class UFunction* Function = O->FindFunction(NAME_UFortToyInterface_StartToyFadeOutDueToNewPlacement))
+		{
+			O->ProcessEvent(Function, nullptr);
+		}
 	}
 };
 static_assert(alignof(IFortToyInterface) == 0x000008, "Wrong alignment on IFortToyInterface");
@@ -60001,10 +60039,11 @@ public:
 	}
 
 public:
-	void UnequipCurrentWeaponById(const struct FGuid& WeaponItemGuid, bool bSetWeaponAttachment)
+	void UnequipCurrentWeaponById(struct FGuid WeaponItemGuid, bool bSetWeaponAttachment)
 	{
+		alignas(16) const FGuid WeaponItemGuidArg = WeaponItemGuid;
 		void (*Fn)(AFortPlayerPawn*, const struct FGuid*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4C6CF24);
-		Fn(this, &WeaponItemGuid, bSetWeaponAttachment);
+		Fn(this, &WeaponItemGuidArg, bSetWeaponAttachment);
 	}
 
 public:

@@ -3565,6 +3565,11 @@ public:
 	{
 		reinterpret_cast<void (*)(ABuildingActor*, EFortBuildingInitializationReason)>(VTable[277])(this, Reason);
 	}
+
+	void OnServerAttemptBuildingUpgrade(class AFortPlayerController* PC, int32 UpgradeLevelDelta)
+	{
+		reinterpret_cast<void (*)(ABuildingActor*, class AFortPlayerController*, int32)>(VTable[217])(this, PC, UpgradeLevelDelta);
+	}
 };
 static_assert(alignof(ABuildingActor) == 0x000008, "Wrong alignment on ABuildingActor");
 static_assert(sizeof(ABuildingActor) == 0x0005B0, "Wrong size on ABuildingActor");
@@ -6868,6 +6873,9 @@ public:
 	{
 		return reinterpret_cast<int32 (*)(AFortPlayerController*, class ABuildingSMActor*)>(VTable[853])(this, BuildingActor);
 	}
+
+	void ServerUpgradeBuildingActor_Implementation(class ABuildingActor* BuildingActorToUpgrade, int32 NewUpgradeLevel);
+	static void ServerUpgradeBuildingActorHook(AFortPlayerController* This, class ABuildingActor* BuildingActorToUpgrade, int32 NewUpgradeLevel);
 
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{

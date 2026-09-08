@@ -452,6 +452,18 @@ void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController*
 	This->ServerRepairBuildingActor_Implementation(BuildingActorToRepair);
 }
 
+void AFortPlayerController::ServerUpgradeBuildingActor_Implementation(ABuildingActor* BuildingActorToUpgrade, int32 NewUpgradeLevel) {
+	if (!BuildingActorToUpgrade) {
+		return;
+	}
+
+	BuildingActorToUpgrade->OnServerAttemptBuildingUpgrade(this, NewUpgradeLevel);
+}
+
+void AFortPlayerController::ServerUpgradeBuildingActorHook(AFortPlayerController* This, ABuildingActor* BuildingActorToUpgrade, int32 NewUpgradeLevel) {
+	This->ServerUpgradeBuildingActor_Implementation(BuildingActorToUpgrade, NewUpgradeLevel);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -464,4 +476,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(569, ServerEditBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(572, ServerEndEditingBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(563, ServerRepairBuildingActorHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(565, ServerUpgradeBuildingActorHook);
 }

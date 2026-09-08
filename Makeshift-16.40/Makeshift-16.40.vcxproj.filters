@@ -154,6 +154,21 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\AI">
       <UniqueIdentifier>{f46be08d-6a79-40c4-8f9b-6e46b6eb3250}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Items">
+      <UniqueIdentifier>{e15af958-21e4-4726-bf48-088c2f37b7b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Missions">
+      <UniqueIdentifier>{bfbc4fca-a1eb-448b-b023-68f2313397a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Inventory">
+      <UniqueIdentifier>{b12b42c0-df15-426e-b763-9ac14433def8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Components">
+      <UniqueIdentifier>{f60ddaaa-dcb1-469d-801c-d51803c8ff55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Items">
+      <UniqueIdentifier>{b8ae0db5-cc63-4dc8-aa5f-118312e93336}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine\Source\Runtime\CoreUObject">
       <UniqueIdentifier>{0ce3157c-6c63-497e-9bbf-2d902b6b9b17}</UniqueIdentifier>
     </Filter>
@@ -612,8 +627,8 @@
     <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities\GameplayAbilityTypes.h">
       <Filter>Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities</Filter>
     </ClInclude>
-    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortPickup.h">
-      <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\Items\FortPickup.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Items</Filter>
     </ClInclude>
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortAssets.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
@@ -755,8 +770,8 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerAthena.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerControllerAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
@@ -767,23 +782,26 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortPickup.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortPickup.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\GameDataBR.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\GameDataBR.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortLootTierData.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortLootTier.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortInventory.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortInventory.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerController.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Player</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\InventoryManagementLibrary.cpp">
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortTeamInfo.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Inventory\InventoryManagementLibrary.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Inventory</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\FortAIFunctionLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\AI</Filter>
@@ -791,11 +809,11 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortIndicatedActorManagementLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortControllerComponent_IndicatedActorManagement.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_IndicatedActorManagement.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Components</Filter>
     </ClCompile>
-    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortMissionLibrary.cpp">
-      <Filter>FortniteGame\Source\FortniteGame\Private</Filter>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Missions\FortMissionLibrary.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Missions</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationTypes.cpp">
       <Filter>Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private</Filter>

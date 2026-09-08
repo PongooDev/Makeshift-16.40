@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
+#include "FortniteGame/Source/FortniteGame/Public/Items/FortPickup.h"
 
 TArray<ABuildingActor*> UFortMissionLibrary::FindActorsWithTags(UObject* WorldContextObject, const FGameplayTagContainer& Tags) {
 	TArray<ABuildingActor*> FoundActors;

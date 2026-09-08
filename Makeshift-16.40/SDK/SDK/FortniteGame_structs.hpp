@@ -15326,6 +15326,12 @@ public:
 	uint8                                         Pad_C[0x4];                                        // 0x000C(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
 	class AFortPlayerController*                  Spotter;                                           // 0x0010(0x0008)(ZeroConstructor, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class AActor*                                 SpottedActor;                                      // 0x0018(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+
+public:
+	void PostReplicatedAdd(const struct FTeamSpottedActorInfoArray& InArraySerializer)
+	{
+		reinterpret_cast<void (*)(FTeamSpottedActorInfo*, const struct FTeamSpottedActorInfoArray*)>(InSDKUtils::GetImageBase() + 0x49DF168)(this, &InArraySerializer);
+	}
 };
 static_assert(alignof(FTeamSpottedActorInfo) == 0x000008, "Wrong alignment on FTeamSpottedActorInfo");
 static_assert(sizeof(FTeamSpottedActorInfo) == 0x000020, "Wrong size on FTeamSpottedActorInfo");
@@ -53318,6 +53324,19 @@ struct FTeamSpottedActorInfoArray final : public FFastArraySerializer
 public:
 	TArray<struct FTeamSpottedActorInfo>          SpottedActorInfo;                                  // 0x0108(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
 	class AFortTeamInfo*                          OwningTeam;                                        // 0x0118(0x0008)(ZeroConstructor, IsPlainOldData, RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
+
+public:
+	void AttemptSpotActor(class AActor* ActorToSpot, class AFortPlayerController* Spotter);
+
+	int32 FindSpottedActorInfo(class AActor* ActorToFind) const
+	{
+		return reinterpret_cast<int32 (*)(const FTeamSpottedActorInfoArray*, class AActor*)>(InSDKUtils::GetImageBase() + 0x49DAD34)(this, ActorToFind);
+	}
+
+	void UnspotActorByIdx(int32 InfoIdx)
+	{
+		reinterpret_cast<void (*)(FTeamSpottedActorInfoArray*, int32)>(InSDKUtils::GetImageBase() + 0x49E551C)(this, InfoIdx);
+	}
 };
 static_assert(alignof(FTeamSpottedActorInfoArray) == 0x000008, "Wrong alignment on FTeamSpottedActorInfoArray");
 static_assert(sizeof(FTeamSpottedActorInfoArray) == 0x000120, "Wrong size on FTeamSpottedActorInfoArray");

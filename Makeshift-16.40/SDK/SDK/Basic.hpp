@@ -1189,6 +1189,12 @@ struct FScriptDelegate
 public:
 	FWeakObjectPtr                                Object;                                            // 0x0000(0x0008)(NOT AUTO-GENERATED PROPERTY)
 	FName                                         FunctionName;                                      // 0x0008(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	bool operator==(const FScriptDelegate& Other) const
+	{
+		return Object == Other.Object && FunctionName == Other.FunctionName;
+	}
 };
 static_assert(alignof(FScriptDelegate) == 0x000004, "Wrong alignment on FScriptDelegate");
 static_assert(sizeof(FScriptDelegate) == 0x000010, "Wrong size on FScriptDelegate");
@@ -1230,6 +1236,64 @@ class TMulticastInlineDelegate<Ret(Args...)>
 {
 public:
 	TArray<FScriptDelegate>                       InvocationList;                                    // 0x0000(0x0010)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	void AddUnique(const FScriptDelegate& InDelegate)
+	{
+		bool bAlreadyBound = false;
+		for (int32 Index = 0; Index < InvocationList.Num(); ++Index)
+		{
+			if (InvocationList[Index] == InDelegate)
+			{
+				bAlreadyBound = true;
+				break;
+			}
+		}
+
+		if (!bAlreadyBound)
+		{
+			InvocationList.Add(InDelegate);
+		}
+
+		CompactInvocationList();
+	}
+
+	void Remove(const class UObject* InObject, FName InFunctionName)
+	{
+		for (int32 Index = 0; Index < InvocationList.Num(); ++Index)
+		{
+			if (InvocationList[Index].Object == InObject && InvocationList[Index].FunctionName == InFunctionName)
+			{
+				RemoveAtSwap(Index);
+				break;
+			}
+		}
+
+		CompactInvocationList();
+	}
+
+	void CompactInvocationList()
+	{
+		for (int32 Index = InvocationList.Num() - 1; Index >= 0; --Index)
+		{
+			if (InvocationList[Index].FunctionName == FName() || InvocationList[Index].Object.Get() == nullptr)
+			{
+				RemoveAtSwap(Index);
+			}
+		}
+	}
+
+private:
+	void RemoveAtSwap(int32 Index)
+	{
+		const int32 LastIndex = InvocationList.Num() - 1;
+		if (Index != LastIndex)
+		{
+			InvocationList[Index] = InvocationList[LastIndex];
+		}
+
+		InvocationList.RemoveAt(LastIndex);
+	}
 };
 
 #define UE_ENUM_OPERATORS(EEnumClass)																																	\

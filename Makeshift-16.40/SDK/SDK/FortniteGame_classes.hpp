@@ -6956,6 +6956,9 @@ public:
 	void ServerPlayEmoteItem_Implementation(const class UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber);
 	static void ServerPlayEmoteItemHook(AFortPlayerController* This, const class UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber);
 
+	void ServerSpotActor_Implementation(class AActor* NewlySpottedActor);
+	static void ServerSpotActorHook(AFortPlayerController* This, class AActor* NewlySpottedActor);
+
 	bool CanProbablyPlayEmote(const class UFortMontageItemDefinitionBase* EmoteAsset) const
 	{
 		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class UFortMontageItemDefinitionBase*)>(InSDKUtils::GetImageBase() + 0x4C780B0)(this, EmoteAsset);
@@ -96160,6 +96163,9 @@ public:
 	{
 		return GetDefaultObjImpl<AFortTeamInfo>();
 	}
+
+public:
+	void SpotActorForTeam(class AActor* ActorToSpot, class AFortPlayerController* Spotter);
 };
 static_assert(alignof(AFortTeamInfo) == 0x000008, "Wrong alignment on AFortTeamInfo");
 static_assert(sizeof(AFortTeamInfo) == 0x000378, "Wrong size on AFortTeamInfo");
@@ -123539,6 +123545,12 @@ public:
 	static class IFortSpottableActorInterface* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<IFortSpottableActorInterface>();
+	}
+
+public:
+	bool CanBeSpottedBy(const class AFortPlayerController* Spotter) const
+	{
+		return reinterpret_cast<bool (*)(const IFortSpottableActorInterface*, const class AFortPlayerController*)>(VTable[3])(this, Spotter);
 	}
 };
 static_assert(alignof(IFortSpottableActorInterface) == 0x000008, "Wrong alignment on IFortSpottableActorInterface");

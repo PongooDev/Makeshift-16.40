@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Engine/Source/Runtime/Core/Public/HAL/UnrealMemory.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
-#include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
+#include "FortniteGame/Source/FortniteGame/Public/Items/FortPickup.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortAssets.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/DataTable.h"
 

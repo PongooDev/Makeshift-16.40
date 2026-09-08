@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortGlobals.h"
-#include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
+#include "FortniteGame/Source/FortniteGame/Public/Items/FortPickup.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortAssets.h"
 
 UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& ItemEntry, bool bResetRegenCooldown) {
@@ -828,6 +828,19 @@ void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* This,
 	This->ServerPlayEmoteItem_Implementation(EmoteAsset, EmoteRandomNumber);
 }
 
+void AFortPlayerController::ServerSpotActor_Implementation(AActor* NewlySpottedActor) {
+	AFortTeamInfo* TeamInfo = UFortKismetLibrary::GetActorTeamInfo(this);
+	if (!TeamInfo) {
+		return;
+	}
+
+	TeamInfo->SpotActorForTeam(NewlySpottedActor, this);
+}
+
+void AFortPlayerController::ServerSpotActorHook(AFortPlayerController* This, AActor* NewlySpottedActor) {
+	This->ServerSpotActor_Implementation(NewlySpottedActor);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -853,4 +866,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(18, ModDurabilityHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(738, ForceEquipValidWeaponHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(464, ServerPlayEmoteItemHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(595, ServerSpotActorHook);
 }

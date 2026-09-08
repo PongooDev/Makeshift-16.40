@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
+#include "FortniteGame/Source/FortniteGame/Public/Items/FortPickup.h"
 
 FFortPickupCreationData::FFortPickupCreationData(UWorld* InWorld, const FFortItemEntry& InPickupDataItemEntry, const FVector& InPosition, const FRotator& InRotation, AFortPlayerController* InOptionalPCOwner, TSubclassOf<AFortPickup> InOverrideClass, AActor* InOwnerContainer)
 	: Position(InPosition)

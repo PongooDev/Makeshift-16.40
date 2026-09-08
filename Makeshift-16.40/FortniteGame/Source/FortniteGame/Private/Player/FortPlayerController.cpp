@@ -528,6 +528,139 @@ void AFortPlayerController::DropItemsAsPickupsHook(IFortInventoryOwnerInterface*
 	PlayerController->DropItemsAsPickups(ItemsToDropViaPickup, DestructionPawn, InFortPlayerController, NumToDrop, OriginalTotalNumItems);
 }
 
+static FFortPickupTossOverrideData DefaultPickupTossOverrideData() {
+	FFortPickupTossOverrideData TossOverrideData{};
+	TossOverrideData.bIsValid = true;
+	TossOverrideData.MinTossDist = 300.f;
+	TossOverrideData.MaxTossDist = 600.f;
+	TossOverrideData.SpawnDirectionConeHalfAngle = 45.f;
+	return TossOverrideData;
+}
+
+static void DropInventoryItemFromPawn(AFortPlayerController* PlayerController, UFortWorldItem* Item, bool bSpawnPickups, const FFortPickupTossOverrideData& TossOverrideData) {
+	AFortPlayerPawn* FortPawn = PlayerController->MyFortPawn;
+	const FGuid ItemGuid = Item->ItemEntry.ItemGuid;
+	const int32 Count = Item->ItemEntry.Count;
+
+	AFortPickup* Pickup = nullptr;
+	if (bSpawnPickups && FortPawn) {
+		FFortPickupCreationData CreationData(PlayerController->GetWorld(), Item->ItemEntry, FortPawn->GetActorLocation(), FRotator::ZeroRotator, nullptr, nullptr, nullptr);
+		Pickup = AFortPickup::CreateFromData(CreationData);
+	}
+
+	if (FortPawn) {
+		FortPawn->UnequipCurrentWeaponById(ItemGuid, true);
+	}
+
+	PlayerController->RemoveInventoryItem(ItemGuid, Count, false, true, false);
+
+	if (Pickup) {
+		const FVector Forward = FortPawn->GetActorForwardVector();
+		const float Angle = FMath::FRandRange(-TossOverrideData.SpawnDirectionConeHalfAngle, TossOverrideData.SpawnDirectionConeHalfAngle) * (PI / 180.f);
+		const float CosAngle = FMath::Cos(Angle);
+		const float SinAngle = FMath::Sin(Angle);
+		FVector Direction;
+		Direction.X = Forward.X * CosAngle - Forward.Y * SinAngle;
+		Direction.Y = Forward.X * SinAngle + Forward.Y * CosAngle;
+		Direction.Z = 0.f;
+		const FVector FinalLocation = FortPawn->GetActorLocation() + Direction * FMath::FRandRange(TossOverrideData.MinTossDist, TossOverrideData.MaxTossDist);
+		Pickup->TossPickup(FinalLocation, FortPawn, 0, true, true, EFortPickupSourceTypeFlag::Tossed, EFortPickupSpawnSource::Unset);
+	}
+}
+
+static void DropItemsOfDefinition(AFortPlayerController* PlayerController, const UFortItemDefinition* DropItemDef, bool bSpawnPickups, const FFortPickupTossOverrideData& TossOverrideData) {
+	if (PlayerController->Role != ENetRole::ROLE_Authority || !PlayerController->WorldInventory || !DropItemDef) {
+		return;
+	}
+
+	TArray<UFortWorldItem*> ItemsToDrop;
+	PlayerController->WorldInventory->FindItemInstancesForDefinition(DropItemDef, ItemsToDrop, false);
+	for (int32 Index = 0; Index < ItemsToDrop.Num(); ++Index) {
+		if (ItemsToDrop[Index]) {
+			DropInventoryItemFromPawn(PlayerController, ItemsToDrop[Index], bSpawnPickups, TossOverrideData);
+		}
+	}
+}
+
+void AFortPlayerController::ServerDropAllItems_Implementation(const UFortItemDefinition* IgnoreItemDef) {
+	if (!IgnoreItemDef) {
+		return;
+	}
+
+	const bool bIgnoreBuildingMaterials = IgnoreItemDef->HasMatchingGameplayTag(UFortGlobals::GameplayTags().WeaponKeepsMaterialsOnDropAll);
+	DropAllItems(IgnoreItemDef, nullptr, bIgnoreBuildingMaterials, true);
+}
+
+void AFortPlayerController::ServerDropAllItemsHook(AFortPlayerController* This, const UFortItemDefinition* IgnoreItemDef) {
+	This->ServerDropAllItems_Implementation(IgnoreItemDef);
+}
+
+void AFortPlayerController::DropAllItems(const UFortItemDefinition* IgnoreItemDef, const UFortItemDefinition* AdditionalIgnoreItemDef, bool bIgnoreBuildingMaterials, bool bSpawnPickups) {
+	if (Role != ENetRole::ROLE_Authority || !WorldInventory) {
+		return;
+	}
+
+	TArray<UFortWorldItem*> ItemsToDrop;
+	const TArray<UFortWorldItem*>& ItemInstances = WorldInventory->Inventory.ItemInstances;
+	for (int32 Index = 0; Index < ItemInstances.Num(); ++Index) {
+		UFortWorldItem* Item = ItemInstances[Index];
+		const UFortItemDefinition* ItemDefinition = Item ? Item->GetItemDefinition() : nullptr;
+		if (!ItemDefinition || ItemDefinition == IgnoreItemDef || ItemDefinition == AdditionalIgnoreItemDef || !Item->CanBeDropped()) {
+			continue;
+		}
+
+		if (bIgnoreBuildingMaterials && ItemDefinition->IsA(UFortResourceItemDefinition::StaticClass())) {
+			continue;
+		}
+
+		ItemsToDrop.Add(Item);
+	}
+
+	const FFortPickupTossOverrideData TossOverrideData = DefaultPickupTossOverrideData();
+	for (int32 Index = 0; Index < ItemsToDrop.Num(); ++Index) {
+		DropInventoryItemFromPawn(this, ItemsToDrop[Index], bSpawnPickups, TossOverrideData);
+	}
+}
+
+void AFortPlayerController::DropSpecificItem(const UFortItemDefinition* DropItemDef) {
+	DropItemsOfDefinition(this, DropItemDef, true, DefaultPickupTossOverrideData());
+}
+
+void AFortPlayerController::TossSpecificItem(const UFortItemDefinition* DropItemDef, const FFortPickupTossOverrideData& TossOverrideData) {
+	DropItemsOfDefinition(this, DropItemDef, true, TossOverrideData.bIsValid ? TossOverrideData : DefaultPickupTossOverrideData());
+}
+
+DEFINE_FUNCTION(AFortPlayerController::execDropAllItems)
+{
+	P_GET_OBJECT(UFortItemDefinition,Z_Param_IgnoreItemDef);
+	P_GET_OBJECT(UFortItemDefinition,Z_Param_AdditionalIgnoreItemDef);
+	P_GET_UBOOL(Z_Param_bIgnoreBuildingMaterials);
+	P_GET_UBOOL(Z_Param_bSpawnPickups);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	P_THIS_CAST(AFortPlayerController)->DropAllItems(Z_Param_IgnoreItemDef,Z_Param_AdditionalIgnoreItemDef,Z_Param_bIgnoreBuildingMaterials,Z_Param_bSpawnPickups);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(AFortPlayerController::execDropSpecificItem)
+{
+	P_GET_OBJECT(UFortItemDefinition,Z_Param_DropItemDef);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	P_THIS_CAST(AFortPlayerController)->DropSpecificItem(Z_Param_DropItemDef);
+	P_NATIVE_END;
+}
+
+DEFINE_FUNCTION(AFortPlayerController::execTossSpecificItem)
+{
+	P_GET_OBJECT(UFortItemDefinition,Z_Param_DropItemDef);
+	P_GET_STRUCT_REF(FFortPickupTossOverrideData,Z_Param_Out_TossOverrideData);
+	P_FINISH;
+	P_NATIVE_BEGIN;
+	P_THIS_CAST(AFortPlayerController)->TossSpecificItem(Z_Param_DropItemDef,Z_Param_Out_TossOverrideData);
+	P_NATIVE_END;
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -544,4 +677,8 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(17, DropItemsAsPickupsHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(891, DropItemsOnPawnDestructionHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(893, DropItemsAsPickupsAsyncHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(451, ServerDropAllItemsHook);
+	Memory::HookDetour(ImageBase + 0x51315A8, execDropAllItems, nullptr);
+	Memory::HookDetour(ImageBase + 0x3BEFE48, execDropSpecificItem, nullptr);
+	Memory::HookDetour(ImageBase + 0x513D47C, execTossSpecificItem, nullptr);
 }

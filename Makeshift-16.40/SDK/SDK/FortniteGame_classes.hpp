@@ -362,6 +362,13 @@ public:
 	{
 		reinterpret_cast<void (*)(const UFortItemDefinition*, class IFortInventoryOwnerInterface*, class UFortItem*)>(VTable[131])(this, InventoryOwner, Item);
 	}
+
+public:
+	bool HasMatchingGameplayTag(const struct FGameplayTag& TagToCheck) const
+	{
+		const void* GameplayTagAssetInterface = reinterpret_cast<const uint8*>(this) + 0x30;
+		return reinterpret_cast<bool (*)(const void*, struct FGameplayTag)>((*reinterpret_cast<void* const* const*>(GameplayTagAssetInterface))[3])(GameplayTagAssetInterface, TagToCheck);
+	}
 };
 static_assert(alignof(UFortItemDefinition) == 0x000008, "Wrong alignment on UFortItemDefinition");
 static_assert(sizeof(UFortItemDefinition) == 0x000348, "Wrong size on UFortItemDefinition");
@@ -6914,6 +6921,13 @@ public:
 	{
 		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class UFortWorldItem*, bool)>(VTable[978])(this, &Item, bIgnoreItemMutators);
 	}
+
+	DECLARE_FUNCTION(execDropAllItems);
+	DECLARE_FUNCTION(execDropSpecificItem);
+	DECLARE_FUNCTION(execTossSpecificItem);
+
+	void ServerDropAllItems_Implementation(const class UFortItemDefinition* IgnoreItemDef);
+	static void ServerDropAllItemsHook(AFortPlayerController* This, const class UFortItemDefinition* IgnoreItemDef);
 
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{

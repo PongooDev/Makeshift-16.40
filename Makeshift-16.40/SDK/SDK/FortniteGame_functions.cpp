@@ -26555,62 +26555,6 @@ void AFortPlayerController::DeployDefender(class ABuildingTrapDefender* Defender
 }
 
 
-// Function FortniteGame.FortPlayerController.DropAllItems
-// (Final, BlueprintAuthorityOnly, Native, Public, BlueprintCallable)
-// Parameters:
-// class UFortItemDefinition*              IgnoreItemDef                                          (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// class UFortItemDefinition*              AdditionalIgnoreItemDef                                (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bIgnoreBuildingMaterials                               (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// bool                                    bSpawnPickups                                          (Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void AFortPlayerController::DropAllItems(const class UFortItemDefinition* IgnoreItemDef, const class UFortItemDefinition* AdditionalIgnoreItemDef, bool bIgnoreBuildingMaterials, bool bSpawnPickups)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortPlayerController", "DropAllItems");
-
-	Params::FortPlayerController_DropAllItems Parms{};
-
-	Parms.IgnoreItemDef = IgnoreItemDef;
-	Parms.AdditionalIgnoreItemDef = AdditionalIgnoreItemDef;
-	Parms.bIgnoreBuildingMaterials = bIgnoreBuildingMaterials;
-	Parms.bSpawnPickups = bSpawnPickups;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
-// Function FortniteGame.FortPlayerController.DropSpecificItem
-// (Final, RequiredAPI, BlueprintAuthorityOnly, Native, Public, BlueprintCallable)
-// Parameters:
-// class UFortItemDefinition*              DropItemDef                                            (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void AFortPlayerController::DropSpecificItem(const class UFortItemDefinition* DropItemDef)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortPlayerController", "DropSpecificItem");
-
-	Params::FortPlayerController_DropSpecificItem Parms{};
-
-	Parms.DropItemDef = DropItemDef;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
 // Function FortniteGame.FortPlayerController.Emote
 // (Exec, Native, Public, HasOutParams)
 // Parameters:
@@ -31119,33 +31063,6 @@ void AFortPlayerController::TogglePersonalVehicle(bool bOn)
 	Params::FortPlayerController_TogglePersonalVehicle Parms{};
 
 	Parms.bOn = bOn;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
-
-// Function FortniteGame.FortPlayerController.TossSpecificItem
-// (Final, BlueprintAuthorityOnly, Native, Public, HasOutParams, BlueprintCallable)
-// Parameters:
-// class UFortItemDefinition*              DropItemDef                                            (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-// struct FFortPickupTossOverrideData      TossOverrideData                                       (ConstParm, Parm, OutParm, ReferenceParm, NoDestructor, NativeAccessSpecifierPublic)
-
-void AFortPlayerController::TossSpecificItem(const class UFortItemDefinition* DropItemDef, const struct FFortPickupTossOverrideData& TossOverrideData)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortPlayerController", "TossSpecificItem");
-
-	Params::FortPlayerController_TossSpecificItem Parms{};
-
-	Parms.DropItemDef = DropItemDef;
-	Parms.TossOverrideData = std::move(TossOverrideData);
 
 	auto Flgs = Func->FunctionFlags;
 	Func->FunctionFlags |= 0x400;

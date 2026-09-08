@@ -6126,6 +6126,11 @@ public:
 	{
 		reinterpret_cast<void (*)(IFortInventoryOwnerInterface*, TArray<class UFortWorldItem*>*, class AFortPawn*, class AFortPlayerController*, int32, int32)>(VTable[17])(this, &ItemsToDropViaPickup, DestructionPawn, InFortPlayerController, NumToDrop, OriginalTotalNumItems);
 	}
+
+	bool ModDurability(const struct FGuid& ItemGuid, float Durability, bool bForceSet)
+	{
+		return reinterpret_cast<bool (*)(IFortInventoryOwnerInterface*, const struct FGuid*, float, bool)>(VTable[18])(this, &ItemGuid, Durability, bForceSet);
+	}
 };
 
 // Class FortniteGame.FortPlayerController
@@ -6935,6 +6940,14 @@ public:
 	static void ServerRemoveInventoryStateValueHook(AFortPlayerController* This, const struct FGuid& ItemGuid, EFortItemEntryState StateValueType);
 	void SetInventoryStateValue(struct FGuid ItemGuid, const struct FFortItemEntryStateValue& StateValue);
 	void RemoveInventoryStateValue(struct FGuid ItemGuid, EFortItemEntryState StateValueType);
+
+	bool ModDurability(struct FGuid ItemGuid, float Durability, bool bForceSet);
+	static bool ModDurabilityHook(class IFortInventoryOwnerInterface* This, const struct FGuid& ItemGuid, float Durability, bool bForceSet);
+
+	bool HandleItemZeroDurability(struct FGuid ItemGuid)
+	{
+		return reinterpret_cast<bool (*)(AFortPlayerController*, const struct FGuid*)>(VTable[876])(this, &ItemGuid);
+	}
 
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{

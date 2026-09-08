@@ -20757,6 +20757,15 @@ public:
 		Fn(this, InLevel);
 	}
 
+	void SetDurability(float InDurability)
+	{
+		if (InDurability != Durability)
+		{
+			Durability = InDurability;
+			SetToDirty();
+		}
+	}
+
 	bool GetStateValue(EFortItemEntryState StateType, int32& OutValue) const
 	{
 		bool (*Fn)(const FFortItemEntry*, EFortItemEntryState, int32*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1583D20);

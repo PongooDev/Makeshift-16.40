@@ -706,6 +706,45 @@ void AFortPlayerController::ServerRemoveInventoryStateValueHook(AFortPlayerContr
 	This->ServerRemoveInventoryStateValue_Implementation(ItemGuid, StateValueType);
 }
 
+bool AFortPlayerController::ModDurability(FGuid ItemGuid, float Durability, bool bForceSet) {
+	if ((!bForceSet && Durability == 0.f) || Role != ENetRole::ROLE_Authority) {
+		return false;
+	}
+
+	UFortWorldItem* Item = WorldInventory ? WorldInventory->InventoryInterface.GetItem(ItemGuid) : nullptr;
+	const UFortItemDefinition* ItemDefinition = Item ? Item->GetItemDefinition() : nullptr;
+	if (!ItemDefinition || !ItemDefinition->IsA(UFortWorldItemDefinition::StaticClass()) || !Item->HasDurability()) {
+		return false;
+	}
+
+	const UFortWorldItemDefinition* WorldItemDefinition = static_cast<const UFortWorldItemDefinition*>(ItemDefinition);
+	const float MaxDurability = WorldItemDefinition->GetMaxDurability(Item->ItemEntry.Level);
+	float NewDurability = bForceSet ? Durability : Item->ItemEntry.Durability + Durability;
+	if (MaxDurability > 0.f) {
+		NewDurability = FMath::Min(NewDurability, MaxDurability);
+	}
+	NewDurability = FMath::Max(NewDurability, 0.f);
+	Item->ItemEntry.SetDurability(NewDurability);
+
+	int32 DurabilityInitialized = 0;
+	if (!Item->ItemEntry.GetStateValue(EFortItemEntryState::DurabilityInitialized, DurabilityInitialized) || !DurabilityInitialized) {
+		Item->ItemEntry.SetStateValue(EFortItemEntryState::DurabilityInitialized, 1);
+	}
+
+	if (NewDurability <= 0.f && HandleItemZeroDurability(ItemGuid)) {
+		RemoveInventoryItem(ItemGuid, Item->ItemEntry.Count, false, true, false);
+		return true;
+	}
+
+	WorldInventory->HandleInventoryLocalUpdate();
+	return true;
+}
+
+bool AFortPlayerController::ModDurabilityHook(IFortInventoryOwnerInterface* This, const FGuid& ItemGuid, float Durability, bool bForceSet) {
+	AFortPlayerController* PlayerController = reinterpret_cast<AFortPlayerController*>(reinterpret_cast<uint8*>(This) - offsetof(AFortPlayerController, InventoryOwnerInterface));
+	return PlayerController->ModDurability(ItemGuid, Durability, bForceSet);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -728,4 +767,5 @@ void AFortPlayerController::Init() {
 	Memory::HookDetour(ImageBase + 0x513D47C, execTossSpecificItem, nullptr);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(524, ServerSetInventoryStateValueHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(522, ServerRemoveInventoryStateValueHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(18, ModDurabilityHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 }

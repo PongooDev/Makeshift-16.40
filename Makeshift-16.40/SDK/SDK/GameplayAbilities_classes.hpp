@@ -207,6 +207,14 @@ public:
 		Fn(this, Spec, WasAddOrRemove);
 	}
 
+	FGameplayAbilitySpecHandle GiveAbilityAndActivateOnce(FGameplayAbilitySpec& Spec, const FGameplayEventData* GameplayEventData = nullptr)
+	{
+		FGameplayAbilitySpecHandle Handle;
+		FGameplayAbilitySpecHandle* (*Fn)(UAbilitySystemComponent*, FGameplayAbilitySpecHandle*, FGameplayAbilitySpec*, const FGameplayEventData*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x37134F0);
+		Fn(this, &Handle, &Spec, GameplayEventData);
+		return Handle;
+	}
+
 	/** Attempts to activate the given ability, will only work if called from the correct client/server context */
 	bool InternalTryActivateAbility(FGameplayAbilitySpecHandle AbilityToActivate, FPredictionKey InPredictionKey = FPredictionKey(), UGameplayAbility ** OutInstancedAbility = nullptr, FOnGameplayAbilityEnded::FDelegate* OnGameplayAbilityEndedDelegate = nullptr, const FGameplayEventData* TriggerEventData = nullptr)
 	{

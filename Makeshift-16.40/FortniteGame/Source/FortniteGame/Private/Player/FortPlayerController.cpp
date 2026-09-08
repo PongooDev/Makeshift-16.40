@@ -2,6 +2,7 @@
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortGlobals.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
+#include "FortniteGame/Source/FortniteGame/Public/FortAssets.h"
 
 UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& ItemEntry, bool bResetRegenCooldown) {
 	const UFortItemDefinition* ItemDefinition = ItemEntry.GetItemDefinition();
@@ -772,6 +773,61 @@ bool AFortPlayerController::ForceEquipValidWeaponHook(AFortPlayerController* Thi
 	return This->ForceEquipValidWeapon();
 }
 
+static bool ActivateEmoteAbility(AFortPlayerPawn* FortPawn, const UFortMontageItemDefinitionBase* EmoteAsset) {
+	UAbilitySystemComponent* AbilitySystemComponent = FortPawn ? FortPawn->AbilitySystemComponent : nullptr;
+	if (!AbilitySystemComponent || !EmoteAsset || EmoteAsset->IsCosmeticDenied(nullptr)) {
+		return false;
+	}
+
+	const UGameDataCosmetics& GameDataCosmetics = UGameDataCosmetics::Get();
+	UClass* EmoteAbilityClass = nullptr;
+	if (EmoteAsset->IsA(UAthenaToyItemDefinition::StaticClass())) {
+		EmoteAbilityClass = FFortAssets::GetSubclassOf(static_cast<const UAthenaToyItemDefinition*>(EmoteAsset)->ToySpawnAbility, true);
+	} else if (EmoteAsset->IsA(UAthenaSprayItemDefinition::StaticClass())) {
+		EmoteAbilityClass = FFortAssets::GetSubclassOf(GameDataCosmetics.SprayGameplayAbility, true);
+	} else if (EmoteAsset->IsA(UAthenaDanceItemDefinition::StaticClass())) {
+		EmoteAbilityClass = FFortAssets::GetSubclassOf(static_cast<const UAthenaDanceItemDefinition*>(EmoteAsset)->CustomDanceAbility, true);
+	}
+
+	if (!EmoteAbilityClass) {
+		EmoteAbilityClass = FFortAssets::GetSubclassOf(GameDataCosmetics.EmoteGameplayAbility, true);
+	}
+
+	if (!EmoteAbilityClass || !EmoteAbilityClass->IsSubclassOf(UFortGameplayAbility::StaticClass())) {
+		return false;
+	}
+
+	UGameplayAbility* EmoteAbility = EmoteAbilityClass->DefaultObject ? EmoteAbilityClass->DefaultObject->Cast<UGameplayAbility>() : nullptr;
+	if (!EmoteAbility) {
+		return false;
+	}
+
+	FGameplayAbilitySpec Spec(EmoteAbility, 1, INDEX_NONE, const_cast<UFortMontageItemDefinitionBase*>(EmoteAsset));
+	AbilitySystemComponent->GiveAbilityAndActivateOnce(Spec);
+
+	const UFortItemDefinition* PreviousEmote = FortPawn->LastReplicatedEmoteExecuted;
+	FortPawn->LastReplicatedEmoteExecuted = const_cast<UFortMontageItemDefinitionBase*>(EmoteAsset);
+	FortPawn->OnRep_LastReplicatedEmoteExecuted(PreviousEmote);
+	return true;
+}
+
+void AFortPlayerController::ServerPlayEmoteItem_Implementation(const UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber) {
+	if (!MyFortPawn || !CanProbablyPlayEmote(EmoteAsset)) {
+		return;
+	}
+
+	if (UWorld* World = GetWorld()) {
+		MyFortPawn->EmoteStartTime = World->GetTimeSeconds();
+	}
+	MyFortPawn->EmoteRandomNum = EmoteRandomNumber;
+
+	ActivateEmoteAbility(MyFortPawn, EmoteAsset);
+}
+
+void AFortPlayerController::ServerPlayEmoteItemHook(AFortPlayerController* This, const UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber) {
+	This->ServerPlayEmoteItem_Implementation(EmoteAsset, EmoteRandomNumber);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -796,4 +852,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(522, ServerRemoveInventoryStateValueHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(18, ModDurabilityHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(738, ForceEquipValidWeaponHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(464, ServerPlayEmoteItemHook);
 }

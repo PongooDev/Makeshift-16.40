@@ -7,7 +7,19 @@ struct FFortAssets
 
 	template<typename T>
 	static void GetAssetArray(const TArray<TSoftObjectPtr<T>>& SoftObjectPtrs, TArray<T*>& OutAssets);
+
+	template<typename T>
+	static UClass* GetSubclassOf(const TSoftClassPtr<T>& SoftClassPtr, bool bLoad);
 };
+
+template<typename T>
+UClass* FFortAssets::GetSubclassOf(const TSoftClassPtr<T>& SoftClassPtr, bool bLoad)
+{
+	UClass* Result = nullptr;
+	UClass** (*Fn)(UClass**, const TSoftClassPtr<T>*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x42FD0D4);
+	Fn(&Result, &SoftClassPtr, bLoad);
+	return Result;
+}
 
 template<typename T>
 T* FFortAssets::GetAsset(const TSoftObjectPtr<T>& SoftObjectPtr)

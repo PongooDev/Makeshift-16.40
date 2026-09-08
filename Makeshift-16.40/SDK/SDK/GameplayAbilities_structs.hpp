@@ -1313,6 +1313,21 @@ public:
 	TArray<class UGameplayAbility*>               ReplicatedInstances;                               // 0x0078(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
 	struct FActiveGameplayEffectHandle            GameplayEffectHandle;                              // 0x0088(0x0008)(RepSkip, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_90[0x50];                                      // 0x0090(0x0050)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	FGameplayAbilitySpec() = default;
+
+	FGameplayAbilitySpec(class UGameplayAbility* InAbility, int32 InLevel, int32 InInputID, class UObject* InSourceObject)
+	{
+		void (*Fn)(FGameplayAbilitySpec*, class UGameplayAbility*, int32, int32, class UObject*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x18707BC);
+		Fn(this, InAbility, InLevel, InInputID, InSourceObject);
+	}
+
+	~FGameplayAbilitySpec()
+	{
+		void (*Fn)(FGameplayAbilitySpec*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x18712F8);
+		Fn(this);
+	}
 };
 static_assert(alignof(FGameplayAbilitySpec) == 0x000008, "Wrong alignment on FGameplayAbilitySpec");
 static_assert(sizeof(FGameplayAbilitySpec) == 0x0000E0, "Wrong size on FGameplayAbilitySpec");

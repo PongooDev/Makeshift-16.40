@@ -4466,6 +4466,12 @@ public:
 	{
 		return GetDefaultObjImpl<UAthenaCosmeticItemDefinition>();
 	}
+
+public:
+	bool IsCosmeticDenied(class UWorld* World) const
+	{
+		return reinterpret_cast<bool (*)(const UAthenaCosmeticItemDefinition*, class UWorld*)>(InSDKUtils::GetImageBase() + 0x1343538)(this, World);
+	}
 };
 static_assert(alignof(UAthenaCosmeticItemDefinition) == 0x000008, "Wrong alignment on UAthenaCosmeticItemDefinition");
 static_assert(sizeof(UAthenaCosmeticItemDefinition) == 0x0006D0, "Wrong size on UAthenaCosmeticItemDefinition");
@@ -6946,6 +6952,14 @@ public:
 
 	bool ForceEquipValidWeapon();
 	static bool ForceEquipValidWeaponHook(AFortPlayerController* This);
+
+	void ServerPlayEmoteItem_Implementation(const class UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber);
+	static void ServerPlayEmoteItemHook(AFortPlayerController* This, const class UFortMontageItemDefinitionBase* EmoteAsset, float EmoteRandomNumber);
+
+	bool CanProbablyPlayEmote(const class UFortMontageItemDefinitionBase* EmoteAsset) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class UFortMontageItemDefinitionBase*)>(InSDKUtils::GetImageBase() + 0x4C780B0)(this, EmoteAsset);
+	}
 
 	bool HandleItemZeroDurability(struct FGuid ItemGuid)
 	{
@@ -129256,6 +129270,12 @@ public:
 	static class UGameDataCosmetics* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UGameDataCosmetics>();
+	}
+
+public:
+	static const UGameDataCosmetics& Get()
+	{
+		return *reinterpret_cast<const UGameDataCosmetics* (*)()>(InSDKUtils::GetImageBase() + 0x1345DC4)();
 	}
 };
 static_assert(alignof(UGameDataCosmetics) == 0x000008, "Wrong alignment on UGameDataCosmetics");

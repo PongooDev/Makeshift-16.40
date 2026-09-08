@@ -370,6 +370,20 @@ void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController*
 	This->ServerCreateBuildingActor_Implementation(CreateBuildingData);
 }
 
+void AFortPlayerController::ServerBeginEditingBuildingActor_Implementation(ABuildingSMActor* BuildingActorToEdit) {
+	AFortPlayerStateZone* PlayerStateZone = PlayerState ? PlayerState->Cast<AFortPlayerStateZone>() : nullptr;
+	if (!BuildingActorToEdit || !PlayerStateZone || BuildingActorToEdit->IsBeingPlayerEdited() || !IsInEditingRange(BuildingActorToEdit) || !BuildingActorToEdit->CanBePlayerEdited(this)) {
+		ClientFailedToBeginEditingBuildingActor(BuildingActorToEdit);
+		return;
+	}
+
+	BuildingActorToEdit->SetEditingPlayer(PlayerStateZone);
+}
+
+void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerController* This, ABuildingSMActor* BuildingActorToEdit) {
+	This->ServerBeginEditingBuildingActor_Implementation(BuildingActorToEdit);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -378,4 +392,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(552, ServerAcknowledgeDelayedQuickBarActionHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(557, ServerOnMaterialSelectionHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(567, ServerCreateBuildingActorHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(574, ServerBeginEditingBuildingActorHook);
 }

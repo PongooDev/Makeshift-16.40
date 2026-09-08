@@ -5403,6 +5403,22 @@ public:
 	{
 		return GetDefaultObjImpl<ABuildingSMActor>();
 	}
+
+public:
+	bool IsBeingPlayerEdited() const
+	{
+		return reinterpret_cast<bool (*)(const ABuildingSMActor*)>(VTable[218])(this);
+	}
+
+	bool CanBePlayerEdited(class AFortPlayerController* PlayerController) const
+	{
+		return reinterpret_cast<bool (*)(const ABuildingSMActor*, class AFortPlayerController*)>(VTable[378])(this, PlayerController);
+	}
+
+	void SetEditingPlayer(class AFortPlayerStateZone* NewEditingPlayer)
+	{
+		reinterpret_cast<void (*)(ABuildingSMActor*, class AFortPlayerStateZone*)>(VTable[381])(this, NewEditingPlayer);
+	}
 };
 static_assert(alignof(ABuildingSMActor) == 0x000008, "Wrong alignment on ABuildingSMActor");
 static_assert(sizeof(ABuildingSMActor) == 0x000AE0, "Wrong size on ABuildingSMActor");
@@ -6809,6 +6825,14 @@ public:
 	void ServerCreateBuildingActor_Implementation(const struct FCreateBuildingActorData& CreateBuildingData);
 	class ABuildingSMActor* ServerCreateBuildingActorInternal(struct FBuildingClassData BuildingClassData, struct FVector_NetQuantize10 BuildLoc, struct FRotator BuildRot, bool bMirrored, float SyncKey, bool bIgnoreInteractBuildCheck, bool bIgnoreExtraPieceCost, bool bIgnoreBuildingValidityCheck);
 	static void ServerCreateBuildingActorHook(AFortPlayerController* This, const struct FCreateBuildingActorData& CreateBuildingData);
+
+	void ServerBeginEditingBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToEdit);
+	static void ServerBeginEditingBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToEdit);
+
+	bool IsInEditingRange(const class ABuildingActor* ActorToCheck) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class ABuildingActor*)>(InSDKUtils::GetImageBase() + 0x4C8DBAC)(this, ActorToCheck);
+	}
 
 	int16 GetWorldPlayerId() const
 	{

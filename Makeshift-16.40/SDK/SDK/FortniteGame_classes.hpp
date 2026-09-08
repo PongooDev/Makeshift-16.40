@@ -1223,6 +1223,12 @@ public:
 	{
 		return GetDefaultObjImpl<AFortGameStateZone>();
 	}
+
+public:
+	void GetPlayerBuildableClasses(TArray<TSubclassOf<class ABuildingSMActor>>& OutBuildableClasses, const struct FPlayerBuildableClassFilter& ClassFilter) const
+	{
+		reinterpret_cast<void (*)(const AFortGameStateZone*, TArray<TSubclassOf<class ABuildingSMActor>>*, const struct FPlayerBuildableClassFilter*)>(InSDKUtils::GetImageBase() + 0x49705D4)(this, &OutBuildableClasses, &ClassFilter);
+	}
 };
 static_assert(alignof(AFortGameStateZone) == 0x000008, "Wrong alignment on AFortGameStateZone");
 static_assert(sizeof(AFortGameStateZone) == 0x000F68, "Wrong size on AFortGameStateZone");
@@ -5419,6 +5425,16 @@ public:
 	{
 		reinterpret_cast<void (*)(ABuildingSMActor*, class AFortPlayerStateZone*)>(VTable[381])(this, NewEditingPlayer);
 	}
+
+	const class AFortPlayerStateZone* GetEditingPlayer() const
+	{
+		return reinterpret_cast<const class AFortPlayerStateZone* (*)(const ABuildingSMActor*)>(VTable[380])(this);
+	}
+
+	class ABuildingSMActor* ReplaceBuildingActor(EBuildingReplacementType ReplacementType, TSubclassOf<class ABuildingSMActor> ReplacementClass, uint32 ReplacementUpgradeLevel, int32 RotationIterations, bool InbMirrored, class AFortPlayerController* EditingController)
+	{
+		return reinterpret_cast<class ABuildingSMActor* (*)(ABuildingSMActor*, EBuildingReplacementType, class UClass*, uint32, int32, bool, class AFortPlayerController*)>(VTable[376])(this, ReplacementType, ReplacementClass.Get(), ReplacementUpgradeLevel, RotationIterations, InbMirrored, EditingController);
+	}
 };
 static_assert(alignof(ABuildingSMActor) == 0x000008, "Wrong alignment on ABuildingSMActor");
 static_assert(sizeof(ABuildingSMActor) == 0x000AE0, "Wrong size on ABuildingSMActor");
@@ -6828,6 +6844,14 @@ public:
 
 	void ServerBeginEditingBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToEdit);
 	static void ServerBeginEditingBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToEdit);
+
+	void ServerEditBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToEdit, TSubclassOf<class ABuildingSMActor> NewBuildingClass, uint8 RotationIterations, bool bMirrored);
+	static void ServerEditBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToEdit, TSubclassOf<class ABuildingSMActor> NewBuildingClass, uint8 RotationIterations, bool bMirrored);
+
+	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
+	{
+		reinterpret_cast<void (*)(AFortPlayerController*, class ABuildingSMActor*)>(VTable[939])(this, BuildingActorToEdit);
+	}
 
 	bool IsInEditingRange(const class ABuildingActor* ActorToCheck) const
 	{

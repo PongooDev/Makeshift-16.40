@@ -384,6 +384,48 @@ void AFortPlayerController::ServerBeginEditingBuildingActorHook(AFortPlayerContr
 	This->ServerBeginEditingBuildingActor_Implementation(BuildingActorToEdit);
 }
 
+void AFortPlayerController::ServerEditBuildingActor_Implementation(ABuildingSMActor* BuildingActorToEdit, TSubclassOf<ABuildingSMActor> NewBuildingClass, uint8 RotationIterations, bool bMirrored) {
+	AFortPlayerStateZone* PlayerStateZone = PlayerState ? PlayerState->Cast<AFortPlayerStateZone>() : nullptr;
+	if (!BuildingActorToEdit || !PlayerStateZone || BuildingActorToEdit->GetEditingPlayer() != PlayerStateZone) {
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	AFortGameStateZone* GameState = World && World->GameState ? World->GameState->Cast<AFortGameStateZone>() : nullptr;
+	UClass* EditClass = NewBuildingClass.Get();
+	bool bCanEditIntoClass = false;
+	if (GameState && EditClass && EditClass->IsSubclassOf(ABuildingSMActor::StaticClass())) {
+		const ABuildingSMActor* DefaultBuildingActor = static_cast<const ABuildingSMActor*>(BuildingActorToEdit->Class->DefaultObject);
+		FPlayerBuildableClassFilter Filter{};
+		Filter.ResourceType = BuildingActorToEdit->ResourceType;
+		Filter.BuildingType = BuildingActorToEdit->BuildingType;
+		Filter.Level = BuildingActorToEdit->bUpgradeUsesSameClass && DefaultBuildingActor ? DefaultBuildingActor->GetCurrentBuildingLevel() : BuildingActorToEdit->GetCurrentBuildingLevel();
+		Filter.EditModeMetadata = nullptr;
+
+		TArray<TSubclassOf<ABuildingSMActor>> PossibleEditClasses;
+		GameState->GetPlayerBuildableClasses(PossibleEditClasses, Filter);
+		for (int32 Index = 0; Index < PossibleEditClasses.Num(); ++Index) {
+			if (PossibleEditClasses[Index].Get() == EditClass) {
+				bCanEditIntoClass = true;
+				break;
+			}
+		}
+	}
+
+	if (bCanEditIntoClass) {
+		DoEditBuildingActorAnalytics(BuildingActorToEdit);
+		if (BuildingActorToEdit->ReplaceBuildingActor(EBuildingReplacementType::BRT_Edited, EditClass, BuildingActorToEdit->GetCurrentBuildingLevel(), RotationIterations, bMirrored, this)) {
+			return;
+		}
+	}
+
+	BuildingActorToEdit->SetEditingPlayer(nullptr);
+}
+
+void AFortPlayerController::ServerEditBuildingActorHook(AFortPlayerController* This, ABuildingSMActor* BuildingActorToEdit, TSubclassOf<ABuildingSMActor> NewBuildingClass, uint8 RotationIterations, bool bMirrored) {
+	This->ServerEditBuildingActor_Implementation(BuildingActorToEdit, NewBuildingClass, RotationIterations, bMirrored);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -393,4 +435,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(557, ServerOnMaterialSelectionHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(567, ServerCreateBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(574, ServerBeginEditingBuildingActorHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(569, ServerEditBuildingActorHook);
 }

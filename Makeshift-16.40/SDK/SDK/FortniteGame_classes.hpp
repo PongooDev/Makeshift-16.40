@@ -6929,6 +6929,13 @@ public:
 	void ServerDropAllItems_Implementation(const class UFortItemDefinition* IgnoreItemDef);
 	static void ServerDropAllItemsHook(AFortPlayerController* This, const class UFortItemDefinition* IgnoreItemDef);
 
+	void ServerSetInventoryStateValue_Implementation(struct FGuid ItemGuid, struct FFortItemEntryStateValue StateValue);
+	static void ServerSetInventoryStateValueHook(AFortPlayerController* This, const struct FGuid& ItemGuid, const struct FFortItemEntryStateValue& StateValue);
+	void ServerRemoveInventoryStateValue_Implementation(struct FGuid ItemGuid, EFortItemEntryState StateValueType);
+	static void ServerRemoveInventoryStateValueHook(AFortPlayerController* This, const struct FGuid& ItemGuid, EFortItemEntryState StateValueType);
+	void SetInventoryStateValue(struct FGuid ItemGuid, const struct FFortItemEntryStateValue& StateValue);
+	void RemoveInventoryStateValue(struct FGuid ItemGuid, EFortItemEntryState StateValueType);
+
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{
 		reinterpret_cast<void (*)(AFortPlayerController*, class ABuildingSMActor*)>(VTable[939])(this, BuildingActorToEdit);

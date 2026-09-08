@@ -661,6 +661,51 @@ DEFINE_FUNCTION(AFortPlayerController::execTossSpecificItem)
 	P_NATIVE_END;
 }
 
+void AFortPlayerController::SetInventoryStateValue(FGuid ItemGuid, const FFortItemEntryStateValue& StateValue) {
+	if (Role != ENetRole::ROLE_Authority) {
+		ServerSetInventoryStateValue(ItemGuid, StateValue);
+		return;
+	}
+
+	UFortWorldItem* Item = WorldInventory ? WorldInventory->InventoryInterface.GetItem(ItemGuid) : nullptr;
+	if (!Item) {
+		return;
+	}
+
+	Item->ItemEntry.SetStateValue(StateValue);
+	WorldInventory->HandleInventoryLocalUpdate();
+}
+
+void AFortPlayerController::RemoveInventoryStateValue(FGuid ItemGuid, EFortItemEntryState StateValueType) {
+	if (Role != ENetRole::ROLE_Authority) {
+		ServerRemoveInventoryStateValue(ItemGuid, StateValueType);
+		return;
+	}
+
+	UFortWorldItem* Item = WorldInventory ? WorldInventory->InventoryInterface.GetItem(ItemGuid) : nullptr;
+	if (!Item || !Item->ItemEntry.RemoveStateValue(StateValueType)) {
+		return;
+	}
+
+	WorldInventory->HandleInventoryLocalUpdate();
+}
+
+void AFortPlayerController::ServerSetInventoryStateValue_Implementation(FGuid ItemGuid, FFortItemEntryStateValue StateValue) {
+	SetInventoryStateValue(ItemGuid, StateValue);
+}
+
+void AFortPlayerController::ServerSetInventoryStateValueHook(AFortPlayerController* This, const FGuid& ItemGuid, const FFortItemEntryStateValue& StateValue) {
+	This->ServerSetInventoryStateValue_Implementation(ItemGuid, StateValue);
+}
+
+void AFortPlayerController::ServerRemoveInventoryStateValue_Implementation(FGuid ItemGuid, EFortItemEntryState StateValueType) {
+	RemoveInventoryStateValue(ItemGuid, StateValueType);
+}
+
+void AFortPlayerController::ServerRemoveInventoryStateValueHook(AFortPlayerController* This, const FGuid& ItemGuid, EFortItemEntryState StateValueType) {
+	This->ServerRemoveInventoryStateValue_Implementation(ItemGuid, StateValueType);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -681,4 +726,6 @@ void AFortPlayerController::Init() {
 	Memory::HookDetour(ImageBase + 0x51315A8, execDropAllItems, nullptr);
 	Memory::HookDetour(ImageBase + 0x3BEFE48, execDropSpecificItem, nullptr);
 	Memory::HookDetour(ImageBase + 0x513D47C, execTossSpecificItem, nullptr);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(524, ServerSetInventoryStateValueHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(522, ServerRemoveInventoryStateValueHook);
 }

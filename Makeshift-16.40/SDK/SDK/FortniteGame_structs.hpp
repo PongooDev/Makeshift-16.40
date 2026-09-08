@@ -20790,6 +20790,36 @@ public:
 		Fn(this);
 	}
 
+	void SetStateValue(const FFortItemEntryStateValue& StateValue)
+	{
+		for (int32 Index = 0; Index < StateValues.Num(); ++Index)
+		{
+			if (StateValues[Index].StateType == StateValue.StateType)
+			{
+				StateValues[Index].IntValue = StateValue.IntValue;
+				StateValues[Index].NameValue = StateValue.NameValue;
+				SetToDirty();
+				return;
+			}
+		}
+		StateValues.Add(StateValue);
+		SetToDirty();
+	}
+
+	bool RemoveStateValue(EFortItemEntryState StateType)
+	{
+		for (int32 Index = 0; Index < StateValues.Num(); ++Index)
+		{
+			if (StateValues[Index].StateType == StateType)
+			{
+				StateValues.RemoveAt(Index);
+				SetToDirty();
+				return true;
+			}
+		}
+		return false;
+	}
+
 	void SetPickupVariantIndex(int32 NewValue)
 	{
 		if (NewValue != PickupVariantIndex)

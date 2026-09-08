@@ -464,6 +464,70 @@ void AFortPlayerController::ServerUpgradeBuildingActorHook(AFortPlayerController
 	This->ServerUpgradeBuildingActor_Implementation(BuildingActorToUpgrade, NewUpgradeLevel);
 }
 
+void AFortPlayerController::DropItemsOnPawnDestruction(EPawnDestructionReason DestructionReason, const FGameplayTagContainer& ContextualTags, AFortPawn* DestructionPawn, bool& bOutDroppedBackpack) {
+	bOutDroppedBackpack = false;
+	if (Role != ENetRole::ROLE_Authority || !ShouldDropItemsBasedOnTags(DestructionReason, ContextualTags)) {
+		return;
+	}
+
+	AFortPlayerPawn* DeadPawn = DestructionPawn ? DestructionPawn->Cast<AFortPlayerPawn>() : nullptr;
+	if (DeadPawn) {
+		bOutDroppedBackpack = HandleBackpackDrop(DeadPawn);
+	}
+}
+
+void AFortPlayerController::DropItemsOnPawnDestructionHook(AFortPlayerController* This, EPawnDestructionReason DestructionReason, const FGameplayTagContainer& ContextualTags, AFortPawn* DestructionPawn, bool& bOutDroppedBackpack) {
+	This->DropItemsOnPawnDestruction(DestructionReason, ContextualTags, DestructionPawn, bOutDroppedBackpack);
+}
+
+void AFortPlayerController::DropItemsAsPickupsAsync(TArray<UFortWorldItem*>& ItemsToDropViaPickup, AFortPawn* DestructionPawn) {
+	if (ItemsToDropViaPickup.Num() <= 0) {
+		return;
+	}
+
+	QueuedItemsToDrop.DestructionPawn = DestructionPawn;
+	QueuedItemsToDrop.TotalNumItemsToDrop = ItemsToDropViaPickup.Num();
+	QueuedItemsToDrop.ItemsToDrop = ItemsToDropViaPickup;
+	DropItemsAsPickups(QueuedItemsToDrop.ItemsToDrop, QueuedItemsToDrop.DestructionPawn, this, QueuedItemsToDrop.TotalNumItemsToDrop, QueuedItemsToDrop.TotalNumItemsToDrop);
+	QueuedItemsToDrop.ItemsToDrop.Empty();
+	QueuedItemsToDrop.TotalNumItemsToDrop = 0;
+	QueuedItemsToDrop.DestructionPawn = nullptr;
+}
+
+void AFortPlayerController::DropItemsAsPickupsAsyncHook(AFortPlayerController* This, TArray<UFortWorldItem*>& ItemsToDropViaPickup, AFortPawn* DestructionPawn) {
+	This->DropItemsAsPickupsAsync(ItemsToDropViaPickup, DestructionPawn);
+}
+
+void AFortPlayerController::DropItemsAsPickups(TArray<UFortWorldItem*>& ItemsToDropViaPickup, AFortPawn* DestructionPawn, AFortPlayerController* InFortPlayerController, int32 NumToDrop, int32 OriginalTotalNumItems) {
+	UWorld* World = GetWorld();
+	const int32 NumToDropNow = FMath::Min(NumToDrop, ItemsToDropViaPickup.Num());
+	if (!World || !DestructionPawn || !InFortPlayerController || NumToDropNow <= 0) {
+		return;
+	}
+
+	const FVector DropLocation = DestructionPawn->GetActorLocation();
+	for (int32 Index = 0; Index < NumToDropNow; ++Index) {
+		UFortWorldItem* Item = ItemsToDropViaPickup[Index];
+		if (!Item) {
+			continue;
+		}
+
+		FFortPickupCreationData CreationData(World, Item->ItemEntry, DropLocation, FRotator::ZeroRotator, nullptr, nullptr, nullptr);
+		AFortPickup* Pickup = AFortPickup::CreateFromData(CreationData);
+		InFortPlayerController->RemoveInventoryItem(Item->ItemEntry.ItemGuid, Item->ItemEntry.Count, false, true, false);
+		if (Pickup) {
+			Pickup->TossPickup(DropLocation, DestructionPawn, 0, true, true, EFortPickupSourceTypeFlag::Player, EFortPickupSpawnSource::PlayerElimination);
+		}
+	}
+
+	ItemsToDropViaPickup.RemoveAt(0, NumToDropNow);
+}
+
+void AFortPlayerController::DropItemsAsPickupsHook(IFortInventoryOwnerInterface* This, TArray<UFortWorldItem*>& ItemsToDropViaPickup, AFortPawn* DestructionPawn, AFortPlayerController* InFortPlayerController, int32 NumToDrop, int32 OriginalTotalNumItems) {
+	AFortPlayerController* PlayerController = reinterpret_cast<AFortPlayerController*>(reinterpret_cast<uint8*>(This) - offsetof(AFortPlayerController, InventoryOwnerInterface));
+	PlayerController->DropItemsAsPickups(ItemsToDropViaPickup, DestructionPawn, InFortPlayerController, NumToDrop, OriginalTotalNumItems);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -477,4 +541,7 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(572, ServerEndEditingBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(563, ServerRepairBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(565, ServerUpgradeBuildingActorHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(17, DropItemsAsPickupsHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(891, DropItemsOnPawnDestructionHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(893, DropItemsAsPickupsAsyncHook);
 }

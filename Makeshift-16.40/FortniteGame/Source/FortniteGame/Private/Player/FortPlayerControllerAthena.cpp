@@ -81,6 +81,53 @@ void AFortPlayerControllerAthena::ServerAcknowledgePossessionHook(AFortPlayerCon
 	This->ServerAcknowledgePossession_Implementation(P);
 }
 
+void AFortPlayerControllerAthena::DropItemsOnPawnDestruction(EPawnDestructionReason DestructionReason, const FGameplayTagContainer& ContextualTags, AFortPawn* DestructionPawn, bool& bOutDroppedBackpack) {
+	bOutDroppedBackpack = false;
+	if (Role != ENetRole::ROLE_Authority || !WorldInventory || !ShouldDropItemsBasedOnTags(DestructionReason, ContextualTags)) {
+		return;
+	}
+
+	AFortPawn* DropPawn = DestructionPawn ? DestructionPawn : MyFortPawn;
+	TArray<UFortWorldItem*> ItemsToDropViaPickup;
+	TArray<UFortWorldItem*> ItemsToDestroy;
+	const TArray<UFortWorldItem*>& ItemInstances = WorldInventory->Inventory.ItemInstances;
+	for (int32 Index = 0; Index < ItemInstances.Num(); ++Index) {
+		UFortWorldItem* Item = ItemInstances[Index];
+		const UFortItemDefinition* ItemDefinition = Item ? Item->GetItemDefinition() : nullptr;
+		if (!ItemDefinition || !ItemDefinition->IsA(UFortWorldItemDefinition::StaticClass())) {
+			continue;
+		}
+
+		const UFortWorldItemDefinition* WorldItemDefinition = static_cast<const UFortWorldItemDefinition*>(ItemDefinition);
+		bool bShouldDrop = ShouldAlwaysDropItemOnDeathOrLogout(*Item, false);
+		bool bShouldDestroy = false;
+		ShouldDropOrDestroyByItemType(WorldItemDefinition, bShouldDrop, bShouldDestroy);
+		if (DestructionReason == EPawnDestructionReason::Death ? WorldItemDefinition->bDropOnDeath : WorldItemDefinition->bDropOnLogout) {
+			bShouldDrop = true;
+		}
+
+		if (bShouldDrop && DropPawn) {
+			ItemsToDropViaPickup.Add(Item);
+		} else if (bShouldDestroy) {
+			ItemsToDestroy.Add(Item);
+		}
+	}
+
+	if (ItemsToDropViaPickup.Num() > 0) {
+		DropItemsAsPickupsAsync(ItemsToDropViaPickup, DropPawn);
+	}
+
+	for (int32 Index = 0; Index < ItemsToDestroy.Num(); ++Index) {
+		UFortWorldItem* Item = ItemsToDestroy[Index];
+		RemoveInventoryItem(Item->ItemEntry.ItemGuid, Item->ItemEntry.Count, false, true, false);
+	}
+}
+
+void AFortPlayerControllerAthena::DropItemsOnPawnDestructionHook(AFortPlayerControllerAthena* This, EPawnDestructionReason DestructionReason, const FGameplayTagContainer& ContextualTags, AFortPawn* DestructionPawn, bool& bOutDroppedBackpack) {
+	This->DropItemsOnPawnDestruction(DestructionReason, ContextualTags, DestructionPawn, bOutDroppedBackpack);
+}
+
 void AFortPlayerControllerAthena::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerControllerAthena>(275, ServerAcknowledgePossessionHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerControllerAthena>(891, DropItemsOnPawnDestructionHook);
 }

@@ -6114,6 +6114,11 @@ public:
 	{
 		return reinterpret_cast<int32 (*)(IFortInventoryOwnerInterface*, const struct FFortItemEntry*, bool, bool)>(VTable[46])(this, &ItemDescription, bIsClassItem, bFromPickup);
 	}
+
+	void DropItemsAsPickups(TArray<class UFortWorldItem*>& ItemsToDropViaPickup, class AFortPawn* DestructionPawn, class AFortPlayerController* InFortPlayerController, int32 NumToDrop, int32 OriginalTotalNumItems)
+	{
+		reinterpret_cast<void (*)(IFortInventoryOwnerInterface*, TArray<class UFortWorldItem*>*, class AFortPawn*, class AFortPlayerController*, int32, int32)>(VTable[17])(this, &ItemsToDropViaPickup, DestructionPawn, InFortPlayerController, NumToDrop, OriginalTotalNumItems);
+	}
 };
 
 // Class FortniteGame.FortPlayerController
@@ -6876,6 +6881,39 @@ public:
 
 	void ServerUpgradeBuildingActor_Implementation(class ABuildingActor* BuildingActorToUpgrade, int32 NewUpgradeLevel);
 	static void ServerUpgradeBuildingActorHook(AFortPlayerController* This, class ABuildingActor* BuildingActorToUpgrade, int32 NewUpgradeLevel);
+
+	enum class EPawnDestructionReason
+	{
+		Death,
+		Logout,
+	};
+
+	void DropItemsOnPawnDestruction(EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags, class AFortPawn* DestructionPawn, bool& bOutDroppedBackpack);
+	static void DropItemsOnPawnDestructionHook(AFortPlayerController* This, EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags, class AFortPawn* DestructionPawn, bool& bOutDroppedBackpack);
+	void DropItemsAsPickupsAsync(TArray<class UFortWorldItem*>& ItemsToDropViaPickup, class AFortPawn* DestructionPawn);
+	static void DropItemsAsPickupsAsyncHook(AFortPlayerController* This, TArray<class UFortWorldItem*>& ItemsToDropViaPickup, class AFortPawn* DestructionPawn);
+	void DropItemsAsPickups(TArray<class UFortWorldItem*>& ItemsToDropViaPickup, class AFortPawn* DestructionPawn, AFortPlayerController* InFortPlayerController, int32 NumToDrop, int32 OriginalTotalNumItems);
+	static void DropItemsAsPickupsHook(class IFortInventoryOwnerInterface* This, TArray<class UFortWorldItem*>& ItemsToDropViaPickup, class AFortPawn* DestructionPawn, AFortPlayerController* InFortPlayerController, int32 NumToDrop, int32 OriginalTotalNumItems);
+
+	bool ShouldDropItemsBasedOnTags(EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags)
+	{
+		return reinterpret_cast<bool (*)(AFortPlayerController*, EPawnDestructionReason, const struct FGameplayTagContainer*)>(VTable[892])(this, DestructionReason, &ContextualTags);
+	}
+
+	void ShouldDropOrDestroyByItemType(const class UFortWorldItemDefinition* ItemDefinition, bool& bShouldDrop, bool& bShouldDestroy)
+	{
+		reinterpret_cast<void (*)(AFortPlayerController*, const class UFortWorldItemDefinition*, bool*, bool*)>(VTable[894])(this, ItemDefinition, &bShouldDrop, &bShouldDestroy);
+	}
+
+	bool HandleBackpackDrop(class AFortPlayerPawn* DeadPawn)
+	{
+		return reinterpret_cast<bool (*)(AFortPlayerController*, class AFortPlayerPawn*)>(VTable[900])(this, DeadPawn);
+	}
+
+	bool ShouldAlwaysDropItemOnDeathOrLogout(const class UFortWorldItem& Item, bool bIgnoreItemMutators) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class UFortWorldItem*, bool)>(VTable[978])(this, &Item, bIgnoreItemMutators);
+	}
 
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{
@@ -20290,6 +20328,9 @@ public:
 
 	void ServerAcknowledgePossession_Implementation(class APawn* P);
 	static void ServerAcknowledgePossessionHook(AFortPlayerControllerAthena* This, class APawn* P);
+
+	void DropItemsOnPawnDestruction(EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags, class AFortPawn* DestructionPawn, bool& bOutDroppedBackpack);
+	static void DropItemsOnPawnDestructionHook(AFortPlayerControllerAthena* This, EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags, class AFortPawn* DestructionPawn, bool& bOutDroppedBackpack);
 
 	static void Init();
 };

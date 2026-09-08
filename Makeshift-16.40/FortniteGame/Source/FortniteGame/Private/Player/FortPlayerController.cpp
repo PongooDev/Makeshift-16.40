@@ -439,6 +439,19 @@ void AFortPlayerController::ServerEndEditingBuildingActorHook(AFortPlayerControl
 	This->ServerEndEditingBuildingActor_Implementation(BuildingActorToStopEditing);
 }
 
+void AFortPlayerController::ServerRepairBuildingActor_Implementation(ABuildingSMActor* BuildingActorToRepair) {
+	if (!BuildingActorToRepair || !BuildingActorToRepair->NeedsRepair() || !CanAffordToRepair(BuildingActorToRepair)) {
+		return;
+	}
+
+	const int32 ResourcesSpent = PayBuildingRepairCost(BuildingActorToRepair);
+	BuildingActorToRepair->RepairBuilding(this, ResourcesSpent);
+}
+
+void AFortPlayerController::ServerRepairBuildingActorHook(AFortPlayerController* This, ABuildingSMActor* BuildingActorToRepair) {
+	This->ServerRepairBuildingActor_Implementation(BuildingActorToRepair);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -450,4 +463,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(574, ServerBeginEditingBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(569, ServerEditBuildingActorHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(572, ServerEndEditingBuildingActorHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(563, ServerRepairBuildingActorHook);
 }

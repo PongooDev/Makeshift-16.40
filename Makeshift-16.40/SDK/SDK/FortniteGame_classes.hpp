@@ -5431,6 +5431,11 @@ public:
 		return reinterpret_cast<const class AFortPlayerStateZone* (*)(const ABuildingSMActor*)>(VTable[380])(this);
 	}
 
+	bool NeedsRepair() const
+	{
+		return reinterpret_cast<bool (*)(const ABuildingSMActor*)>(VTable[396])(this);
+	}
+
 	class ABuildingSMActor* ReplaceBuildingActor(EBuildingReplacementType ReplacementType, TSubclassOf<class ABuildingSMActor> ReplacementClass, uint32 ReplacementUpgradeLevel, int32 RotationIterations, bool InbMirrored, class AFortPlayerController* EditingController)
 	{
 		return reinterpret_cast<class ABuildingSMActor* (*)(ABuildingSMActor*, EBuildingReplacementType, class UClass*, uint32, int32, bool, class AFortPlayerController*)>(VTable[376])(this, ReplacementType, ReplacementClass.Get(), ReplacementUpgradeLevel, RotationIterations, InbMirrored, EditingController);
@@ -6850,6 +6855,19 @@ public:
 
 	void ServerEndEditingBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToStopEditing);
 	static void ServerEndEditingBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToStopEditing);
+
+	void ServerRepairBuildingActor_Implementation(class ABuildingSMActor* BuildingActorToRepair);
+	static void ServerRepairBuildingActorHook(AFortPlayerController* This, class ABuildingSMActor* BuildingActorToRepair);
+
+	bool CanAffordToRepair(const class ABuildingSMActor* BuildingActor) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*, const class ABuildingSMActor*)>(VTable[841])(this, BuildingActor);
+	}
+
+	int32 PayBuildingRepairCost(class ABuildingSMActor* BuildingActor)
+	{
+		return reinterpret_cast<int32 (*)(AFortPlayerController*, class ABuildingSMActor*)>(VTable[853])(this, BuildingActor);
+	}
 
 	void DoEditBuildingActorAnalytics(class ABuildingSMActor* BuildingActorToEdit)
 	{

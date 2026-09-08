@@ -76,25 +76,29 @@ UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& It
 	return LastItem;
 }
 
-int32 AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Count, bool bForceRemoval) {
+bool AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Count, bool bForceRemoveFromQuickBars, bool bForceRemoval, bool bForcePersistWhenEmpty) {
 	if (!WorldInventory) {
-		return 0;
+		return false;
 	}
 
 	UFortWorldItem* Item = WorldInventory->InventoryInterface.GetItem(ItemGuid);
 	if (!Item) {
-		return 0;
+		return false;
 	}
 
 	const int32 CurrentCount = Item->ItemEntry.Count;
 	const int32 CountToRemove = Count < 0 ? CurrentCount : FMath::Min(Count, CurrentCount);
 	if (CountToRemove <= 0) {
-		return 0;
+		return false;
 	}
 
 	UFortItemDefinition* ItemDefinition = Item->ItemEntry.ItemDefinition;
 	UFortWorldItemDefinition* WorldItemDefinition = ItemDefinition ? ItemDefinition->Cast<UFortWorldItemDefinition>() : nullptr;
-	const bool bKeepEmptyStack = !bForceRemoval && WorldItemDefinition && WorldItemDefinition->bPersistInInventoryWhenFinalStackEmpty;
+	const bool bKeepEmptyStack = !bForceRemoval && (bForcePersistWhenEmpty || (WorldItemDefinition && WorldItemDefinition->bPersistInInventoryWhenFinalStackEmpty));
+
+	if (bForceRemoveFromQuickBars) {
+		AddDelayedQuickBarAction(EFortDelayedQuickBarAction::Remove, Item, EFortQuickBars::Max_None, INDEX_NONE, false);
+	}
 
 	if (CountToRemove < CurrentCount || bKeepEmptyStack) {
 		Item->SetNumInStack(CurrentCount - CountToRemove, false);
@@ -108,7 +112,22 @@ int32 AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Co
 
 	WorldInventory->HandleInventoryLocalUpdate();
 
-	return CountToRemove;
+	return true;
+}
+
+int32 AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Count, bool bForceRemoval) {
+	UFortWorldItem* Item = WorldInventory ? WorldInventory->InventoryInterface.GetItem(ItemGuid) : nullptr;
+	if (!Item) {
+		return 0;
+	}
+
+	const int32 CountToRemove = Count < 0 ? Item->ItemEntry.Count : FMath::Min(Count, Item->ItemEntry.Count);
+	return RemoveInventoryItem(ItemGuid, CountToRemove, false, bForceRemoval, false) ? CountToRemove : 0;
+}
+
+bool AFortPlayerController::RemoveInventoryItemHook(IFortInventoryOwnerInterface* This, const FGuid& ItemGuid, int32 Count, bool bForceRemoveFromQuickBars, bool bForceRemoval, bool bForcePersistWhenEmpty) {
+	AFortPlayerController* PlayerController = reinterpret_cast<AFortPlayerController*>(reinterpret_cast<uint8*>(This) - offsetof(AFortPlayerController, InventoryOwnerInterface));
+	return PlayerController->RemoveInventoryItem(ItemGuid, Count, bForceRemoveFromQuickBars, bForceRemoval, bForcePersistWhenEmpty);
 }
 
 void AFortPlayerController::ServerExecuteInventoryItem_Implementation(const FGuid& ItemGuid) {
@@ -263,6 +282,7 @@ void AFortPlayerController::ServerOnMaterialSelectionHook(AFortPlayerController*
 }
 
 void AFortPlayerController::Init() {
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(548, ServerAttemptInventoryDropHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(550, ServerCombineInventoryItemsHook);

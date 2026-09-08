@@ -6762,6 +6762,9 @@ public:
 	class UFortWorldItem* AddInventoryItem(const struct FFortItemEntry& ItemEntry, bool bResetRegenCooldown);
 	int32 RemoveInventoryItem(const struct FGuid& ItemGuid, int32 Count, bool bForceRemoval);
 
+	bool RemoveInventoryItem(const struct FGuid& ItemGuid, int32 Count, bool bForceRemoveFromQuickBars, bool bForceRemoval, bool bForcePersistWhenEmpty);
+	static bool RemoveInventoryItemHook(class IFortInventoryOwnerInterface* This, const struct FGuid& ItemGuid, int32 Count, bool bForceRemoveFromQuickBars, bool bForceRemoval, bool bForcePersistWhenEmpty);
+
 	void ServerExecuteInventoryItem_Implementation(const struct FGuid& ItemGuid);
 	static void ServerExecuteInventoryItemHook(AFortPlayerController* This, const struct FGuid& ItemGuid);
 

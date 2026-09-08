@@ -346,6 +346,26 @@ public:
 		}
 	}
 
+	template<typename T>
+	static void SwapVTableEntryInAllSubClasses(uint32_t Idx, void* Detour, uintptr_t VTableOffset)
+	{
+		auto BigC = T::StaticClass();
+		for (int i = 0; i < UObject::GObjects->Num(); ++i)
+		{
+			auto Obj = UObject::GObjects->GetByIndex(i);
+			if (Obj)
+			{
+				if (Obj->IsDefaultObject())
+				{
+					if (Obj->IsA(BigC))
+					{
+						HookVTable(reinterpret_cast<uint8_t*>(Obj) + VTableOffset, Idx, Detour, 0);
+					}
+				}
+			}
+		}
+	}
+
 	static bool PatchBytes(void* address, const void* bytes, size_t size)
 	{
 		if (!address || !bytes || size == 0)

@@ -3533,6 +3533,32 @@ public:
 	{
 		return GetDefaultObjImpl<ABuildingActor>();
 	}
+
+public:
+	static class ABuildingSMActor* SpawnBuilding(class UWorld* World, class UClass* BuildingClass, const struct FVector& Location, const struct FRotator& Rotation, const ::FActorSpawnParameters& SpawnParameters)
+	{
+		return reinterpret_cast<class ABuildingSMActor* (*)(class UWorld*, class UClass*, const struct FVector*, const struct FRotator*, const ::FActorSpawnParameters*)>(InSDKUtils::GetImageBase() + 0x42D3A5C)(World, BuildingClass, &Location, &Rotation, &SpawnParameters);
+	}
+
+	void SetCurrentBuildingLevel(int32 NewBuildingLevel)
+	{
+		reinterpret_cast<void (*)(ABuildingActor*, int32)>(VTable[208])(this, NewBuildingLevel);
+	}
+
+	void Die(struct FGameplayTag DeathCause, class AController* Instigator, class AActor* DamageCauser, const struct FGameplayEffectContextHandle* EffectContext)
+	{
+		reinterpret_cast<void (*)(ABuildingActor*, struct FGameplayTag, class AController*, class AActor*, const struct FGameplayEffectContextHandle*)>(VTable[271])(this, DeathCause, Instigator, DamageCauser, EffectContext);
+	}
+
+	void InitializeBuildingActor(EFortBuildingInitializationReason Reason, int16 InOwnerPersistentID, class ABuildingActor* BuildingOwner, const class ABuildingActor* ReplacedBuilding, bool bForcePlayBuildUpAnim)
+	{
+		reinterpret_cast<void (*)(ABuildingActor*, EFortBuildingInitializationReason, int16, class ABuildingActor*, const class ABuildingActor*, bool)>(VTable[276])(this, Reason, InOwnerPersistentID, BuildingOwner, ReplacedBuilding, bForcePlayBuildUpAnim);
+	}
+
+	void PostInitializeSpawnedBuildingActor(EFortBuildingInitializationReason Reason)
+	{
+		reinterpret_cast<void (*)(ABuildingActor*, EFortBuildingInitializationReason)>(VTable[277])(this, Reason);
+	}
 };
 static_assert(alignof(ABuildingActor) == 0x000008, "Wrong alignment on ABuildingActor");
 static_assert(sizeof(ABuildingActor) == 0x0005B0, "Wrong size on ABuildingActor");
@@ -6779,6 +6805,50 @@ public:
 
 	void ServerOnMaterialSelection_Implementation(EFortResourceType NewResourceType, EFortResourceLevel NewResourceLevel);
 	static void ServerOnMaterialSelectionHook(AFortPlayerController* This, EFortResourceType NewResourceType, EFortResourceLevel NewResourceLevel);
+
+	void ServerCreateBuildingActor_Implementation(const struct FCreateBuildingActorData& CreateBuildingData);
+	class ABuildingSMActor* ServerCreateBuildingActorInternal(struct FBuildingClassData BuildingClassData, struct FVector_NetQuantize10 BuildLoc, struct FRotator BuildRot, bool bMirrored, float SyncKey, bool bIgnoreInteractBuildCheck, bool bIgnoreExtraPieceCost, bool bIgnoreBuildingValidityCheck);
+	static void ServerCreateBuildingActorHook(AFortPlayerController* This, const struct FCreateBuildingActorData& CreateBuildingData);
+
+	int16 GetWorldPlayerId() const
+	{
+		return static_cast<int16>(reinterpret_cast<int32 (*)(const AFortPlayerController*)>(InSDKUtils::GetImageBase() + 0x1C67740)(this));
+	}
+
+	void BuildExtraPieceForSupport(class UWorld* const World, TSubclassOf<class ABuildingSMActor> SMActorClass, const struct FVector_NetQuantize10& BuildLoc, const struct FRotator& BuildRot, bool bMirrored, uint8 UpgradeLevel)
+	{
+		reinterpret_cast<void (*)(AFortPlayerController*, class UWorld*, class UClass*, const struct FVector*, const struct FRotator*, bool, uint8)>(InSDKUtils::GetImageBase() + 0x4C76C94)(this, World, SMActorClass.Get(), &BuildLoc, &BuildRot, bMirrored, UpgradeLevel);
+	}
+
+	bool CanPerformNativeAction(const struct FGameplayTag& NativeActionTag) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*, const struct FGameplayTag*)>(VTable[720])(this, &NativeActionTag);
+	}
+
+	bool CanAffordToPlaceBuildableClass(struct FBuildingClassData BuildingClassData)
+	{
+		return reinterpret_cast<bool (*)(AFortPlayerController*, struct FBuildingClassData*)>(VTable[840])(this, &BuildingClassData);
+	}
+
+	bool IsBuildingRestricted(const struct FBuildingClassData& BuildingClassData, const struct FVector& BuildLoc, const struct FRotator& BuildRot) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*, const struct FBuildingClassData*, const struct FVector*, const struct FRotator*)>(VTable[842])(this, &BuildingClassData, &BuildLoc, &BuildRot);
+	}
+
+	int32 PayBuildableClassPlacementCost(struct FBuildingClassData BuildingClassData)
+	{
+		return reinterpret_cast<int32 (*)(AFortPlayerController*, struct FBuildingClassData*)>(VTable[852])(this, &BuildingClassData);
+	}
+
+	EFortStructuralGridQueryResults CanPlaceBuildableClassInStructuralGrid(TSubclassOf<class ABuildingSMActor> SMActorClass, const struct FVector& BuildLoc, const struct FRotator& BuildRot, bool bMirrored, TArray<class ABuildingActor*>& ExistingBuildings, EFortBuildPreviewMarkerOptionalAdjustment& OutBuildPreviewMarkerOptionalAdjustment) const
+	{
+		return reinterpret_cast<EFortStructuralGridQueryResults (*)(const AFortPlayerController*, class UClass*, const struct FVector*, const struct FRotator*, bool, TArray<class ABuildingActor*>*, EFortBuildPreviewMarkerOptionalAdjustment*)>(VTable[855])(this, SMActorClass.Get(), &BuildLoc, &BuildRot, bMirrored, &ExistingBuildings, &OutBuildPreviewMarkerOptionalAdjustment);
+	}
+
+	bool ShouldDestroyBuildingsOnPlacement() const
+	{
+		return reinterpret_cast<bool (*)(const AFortPlayerController*)>(VTable[895])(this);
+	}
 
 	void AddDelayedQuickBarAction(EFortDelayedQuickBarAction Action, const class UFortItem* Item, EFortQuickBars QuickBarType, int32 QuickBarSlot, bool bForceExecution);
 	void AddDelayedQuickBarAction(struct FDelayedQuickBarAction DelayedAction);
@@ -56693,6 +56763,9 @@ public:
 	static APawn* SpawnDefaultPawnForHook(AFortGameModeAthena* This, AController* NewPlayer, AActor* StartSpot);
 
 	static inline void (*InitGameStateOG)(AFortGameModeAthena* This);
+
+	static void PostLoginHook(AFortGameModeAthena* This, class APlayerController* NewPlayer);
+	static inline void (*PostLoginOG)(AFortGameModeAthena* This, class APlayerController* NewPlayer);
 	static void InitGameStateHook(AFortGameModeAthena* This);
 
 	int32 CountReadyPlayers() {
@@ -59760,6 +59833,17 @@ public:
 	{
 		void (*Fn)(AFortPlayerPawn*, const struct FGuid*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4C6CF24);
 		Fn(this, &WeaponItemGuid, bSetWeaponAttachment);
+	}
+
+public:
+	void OnBlueprintPlace()
+	{
+		reinterpret_cast<void (*)(AFortPlayerPawn*)>(InSDKUtils::GetImageBase() + 0x4C62A48)(this);
+	}
+
+	void ResetSpawnImmunityTime()
+	{
+		reinterpret_cast<void (*)(AFortPlayerPawn*)>(VTable[327])(this);
 	}
 };
 static_assert(alignof(AFortPlayerPawn) == 0x000010, "Wrong alignment on AFortPlayerPawn");
@@ -95226,6 +95310,12 @@ public:
 	static class UFortGlobals* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortGlobals>();
+	}
+
+public:
+	static const ::FFortGlobalGameplayTags& GameplayTags()
+	{
+		return *reinterpret_cast<const ::FFortGlobalGameplayTags* (*)()>(InSDKUtils::GetImageBase() + 0x10D1BA4)();
 	}
 };
 static_assert(alignof(UFortGlobals) == 0x000008, "Wrong alignment on UFortGlobals");

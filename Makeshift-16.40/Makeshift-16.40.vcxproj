@@ -300,6 +300,7 @@
     <ClInclude Include="Engine\Plugins\Runtime\GameplayAbilities\Source\GameplayAbilities\Public\Abilities\GameplayAbilityTypes.h" />
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortPickup.h" />
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortAssets.h" />
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortGlobals.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectGlobals.h" />
     <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\CommonConversationRuntimeLogging.h" />
     <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\ConversationTypes.h" />

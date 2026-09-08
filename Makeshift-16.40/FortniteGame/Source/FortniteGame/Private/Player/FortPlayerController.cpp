@@ -1,4 +1,6 @@
 #include "pch.h"
+#include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
+#include "FortniteGame/Source/FortniteGame/Public/FortGlobals.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortPickup.h"
 
 UFortWorldItem* AFortPlayerController::AddInventoryItem(const FFortItemEntry& ItemEntry, bool bResetRegenCooldown) {
@@ -281,6 +283,93 @@ void AFortPlayerController::ServerOnMaterialSelectionHook(AFortPlayerController*
 	This->ServerOnMaterialSelection_Implementation(NewResourceType, NewResourceLevel);
 }
 
+void AFortPlayerController::ServerCreateBuildingActor_Implementation(const FCreateBuildingActorData& CreateBuildingData) {
+	UWorld* World = GetWorld();
+	AFortGameStateZone* GameState = World && World->GameState ? World->GameState->Cast<AFortGameStateZone>() : nullptr;
+	if (!GameState) {
+		return;
+	}
+
+	FBuildingClassData BuildingClassData = CreateBuildingData.BuildingClassData;
+	const int32 BuildingClassHandle = static_cast<int32>(CreateBuildingData.BuildingClassHandle);
+	if (BuildingClassHandle >= 0 && BuildingClassHandle < GameState->AllPlayerBuildableClasses.Num()) {
+		BuildingClassData.BuildingClass = GameState->AllPlayerBuildableClasses[BuildingClassHandle];
+	}
+
+	ServerCreateBuildingActorInternal(BuildingClassData, CreateBuildingData.BuildLoc, CreateBuildingData.BuildRot, CreateBuildingData.bMirrored, CreateBuildingData.SyncKey, false, false, false);
+}
+
+ABuildingSMActor* AFortPlayerController::ServerCreateBuildingActorInternal(FBuildingClassData BuildingClassData, FVector_NetQuantize10 BuildLoc, FRotator BuildRot, bool bMirrored, float SyncKey, bool bIgnoreInteractBuildCheck, bool bIgnoreExtraPieceCost, bool bIgnoreBuildingValidityCheck) {
+	UWorld* World = GetWorld();
+	UClass* BuildingClass = BuildingClassData.BuildingClass.Get();
+	if (!World || !BuildingClass || !BuildingClass->IsSubclassOf(ABuildingSMActor::StaticClass())) {
+		return nullptr;
+	}
+
+	const FFortGlobalGameplayTags& GameplayTags = UFortGlobals::GameplayTags();
+	if (!bIgnoreInteractBuildCheck && !CanPerformNativeAction(GameplayTags.ActionPlayerInteractBuild)) {
+		return nullptr;
+	}
+
+	if (!bIgnoreBuildingValidityCheck && IsBuildingRestricted(BuildingClassData, BuildLoc, BuildRot)) {
+		return nullptr;
+	}
+
+	TArray<ABuildingActor*> ExistingBuildings;
+	EFortBuildPreviewMarkerOptionalAdjustment BuildPreviewMarkerOptionalAdjustment = EFortBuildPreviewMarkerOptionalAdjustment::None;
+	if (CanPlaceBuildableClassInStructuralGrid(BuildingClass, BuildLoc, BuildRot, bMirrored, ExistingBuildings, BuildPreviewMarkerOptionalAdjustment) != EFortStructuralGridQueryResults::CanAdd) {
+		return nullptr;
+	}
+
+	if (!CanAffordToPlaceBuildableClass(BuildingClassData)) {
+		return nullptr;
+	}
+
+	if (ShouldDestroyBuildingsOnPlacement()) {
+		for (int32 Index = 0; Index < ExistingBuildings.Num(); ++Index) {
+			ABuildingActor* ExistingBuilding = ExistingBuildings[Index];
+			if (ExistingBuilding && ExistingBuilding->bDestroyOnPlayerBuildingPlacement) {
+				ExistingBuilding->Die(GameplayTags.EffectInstantDeathStructuralSupport, nullptr, nullptr, nullptr);
+			}
+		}
+	}
+
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnInfo.bDeferConstruction = true;
+	ABuildingSMActor* BuildingActor = ABuildingActor::SpawnBuilding(World, BuildingClass, BuildLoc, BuildRot, SpawnInfo);
+	if (!BuildingActor) {
+		return nullptr;
+	}
+
+	BuildingActor->SetCurrentBuildingLevel(BuildingClassData.UpgradeLevel);
+	BuildingActor->SetMirrored(bMirrored);
+	BuildingActor->InitializeBuildingActor(EFortBuildingInitializationReason::Spawned, GetWorldPlayerId(), nullptr, nullptr, false);
+	BuildingActor->PostInitializeSpawnedBuildingActor(EFortBuildingInitializationReason::Spawned);
+	BuildingActor->FinishSpawning(FTransform(BuildRot, BuildLoc));
+
+	PayBuildableClassPlacementCost(BuildingClassData);
+
+	if (BuildPreviewMarkerOptionalAdjustment != EFortBuildPreviewMarkerOptionalAdjustment::None) {
+		BuildExtraPieceForSupport(World, BuildingClass, BuildLoc, BuildRot, bMirrored, BuildingClassData.UpgradeLevel);
+		if (!bIgnoreExtraPieceCost) {
+			PayBuildableClassPlacementCost(BuildingClassData);
+		}
+	}
+
+	if (MyFortPawn) {
+		UFortAIFunctionLibrary::MakeNoiseEventAtLocation(MyFortPawn, 1000.f, BuildingActor->GetActorLocation(), FName(L"Building"));
+		MyFortPawn->OnBlueprintPlace();
+		MyFortPawn->ResetSpawnImmunityTime();
+	}
+
+	return BuildingActor;
+}
+
+void AFortPlayerController::ServerCreateBuildingActorHook(AFortPlayerController* This, const FCreateBuildingActorData& CreateBuildingData) {
+	This->ServerCreateBuildingActor_Implementation(CreateBuildingData);
+}
+
 void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(45, RemoveInventoryItemHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(532, ServerExecuteInventoryItemHook);
@@ -288,4 +377,5 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(550, ServerCombineInventoryItemsHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(552, ServerAcknowledgeDelayedQuickBarActionHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(557, ServerOnMaterialSelectionHook);
+	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(567, ServerCreateBuildingActorHook);
 }

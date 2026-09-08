@@ -135,9 +135,21 @@ void AFortGameModeAthena::InitGameStateHook(AFortGameModeAthena* This) {
 	GameState->OnRep_CurrentPlaylistInfo();
 }
 
+static int16 NextWorldPlayerId = 0;
+
+void AFortGameModeAthena::PostLoginHook(AFortGameModeAthena* This, APlayerController* NewPlayer) {
+	PostLoginOG(This, NewPlayer);
+
+	AFortPlayerState* PlayerState = NewPlayer && NewPlayer->PlayerState ? NewPlayer->PlayerState->Cast<AFortPlayerState>() : nullptr;
+	if (PlayerState && PlayerState->WorldPlayerId == INDEX_NONE) {
+		PlayerState->WorldPlayerId = NextWorldPlayerId++;
+	}
+}
+
 void AFortGameModeAthena::Init() {
 	Memory::HookDetour(ImageBase + 0x4551FC0, FinishWorldInitializationHook, &FinishWorldInitializationOG);
 	Memory::HookDetour(ImageBase + 0x456AE14, ReadyToStartMatchHook);
 	Memory::HookDetour(ImageBase + 0x45742D8, SpawnDefaultPawnForHook);
 	Memory::HookDetour(ImageBase + 0x455CAD8, InitGameStateHook, &InitGameStateOG);
+	Memory::HookDetour(ImageBase + 0x4566D60, PostLoginHook, &PostLoginOG);
 }

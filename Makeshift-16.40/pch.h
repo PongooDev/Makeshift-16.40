@@ -70,6 +70,7 @@ class FNetworkObjectList;
 class FNetGUIDCache;
 class FObjectReplicator;
 struct FActorSpawnParameters;
+struct FFortGlobalGameplayTags;
 struct FAbilityReplicatedDataCache;
 struct alignas(8) FSimpleMulticastDelegate { uint8 Pad_0[0x18]; };
 struct alignas(8) FAbilityTargetDataSetDelegate { uint8 Pad_0[0x18]; };

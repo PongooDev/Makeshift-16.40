@@ -357,6 +357,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\GameDataBR.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortLootTier.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortInventory.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortGadgetItemDefinition.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerController.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortTeamInfo.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Inventory\InventoryManagementLibrary.cpp" />

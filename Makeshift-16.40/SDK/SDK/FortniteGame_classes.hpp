@@ -24581,6 +24581,12 @@ public:
 	{
 		return GetDefaultObjImpl<UFortGadgetItemDefinition>();
 	}
+
+public:
+	static inline void (*ApplyGadgetDataOG)(const UFortGadgetItemDefinition* This, class IFortInventoryOwnerInterface* InventoryOwner, class UFortItem* Item, bool bLoadedFromRecord);
+	static void ApplyGadgetDataHook(const UFortGadgetItemDefinition* This, class IFortInventoryOwnerInterface* InventoryOwner, class UFortItem* Item, bool bLoadedFromRecord);
+
+	static void Init();
 };
 static_assert(alignof(UFortGadgetItemDefinition) == 0x000010, "Wrong alignment on UFortGadgetItemDefinition");
 static_assert(sizeof(UFortGadgetItemDefinition) == 0x0009F0, "Wrong size on UFortGadgetItemDefinition");

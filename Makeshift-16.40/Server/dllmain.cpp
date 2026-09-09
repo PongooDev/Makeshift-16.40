@@ -69,6 +69,7 @@ DWORD WINAPI Main(LPVOID) {
     AFortPlayerController::Init();
     AFortPlayerControllerZone::Init();
     AFortPlayerControllerAthena::Init();
+    AFortPlayerPawnAthena::Init();
     UFortKismetLibrary::Init();
     UInventoryManagementLibrary::Init();
     UFortGadgetItemDefinition::Init();

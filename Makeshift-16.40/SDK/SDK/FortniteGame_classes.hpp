@@ -20397,6 +20397,18 @@ public:
 	void DropItemsOnPawnDestruction(EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags, class AFortPawn* DestructionPawn, bool& bOutDroppedBackpack);
 	static void DropItemsOnPawnDestructionHook(AFortPlayerControllerAthena* This, EPawnDestructionReason DestructionReason, const struct FGameplayTagContainer& ContextualTags, class AFortPawn* DestructionPawn, bool& bOutDroppedBackpack);
 
+	void SetMatchPlacement(int32 Placement)
+	{
+		void (*Fn)(AFortPlayerControllerAthena*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x45DFA7C);
+		Fn(this, Placement);
+	}
+
+	bool IsTeamOutOfGame() const
+	{
+		bool (*Fn)(const AFortPlayerControllerAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x45CE06C);
+		return Fn(this);
+	}
+
 	static void Init();
 };
 static_assert(alignof(AFortPlayerControllerAthena) == 0x000010, "Wrong alignment on AFortPlayerControllerAthena");
@@ -21218,6 +21230,16 @@ public:
 	void OnEndOfDay();
 
 	void DumpReservations() const;
+
+	void Killed(class AController* Killer, class AController* KilledPlayer, class APawn* KilledPawn, const struct FGameplayTagContainer& InTags)
+	{
+		reinterpret_cast<void (*)(AFortGameMode*, class AController*, class AController*, class APawn*, const struct FGameplayTagContainer*)>(VTable[325])(this, Killer, KilledPlayer, KilledPawn, &InTags);
+	}
+
+	bool IsRespawningAllowed(class AFortPlayerState* PlayerState) const
+	{
+		return reinterpret_cast<bool (*)(const AFortGameMode*, class AFortPlayerState*)>(VTable[319])(this, PlayerState);
+	}
 
 	static void Init();
 
@@ -57013,6 +57035,13 @@ public:
 		reinterpret_cast<TArray<struct FItemAndCount>* (*)(const AFortGameModeAthena*, TArray<struct FItemAndCount>*, bool, class AController*)>(VTable[420])(this, &Result, bInitialSpawn, Controller);
 		return Result;
 	}
+
+public:
+	void RemoveFromAlivePlayers(class AFortPlayerControllerAthena* PC, class APlayerState* RemovalInstigator, class APawn* FinisherPawn, class UFortWeaponItemDefinition* FinishingWeapon, EDeathCause DeathCause, bool bIsTeamSwitching)
+	{
+		void (*Fn)(AFortGameModeAthena*, class AFortPlayerControllerAthena*, class APlayerState*, class APawn*, class UFortWeaponItemDefinition*, EDeathCause, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x456BA44);
+		Fn(this, PC, RemovalInstigator, FinisherPawn, FinishingWeapon, DeathCause, bIsTeamSwitching);
+	}
 };
 static_assert(alignof(AFortGameModeAthena) == 0x000008, "Wrong alignment on AFortGameModeAthena");
 static_assert(sizeof(AFortGameModeAthena) == 0x001670, "Wrong size on AFortGameModeAthena");
@@ -59255,6 +59284,34 @@ static_assert(offsetof(UFortAthenaAIBotInventoryDigestedSkillSet, NoWeaponNoPlay
 static_assert(offsetof(UFortAthenaAIBotInventoryDigestedSkillSet, NoWeaponNoPlayerConeFOV) == 0x000158, "Member 'UFortAthenaAIBotInventoryDigestedSkillSet::NoWeaponNoPlayerConeFOV' has a wrong offset!");
 static_assert(offsetof(UFortAthenaAIBotInventoryDigestedSkillSet, NoWeaponLootTierGroup) == 0x00015C, "Member 'UFortAthenaAIBotInventoryDigestedSkillSet::NoWeaponLootTierGroup' has a wrong offset!");
 
+struct FDBNOData
+{
+public:
+	float                                         Damage;
+	uint8                                         Pad_4[0x4];
+	struct FGameplayTagContainer                  Tags;
+	struct FGameplayTagContainer                  DBNOTags;
+	struct FGameplayTagContainer                  TargetTags;
+	struct FGameplayTagContainer                  DBNOTargetTags;
+	struct FGameplayEffectContextHandle           EffectContext;
+	struct FGameplayEffectContextHandle           DBNOEffectContext;
+	TWeakObjectPtr<class AController>             EventInstigator;
+	TWeakObjectPtr<class AController>             DBNOFinisher;
+	TWeakObjectPtr<class AActor>                  DamageCauser;
+};
+static_assert(alignof(FDBNOData) == 0x000008, "Wrong alignment on FDBNOData");
+static_assert(sizeof(FDBNOData) == 0x0000D0, "Wrong size on FDBNOData");
+static_assert(offsetof(FDBNOData, Damage) == 0x000000, "Member 'FDBNOData::Damage' has a wrong offset!");
+static_assert(offsetof(FDBNOData, Tags) == 0x000008, "Member 'FDBNOData::Tags' has a wrong offset!");
+static_assert(offsetof(FDBNOData, DBNOTags) == 0x000028, "Member 'FDBNOData::DBNOTags' has a wrong offset!");
+static_assert(offsetof(FDBNOData, TargetTags) == 0x000048, "Member 'FDBNOData::TargetTags' has a wrong offset!");
+static_assert(offsetof(FDBNOData, DBNOTargetTags) == 0x000068, "Member 'FDBNOData::DBNOTargetTags' has a wrong offset!");
+static_assert(offsetof(FDBNOData, EffectContext) == 0x000088, "Member 'FDBNOData::EffectContext' has a wrong offset!");
+static_assert(offsetof(FDBNOData, DBNOEffectContext) == 0x0000A0, "Member 'FDBNOData::DBNOEffectContext' has a wrong offset!");
+static_assert(offsetof(FDBNOData, EventInstigator) == 0x0000B8, "Member 'FDBNOData::EventInstigator' has a wrong offset!");
+static_assert(offsetof(FDBNOData, DBNOFinisher) == 0x0000C0, "Member 'FDBNOData::DBNOFinisher' has a wrong offset!");
+static_assert(offsetof(FDBNOData, DamageCauser) == 0x0000C8, "Member 'FDBNOData::DamageCauser' has a wrong offset!");
+
 // Class FortniteGame.FortPlayerPawn
 // 0x1F20 (0x31A0 - 0x1280)
 class AFortPlayerPawn : public AFortPawn
@@ -59432,7 +59489,9 @@ public:
 	class UAnimMontage*                           UnableToPerformActionMontage;                      // 0x17C0(0x0008)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	class USoundBase*                             UnableToPerformActionSound;                        // 0x17C8(0x0008)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	float                                         MoveSoundStimulusBroadcastInterval;                // 0x17D0(0x0004)(Edit, ZeroConstructor, Config, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
-	uint8                                         Pad_17D4[0xE8];                                    // 0x17D4(0x00E8)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_17D4[0xC];
+	struct FDBNOData                              DBNOData;
+	uint8                                         Pad_18B0[0xC];
 	float                                         EmoteStartTime;                                    // 0x18BC(0x0004)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         EmoteRandomNum;                                    // 0x18C0(0x0004)(BlueprintVisible, BlueprintReadOnly, ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_18C4[0x14];                                    // 0x18C4(0x0014)(Fixing Size After Last Property [ Dumper-7 ])
@@ -60151,6 +60210,7 @@ static_assert(offsetof(AFortPlayerPawn, AbilityAITargets) == 0x001798, "Member '
 static_assert(offsetof(AFortPlayerPawn, UnableToPerformActionMontage) == 0x0017C0, "Member 'AFortPlayerPawn::UnableToPerformActionMontage' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, UnableToPerformActionSound) == 0x0017C8, "Member 'AFortPlayerPawn::UnableToPerformActionSound' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, MoveSoundStimulusBroadcastInterval) == 0x0017D0, "Member 'AFortPlayerPawn::MoveSoundStimulusBroadcastInterval' has a wrong offset!");
+static_assert(offsetof(AFortPlayerPawn, DBNOData) == 0x0017E0, "Member 'AFortPlayerPawn::DBNOData' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, EmoteStartTime) == 0x0018BC, "Member 'AFortPlayerPawn::EmoteStartTime' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, EmoteRandomNum) == 0x0018C0, "Member 'AFortPlayerPawn::EmoteRandomNum' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, bPlayingPassengerToDriverAnimation) == 0x0018D8, "Member 'AFortPlayerPawn::bPlayingPassengerToDriverAnimation' has a wrong offset!");
@@ -60578,6 +60638,17 @@ public:
 	{
 		return GetDefaultObjImpl<AFortPlayerPawnAthena>();
 	}
+
+public:
+	static void Init();
+
+	static inline void (*HandleDeathOG)(AFortPlayerPawnAthena* This, float Damage, const struct FGameplayTagContainer& InTags, const struct FGameplayEffectContextHandle& EffectContext, class AController* EventInstigator, class AActor* DamageCauser);
+	static void HandleDeathHook(AFortPlayerPawnAthena* This, float Damage, const struct FGameplayTagContainer& InTags, const struct FGameplayEffectContextHandle& EffectContext, class AController* EventInstigator, class AActor* DamageCauser);
+	void HandleDeath(float Damage, const struct FGameplayTagContainer& InTags, const struct FGameplayEffectContextHandle& EffectContext, class AController* EventInstigator, class AActor* DamageCauser);
+
+	void InitializeDeathInfoOnPawnDeath(const struct FGameplayTagContainer& InTags, class AController* EventInstigator, class AController* DBNOFinisher, const class AActor* DamageCauser);
+	bool IsTeamOutOfGame(class AFortPlayerStateAthena& KilledPS, class AFortPlayerControllerAthena* FPCA) const;
+	void SetMatchPlacement(int32 Placement, class AFortPlayerStateAthena& KilledPS, class AFortPlayerControllerAthena* FPCA) const;
 };
 #pragma pack(pop)
 static_assert(alignof(AFortPlayerPawnAthena) == 0x000010, "Wrong alignment on AFortPlayerPawnAthena");
@@ -111451,6 +111522,40 @@ public:
 	{
 		return GetDefaultObjImpl<AFortPlayerStateAthena>();
 	}
+
+public:
+	void InitializeDeathInfo(const struct FDeathInfo& InDeathInfo)
+	{
+		void (*Fn)(AFortPlayerStateAthena*, const struct FDeathInfo*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46062A0);
+		Fn(this, &InDeathInfo);
+	}
+
+	void SetMatchPlacement(int32 Placement)
+	{
+		void (*Fn)(AFortPlayerStateAthena*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x460C688);
+		Fn(this, Placement);
+	}
+
+	void SetMatchPlacementForTeam(int32 Placement)
+	{
+		void (*Fn)(AFortPlayerStateAthena*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x460C77C);
+		Fn(this, Placement);
+	}
+
+	const TArray<TWeakObjectPtr<AFortPlayerStateAthena>>& GetTeamMembers() const
+	{
+		const TArray<TWeakObjectPtr<AFortPlayerStateAthena>>* (*Fn)(const AFortPlayerStateAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x460599C);
+		return *Fn(this);
+	}
+
+	bool IsTeamOutOfGame() const
+	{
+		bool (*Fn)(const AFortPlayerStateAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4606E84);
+		return Fn(this);
+	}
+
+	void SetKillScore(int32 NewScore);
+	void SetTeamKillScore(int32 NewScore);
 };
 static_assert(alignof(AFortPlayerStateAthena) == 0x000008, "Wrong alignment on AFortPlayerStateAthena");
 static_assert(sizeof(AFortPlayerStateAthena) == 0x0014F0, "Wrong size on AFortPlayerStateAthena");

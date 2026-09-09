@@ -20134,7 +20134,8 @@ public:
 	struct FGameplayTagContainer                  DeathTags;                                         // 0x0028(0x0020)(BlueprintVisible, BlueprintReadOnly, NativeAccessSpecifierPublic)
 	struct FGameplayTagContainer                  FinisherOrDownerTags;                              // 0x0048(0x0020)(BlueprintVisible, BlueprintReadOnly, NativeAccessSpecifierPublic)
 	struct FGameplayTagContainer                  VictimTags;                                        // 0x0068(0x0020)(BlueprintVisible, BlueprintReadOnly, NativeAccessSpecifierPublic)
-	uint8                                         Pad_88[0x8];                                       // 0x0088(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	bool                                          bRespawnEnabledOnDeath;
+	uint8                                         Pad_89[0x7];
 };
 static_assert(alignof(FDeathInfo) == 0x000008, "Wrong alignment on FDeathInfo");
 static_assert(sizeof(FDeathInfo) == 0x000090, "Wrong size on FDeathInfo");
@@ -20149,6 +20150,7 @@ static_assert(offsetof(FDeathInfo, bInitialized) == 0x000024, "Member 'FDeathInf
 static_assert(offsetof(FDeathInfo, DeathTags) == 0x000028, "Member 'FDeathInfo::DeathTags' has a wrong offset!");
 static_assert(offsetof(FDeathInfo, FinisherOrDownerTags) == 0x000048, "Member 'FDeathInfo::FinisherOrDownerTags' has a wrong offset!");
 static_assert(offsetof(FDeathInfo, VictimTags) == 0x000068, "Member 'FDeathInfo::VictimTags' has a wrong offset!");
+static_assert(offsetof(FDeathInfo, bRespawnEnabledOnDeath) == 0x000088, "Member 'FDeathInfo::bRespawnEnabledOnDeath' has a wrong offset!");
 
 // ScriptStruct FortniteGame.MetricStateInformation
 // 0x0030 (0x0030 - 0x0000)

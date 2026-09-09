@@ -22663,6 +22663,30 @@ public:
 	TArray<struct FDelayedQuickBarAction>         Items;                                             // 0x0108(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
 	uint32                                        CurrentItemId;
 	uint8                                         Pad_11C[0x4];
+
+public:
+	void Add(struct FDelayedQuickBarAction& Item)
+	{
+		reinterpret_cast<void (*)(FDelayedQuickBarActionContainer*, struct FDelayedQuickBarAction*)>(InSDKUtils::GetImageBase() + 0x4C74624)(this, &Item);
+	}
+
+	void RemoveAt(int32 Index)
+	{
+		reinterpret_cast<void (*)(FDelayedQuickBarActionContainer*, int32)>(InSDKUtils::GetImageBase() + 0x4CA046C)(this, Index);
+	}
+
+	void RemoveAction(uint32 ActionId)
+	{
+		for (int32 Index = Items.Num() - 1; Index >= 0; --Index)
+		{
+			if (Items[Index].ActionId == ActionId)
+			{
+				Items.RemoveAt(Index, 1, false);
+			}
+		}
+
+		MarkArrayDirty();
+	}
 };
 static_assert(alignof(FDelayedQuickBarActionContainer) == 0x000008, "Wrong alignment on FDelayedQuickBarActionContainer");
 static_assert(sizeof(FDelayedQuickBarActionContainer) == 0x000120, "Wrong size on FDelayedQuickBarActionContainer");

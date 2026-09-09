@@ -7023,8 +7023,15 @@ public:
 		return reinterpret_cast<bool (*)(const AFortPlayerController*)>(VTable[895])(this);
 	}
 
-	void AddDelayedQuickBarAction(EFortDelayedQuickBarAction Action, const class UFortItem* Item, EFortQuickBars QuickBarType, int32 QuickBarSlot, bool bForceExecution);
-	void AddDelayedQuickBarAction(struct FDelayedQuickBarAction DelayedAction);
+	void AddDelayedQuickBarAction(struct FDelayedQuickBarAction& DelayedAction)
+	{
+		reinterpret_cast<void (*)(AFortPlayerController*, struct FDelayedQuickBarAction*)>(VTable[868])(this, &DelayedAction);
+	}
+
+	void AddDelayedQuickBarAction(EFortDelayedQuickBarAction QuickBarAction, const class UFortItem* Item, EFortQuickBars QuickBarType, int32 QuickBarSlot)
+	{
+		reinterpret_cast<void (*)(AFortPlayerController*, EFortDelayedQuickBarAction, const class UFortItem*, EFortQuickBars, int32)>(VTable[869])(this, QuickBarAction, Item, QuickBarType, QuickBarSlot);
+	}
 
 	static void Init();
 };

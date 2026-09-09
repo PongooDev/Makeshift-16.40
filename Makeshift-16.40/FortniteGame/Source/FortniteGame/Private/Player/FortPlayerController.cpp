@@ -101,7 +101,7 @@ bool AFortPlayerController::RemoveInventoryItem(const FGuid& ItemGuid, int32 Cou
 	const bool bKeepEmptyStack = !bForceRemoval && (bForcePersistWhenEmpty || (WorldItemDefinition && WorldItemDefinition->bPersistInInventoryWhenFinalStackEmpty));
 
 	if (bForceRemoveFromQuickBars) {
-		AddDelayedQuickBarAction(EFortDelayedQuickBarAction::Remove, Item, EFortQuickBars::Max_None, INDEX_NONE, false);
+		AddDelayedQuickBarAction(EFortDelayedQuickBarAction::Remove, Item, EFortQuickBars::Max_None, INDEX_NONE);
 	}
 
 	if (CountToRemove < CurrentCount || bKeepEmptyStack) {
@@ -232,43 +232,9 @@ void AFortPlayerController::ServerCombineInventoryItemsHook(AFortPlayerControlle
 	This->ServerCombineInventoryItems_Implementation(TargetItemGuid, SourceItemGuid);
 }
 
-void AFortPlayerController::AddDelayedQuickBarAction(EFortDelayedQuickBarAction Action, const UFortItem* Item, EFortQuickBars QuickBarType, int32 QuickBarSlot, bool bForceExecution) {
-	const UFortItemDefinition* ItemDefinition = Item ? Item->GetItemDefinition() : nullptr;
-	if (Action == EFortDelayedQuickBarAction::Invalid || !ItemDefinition) {
-		return;
-	}
-
-	FDelayedQuickBarAction DelayedAction;
-	DelayedAction.Action = Action;
-	DelayedAction.ItemGuid = Item->GetItemGuid();
-	DelayedAction.ItemDefinitionAssetId = UKismetSystemLibrary::GetPrimaryAssetIdFromObject(const_cast<UFortItemDefinition*>(ItemDefinition));
-	DelayedAction.QuickBarType = QuickBarType;
-	DelayedAction.QuickBarSlot = QuickBarSlot;
-	DelayedAction.bForceExecution = bForceExecution;
-	AddDelayedQuickBarAction(DelayedAction);
-}
-
-void AFortPlayerController::AddDelayedQuickBarAction(FDelayedQuickBarAction DelayedAction) {
-	if (DelayedAction.Action == EFortDelayedQuickBarAction::Invalid || !DelayedAction.ItemGuid.IsValid() || !DelayedAction.ItemDefinitionAssetId.IsValid()) {
-		return;
-	}
-
-	DelayedAction.ActionId = ++DelayedQuickBarActions.CurrentItemId;
-	const int32 NewIndex = DelayedQuickBarActions.Items.Add(DelayedAction);
-	DelayedQuickBarActions.MarkItemDirty(DelayedQuickBarActions.Items[NewIndex]);
-}
-
 void AFortPlayerController::ServerAcknowledgeDelayedQuickBarAction_Implementation(const TArray<uint32>& ProcessedActionIds) {
-	bool bRemovedAction = false;
-	for (int32 Index = DelayedQuickBarActions.Items.Num() - 1; Index >= 0; --Index) {
-		if (ProcessedActionIds.Contains(DelayedQuickBarActions.Items[Index].ActionId)) {
-			DelayedQuickBarActions.Items.RemoveAt(Index);
-			bRemovedAction = true;
-		}
-	}
-
-	if (bRemovedAction) {
-		DelayedQuickBarActions.MarkArrayDirty();
+	for (int32 Index = 0; Index < ProcessedActionIds.Num(); ++Index) {
+		DelayedQuickBarActions.RemoveAction(ProcessedActionIds[Index]);
 	}
 }
 

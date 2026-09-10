@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include <vector>
 
 struct FPendingEnvironmentQuery
@@ -33,6 +33,29 @@ static void RemovePendingEnvironmentQuery(const AFortAthenaLivingWorldVolume* Vo
 		{
 			++Index;
 		}
+	}
+}
+
+static void ShieldQueryInstanceFromGarbageCollection(UEnvQueryInstanceBlueprintWrapper* QueryInstance, bool bShield)
+{
+	if (!QueryInstance)
+	{
+		return;
+	}
+
+	FUObjectItem* ObjectItem = UObject::GObjects->IndexToObject(QueryInstance->Index);
+	if (!ObjectItem)
+	{
+		return;
+	}
+
+	if (bShield)
+	{
+		ObjectItem->Flags |= int32(EInternalObjectFlags::RootSet);
+	}
+	else
+	{
+		ObjectItem->Flags &= ~int32(EInternalObjectFlags::RootSet);
 	}
 }
 
@@ -106,6 +129,12 @@ void AFortAthenaLivingWorldVolume::RunEQS()
 	}
 
 	EQSRequestID = QueryInstance->QueryID;
+	ShieldQueryInstanceFromGarbageCollection(QueryInstance, true);
+
+	if (EQSRequestID == -1)
+	{
+		UE_LOG(LogLivingWorldManager, Warning, TEXT("AFortAthenaLivingWorldVolume::RunEQS (%hs) The environment query did not start"), GetName().c_str());
+	}
 
 	RemovePendingEnvironmentQuery(this);
 	FPendingEnvironmentQuery PendingQuery;
@@ -122,6 +151,7 @@ void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 		UEnvQueryInstanceBlueprintWrapper* QueryInstance = PendingEnvironmentQueries[Index].QueryInstance.Get();
 		if (!Volume)
 		{
+			ShieldQueryInstanceFromGarbageCollection(QueryInstance, false);
 			PendingEnvironmentQueries.erase(PendingEnvironmentQueries.begin() + Index);
 			continue;
 		}
@@ -141,6 +171,7 @@ void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 			continue;
 		}
 
+		ShieldQueryInstanceFromGarbageCollection(QueryInstance, false);
 		PendingEnvironmentQueries.erase(PendingEnvironmentQueries.begin() + Index);
 		Volume->OnEnvQueryFinished(QueryLocations);
 	}

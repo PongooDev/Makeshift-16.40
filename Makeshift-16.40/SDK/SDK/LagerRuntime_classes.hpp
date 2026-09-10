@@ -219,7 +219,11 @@ public:
 	TScriptInterface<class IFortAthenaLivingWorldPointProviderInterface> GetRandomPointProviderFromEventRuntimeData(const FLivingWorldEventRuntimeData& EventRuntimeData, const struct FFortAthenaLivingWorldPointProviderFilterRules& ProviderFilterRules) const;
 	void ProcessEventRequests();
 	void CreateSpawnRequestFromEventRequest(const FLivingWorldEventRequest& EventRequest);
-	TSubclassOf<class UFortAthenaAISpawnerData> GetSpawnerDataClassFromSpawnDescription(const struct FFortAthenaLivingWorldEventDataActorSpawnDescription& ActorDescription) const;
+	TSubclassOf<class UFortAthenaAISpawnerData> GetSpawnerDataClassFromSpawnDescription(const struct FFortAthenaLivingWorldEventDataActorSpawnDescription& ActorDescription);
+	void CacheSpawnerDataAssetsFromAssetRegistry();
+	class UClass* LoadSpawnerDataClassFromObjectPath(const class FName& ObjectPath) const;
+	class UClass* GetSpawnerDataClassFromAssetData(const struct FAssetData& AssetData) const;
+	void AddLoadedSpawnerDataClass(class UClass* SpawnerDataClass);
 	int32 RequestSpawnToAISpawnerSystem(class UAthenaAISpawner& SpawnerSystem, const struct FTransform& SpawnTransform, const TSubclassOf<class UFortAthenaAISpawnerData>& SpawnerData);
 	void OnActorSpawned(class AActor* Actor, int32 RequestId);
 	void ReleaseInstances();

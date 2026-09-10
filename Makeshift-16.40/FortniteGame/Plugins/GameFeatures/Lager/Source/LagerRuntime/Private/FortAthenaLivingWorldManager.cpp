@@ -1,8 +1,17 @@
 ﻿#include "pch.h"
 #include "FortniteGame/Source/FortniteGame/Public/FortAssets.h"
+#include <vector>
 
 static void (*InitializeOG)(UFortAthenaLivingWorldManager* This) = nullptr;
 static std::unordered_map<int32, FVector> SpawnRequestPositions;
+
+struct FLivingWorldSpawnerDataAsset
+{
+	FName ObjectPath;
+	FGameplayTagContainer DescriptorTag;
+};
+
+static std::vector<FLivingWorldSpawnerDataAsset> SpawnerDataAssets;
 
 static float DistSquared(const FVector& A, const FVector& B)
 {
@@ -135,6 +144,8 @@ void UFortAthenaLivingWorldManager::Initialize()
 	}
 
 	InitializeOG(this);
+
+	CacheSpawnerDataAssetsFromAssetRegistry();
 
 	UE_LOG(LogLivingWorldManager, Log, TEXT("UFortAthenaLivingWorldManager::Initialize : Enabled %d, Config %hs, World %hs, GameState %hs, PointProviders %d, NextEventGenerationTime %f"), IsLivingWorldEnabled() ? 1 : 0, CachedConfig ? CachedConfig->GetName().c_str() : "None", CachedWorld ? CachedWorld->GetName().c_str() : "None", CachedGameState ? CachedGameState->GetName().c_str() : "None", PointProviders.Num(), NextEventGenerationTime);
 }
@@ -505,7 +516,77 @@ void UFortAthenaLivingWorldManager::ProcessEventRequests()
 	}
 }
 
-TSubclassOf<UFortAthenaAISpawnerData> UFortAthenaLivingWorldManager::GetSpawnerDataClassFromSpawnDescription(const FFortAthenaLivingWorldEventDataActorSpawnDescription& ActorDescription) const
+UClass* UFortAthenaLivingWorldManager::GetSpawnerDataClassFromAssetData(const FAssetData& AssetData) const
+{
+	UClass* SpawnerDataClass = nullptr;
+	UClass** (*Fn)(const UFortAthenaLivingWorldManager*, UClass**, const FName*) = decltype(Fn)(ImageBase + 0x3C7A5D8);
+	Fn(this, &SpawnerDataClass, &AssetData.ObjectPath);
+	return SpawnerDataClass;
+}
+
+void UFortAthenaLivingWorldManager::AddLoadedSpawnerDataClass(UClass* SpawnerDataClass)
+{
+	void (*Fn)(UFortAthenaLivingWorldManager*, UClass*) = decltype(Fn)(ImageBase + 0x3C79664);
+	Fn(this, SpawnerDataClass);
+}
+
+UClass* UFortAthenaLivingWorldManager::LoadSpawnerDataClassFromObjectPath(const FName& ObjectPath) const
+{
+	FString PathString;
+	reinterpret_cast<void (*)(const FName*, FString*)>(ImageBase + 0xC3ADF4)(&ObjectPath, &PathString);
+	if (PathString.Num() <= 1)
+	{
+		return nullptr;
+	}
+
+	PathString += L"_C";
+
+	FSoftObjectPath SoftObjectPath{};
+	SoftObjectPath.AssetPathName = FName(*PathString);
+
+	UObject* LoadedObject = reinterpret_cast<UObject* (*)(const FSoftObjectPath*, bool)>(ImageBase + 0x16C527C)(&SoftObjectPath, true);
+	return LoadedObject ? LoadedObject->Cast<UClass>() : nullptr;
+}
+
+void UFortAthenaLivingWorldManager::CacheSpawnerDataAssetsFromAssetRegistry()
+{
+	SpawnerDataAssets.clear();
+
+	UAssetManager* AssetManager = reinterpret_cast<UAssetManager* (*)()>(ImageBase + 0xF72AD4)();
+	if (!AssetManager)
+	{
+		UE_LOG(LogLivingWorldManager, Error, TEXT("UFortAthenaLivingWorldManager::PreloadEventData : No asset manager to enumerate the AISpawnerData primary assets"));
+		return;
+	}
+
+	FPrimaryAssetType PrimaryAssetType{};
+	PrimaryAssetType.Name = FName(L"AISpawnerData");
+
+	TArray<FAssetData> AssetDataList;
+	reinterpret_cast<void (*)(UAssetManager*, FPrimaryAssetType, TArray<FAssetData>*)>(AssetManager->VTable[88])(AssetManager, PrimaryAssetType, &AssetDataList);
+
+	const FName DescriptorTagName = FName(L"DescriptorTag");
+	for (int32 Index = 0; Index < AssetDataList.Num(); ++Index)
+	{
+		const FAssetData& AssetData = AssetDataList[Index];
+
+		FString TagValue;
+		reinterpret_cast<FString* (*)(const FAssetData*, FString*, FName)>(ImageBase + 0xECBF58)(&AssetData, &TagValue, DescriptorTagName);
+		if (TagValue.Num() <= 1)
+		{
+			continue;
+		}
+
+		FLivingWorldSpawnerDataAsset SpawnerDataAsset;
+		SpawnerDataAsset.ObjectPath = AssetData.ObjectPath;
+		reinterpret_cast<void (*)(FGameplayTagContainer*, const FString*)>(ImageBase + 0xEDDAA4)(&SpawnerDataAsset.DescriptorTag, &TagValue);
+		SpawnerDataAssets.push_back(SpawnerDataAsset);
+	}
+
+	UE_LOG(LogLivingWorldManager, Log, TEXT("UFortAthenaLivingWorldManager::PreloadEventData : %d AISpawnerData primary asset(s) in the registry, %d with a descriptor tag, %d spawner data class(es) already loaded"), AssetDataList.Num(), static_cast<int32>(SpawnerDataAssets.size()), LoadedSpawnerDataClass.Num());
+}
+
+TSubclassOf<UFortAthenaAISpawnerData> UFortAthenaLivingWorldManager::GetSpawnerDataClassFromSpawnDescription(const FFortAthenaLivingWorldEventDataActorSpawnDescription& ActorDescription)
 {
 	if (UClass* SpawnerDataClass = FFortAssets::GetSubclassOf(ActorDescription.SpawnerData, false))
 	{
@@ -530,6 +611,30 @@ TSubclassOf<UFortAthenaAISpawnerData> UFortAthenaLivingWorldManager::GetSpawnerD
 		if (ActorDescription.SpawnerDataTagQuery.Matches(SpawnerData->DescriptorTag))
 		{
 			MatchingClasses.Add(LoadedClass);
+		}
+	}
+
+	if (MatchingClasses.Num() == 0)
+	{
+		for (size_t AssetIndex = 0; AssetIndex < SpawnerDataAssets.size(); ++AssetIndex)
+		{
+			const FLivingWorldSpawnerDataAsset& SpawnerDataAsset = SpawnerDataAssets[AssetIndex];
+			if (!ActorDescription.SpawnerDataTagQuery.Matches(SpawnerDataAsset.DescriptorTag))
+			{
+				continue;
+			}
+
+			UClass* SpawnerDataClass = LoadSpawnerDataClassFromObjectPath(SpawnerDataAsset.ObjectPath);
+			if (SpawnerDataClass && SpawnerDataClass->IsSubclassOf(UFortAthenaAISpawnerData::StaticClass()))
+			{
+				AddLoadedSpawnerDataClass(SpawnerDataClass);
+				MatchingClasses.Add(SpawnerDataClass);
+			}
+		}
+
+		if (bVerboseLogging)
+		{
+			UE_LOG(LogLivingWorldManager, Log, TEXT("UFortAthenaLivingWorldManager::PreloadEventData : loaded %d spawner data class(es) on demand from the asset registry"), MatchingClasses.Num());
 		}
 	}
 

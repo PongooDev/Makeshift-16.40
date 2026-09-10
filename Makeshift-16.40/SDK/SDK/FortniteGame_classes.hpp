@@ -1746,6 +1746,9 @@ public:
 		OnRep_CurrentPlaylistId();
 	}
 
+	static void Init();
+	static bool CanUpdateGamePhaseStepHook(AFortGameStateAthena* This);
+
 public:
 	static class UClass* StaticClass()
 	{

@@ -1674,6 +1674,10 @@ public:
 	struct FEvaluationResult CanSpawnActorOfClass(const class AActor* InstigatorActor, class UClass* ActorClassToSpawn, const struct FVector& Location, const struct FRotator& Rotation) const;
 	void DoesPlayerHaveLimitedLives(class AFortPlayerState* PlayerState, bool* bPlayerLivesAreLimited, int32* RespawnsRemaining) const;
 	class AFortAthenaAircraft* GetAircraft(int32 AircraftIndex) const;
+	class IFortSafeZoneInterface* GetSafeZoneInterface() const
+	{
+		return reinterpret_cast<class IFortSafeZoneInterface*>(reinterpret_cast<uint8*>(const_cast<AFortGameStateAthena*>(this)) + 0xFC8);
+	}
 	struct FGameplayTagContainer GetAthenaPlaylistContextTags() const
 	{
 		struct FGameplayTagContainer Result;
@@ -20907,8 +20911,91 @@ public:
 	uint8                                         Pad_48[0x28];                                      // 0x0048(0x0028)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	struct FSpawnRequestCallback;
+
+	class FSpawnRequestCallbackInstance
+	{
+	public:
+		typedef void (*FCallbackFunction)(class UObject* UserObject, class AActor* SpawnedActor, int32 RequestID);
+
+		FSpawnRequestCallbackInstance(class UObject* InUserObject, FCallbackFunction InCallback)
+			: Handle(0), Payload(0), UserObject(InUserObject), Callback(InCallback), Pad_28(0)
+		{
+		}
+		virtual ~FSpawnRequestCallbackInstance() {}
+		virtual class UObject* GetUObject() const { return UserObject.Get(); }
+		virtual const void* GetObjectForTimerManager() const { return UserObject.Get(); }
+		virtual uint64 GetBoundProgramCounterForTimerManager() const { return 0; }
+		virtual bool HasSameObject(const void* InUserObject) const { return UserObject.Get() == InUserObject; }
+		virtual bool IsCompactable() const { return !IsSafeToExecute(); }
+		virtual bool IsSafeToExecute() const { return UserObject.Get() != nullptr; }
+		virtual uint64 GetHandle() const { return Handle; }
+		virtual void CreateCopy(FSpawnRequestCallback& Base);
+		virtual void Execute(class AActor* SpawnedActor, int32 RequestID) const { Callback(UserObject.Get(), SpawnedActor, RequestID); }
+		virtual bool ExecuteIfSafe(class AActor* SpawnedActor, int32 RequestID) const
+		{
+			if (class UObject* Object = UserObject.Get())
+			{
+				Callback(Object, SpawnedActor, RequestID);
+				return true;
+			}
+			return false;
+		}
+
+		uint64                                        Handle;
+		uint64                                        Payload;
+		TWeakObjectPtr<class UObject>                 UserObject;
+		FCallbackFunction                             Callback;
+		uint64                                        Pad_28;
+	};
+
+	struct FSpawnRequestCallback
+	{
+		FSpawnRequestCallbackInstance*                DelegateInstance;
+		int32                                         DelegateSize;
+
+		FSpawnRequestCallback() : DelegateInstance(nullptr), DelegateSize(0) {}
+		FSpawnRequestCallback(class UObject* InUserObject, FSpawnRequestCallbackInstance::FCallbackFunction InCallback) : DelegateInstance(nullptr), DelegateSize(0)
+		{
+			Bind(new (AllocateInstance()) FSpawnRequestCallbackInstance(InUserObject, InCallback));
+		}
+		FSpawnRequestCallback(const FSpawnRequestCallback&) = delete;
+		FSpawnRequestCallback& operator=(const FSpawnRequestCallback&) = delete;
+		~FSpawnRequestCallback() { Unbind(); }
+
+		static void* AllocateInstance()
+		{
+			return reinterpret_cast<void* (*)(size_t, uint32)>(InSDKUtils::GetImageBase() + 0xC9B198)(sizeof(FSpawnRequestCallbackInstance), 16);
+		}
+		void Bind(FSpawnRequestCallbackInstance* InDelegateInstance)
+		{
+			Unbind();
+			DelegateInstance = InDelegateInstance;
+			DelegateSize = InDelegateInstance ? static_cast<int32>(sizeof(FSpawnRequestCallbackInstance) / 16) : 0;
+		}
+		void Unbind()
+		{
+			if (DelegateInstance)
+			{
+				DelegateInstance->~FSpawnRequestCallbackInstance();
+				reinterpret_cast<void (*)(void*)>(InSDKUtils::GetImageBase() + 0xC3DF60)(DelegateInstance);
+				DelegateInstance = nullptr;
+				DelegateSize = 0;
+			}
+		}
+		void Release()
+		{
+			DelegateInstance = nullptr;
+			DelegateSize = 0;
+		}
+	};
+
 	bool CancelRequest(const int32 RequestID);
 	int32 RequestSpawn(class UFortAthenaAISpawnerDataComponentList* AISpawnerComponentList, const struct FTransform& SpawnTransform);
+	int32 RequestSpawn(class UFortAthenaAISpawnerDataComponentList* AISpawnerComponentList, const struct FTransform& SpawnTransform, const FSpawnRequestCallback& Callback)
+	{
+		return reinterpret_cast<int32 (*)(UAthenaAISpawner*, class UFortAthenaAISpawnerDataComponentList*, const struct FTransform*, const FSpawnRequestCallback*)>(InSDKUtils::GetImageBase() + 0x44E64B8)(this, AISpawnerComponentList, &SpawnTransform, &Callback);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -20923,6 +21010,12 @@ public:
 static_assert(alignof(UAthenaAISpawner) == 0x000008, "Wrong alignment on UAthenaAISpawner");
 static_assert(sizeof(UAthenaAISpawner) == 0x000070, "Wrong size on UAthenaAISpawner");
 static_assert(offsetof(UAthenaAISpawner, OnPawnSpawnedEvent) == 0x000038, "Member 'UAthenaAISpawner::OnPawnSpawnedEvent' has a wrong offset!");
+inline void UAthenaAISpawner::FSpawnRequestCallbackInstance::CreateCopy(FSpawnRequestCallback& Base)
+{
+	Base.Bind(new (FSpawnRequestCallback::AllocateInstance()) FSpawnRequestCallbackInstance(*this));
+}
+static_assert(sizeof(UAthenaAISpawner::FSpawnRequestCallbackInstance) == 0x000030, "Wrong size on UAthenaAISpawner::FSpawnRequestCallbackInstance");
+static_assert(sizeof(UAthenaAISpawner::FSpawnRequestCallback) == 0x000010, "Wrong size on UAthenaAISpawner::FSpawnRequestCallback");
 
 // Class FortniteGame.AthenaAvoidanceManager
 // 0x0000 (0x00E0 - 0x00E0)
@@ -122295,6 +122388,21 @@ static_assert(sizeof(UFortSafeZoneBlueprintLibrary) == 0x000028, "Wrong size on 
 class IFortSafeZoneInterface final : public IInterface
 {
 public:
+	uint8 GetSafeZoneState() const
+	{
+		return reinterpret_cast<uint8 (*)(const IFortSafeZoneInterface*)>((*reinterpret_cast<void* const* const*>(this))[4])(this);
+	}
+	float GetSafeZoneRadius() const
+	{
+		return reinterpret_cast<float (*)(const IFortSafeZoneInterface*)>((*reinterpret_cast<void* const* const*>(this))[8])(this);
+	}
+	struct FVector GetSafeZoneCenter() const
+	{
+		struct FVector Result;
+		reinterpret_cast<struct FVector* (*)(const IFortSafeZoneInterface*, struct FVector*)>((*reinterpret_cast<void* const* const*>(this))[9])(this, &Result);
+		return Result;
+	}
+
 	struct FVector GetSafeZoneNextCenter() const;
 	struct FVector GetSafeZoneNextNextCenter() const;
 

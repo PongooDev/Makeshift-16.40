@@ -104,6 +104,39 @@ static_assert(offsetof(UFortAthenaLivingWorldEventData, ActorDescriptions) == 0x
 class alignas(0x10) UFortAthenaLivingWorldManager : public UGameStateComponent
 {
 public:
+	struct FLivingWorldEventRequest
+	{
+		const struct FFortAthenaLivingWorldCategory*  Category;
+		const struct FFortAthenaLivingWorldEvent*     Event;
+		class AActor*                                 PointProvider;
+		TArray<int32>                                 SpawnRequestIDs;
+		int32                                         ActorCount;
+		uint8                                         Pad_2C[0x4];
+	};
+
+	struct FLivingWorldEventInstance
+	{
+		const struct FFortAthenaLivingWorldCategory*  Category;
+		const struct FFortAthenaLivingWorldEvent*     Event;
+		class AActor*                                 PointProvider;
+		TArray<int32>                                 PendingSpawnRequestIDs;
+		uint8                                         Pad_28[0x8];
+		TArray<TWeakObjectPtr<class AActor>>          ActorInfos;
+		float                                         RespawnTime;
+		int32                                         ActorCount;
+	};
+
+	struct FLivingWorldEventRuntimeData
+	{
+		float                                         ActivationTime;
+		int32                                         GameSpawnedCount;
+		float                                         TotalProviderWeight;
+		uint8                                         Pad_C[0x4];
+		struct FGameplayTagQuery                      ProviderFiltersTagQuery;
+		TArray<struct FPointProviderFilterEntry>      ProviderFiltersEntries;
+		TArray<TScriptInterface<class IFortAthenaLivingWorldPointProviderInterface>> MatchingPointProviders;
+	};
+
 	TSoftObjectPtr<class UFortAthenaLivingWorldConfigData> DefaultLagerConfig;                                // 0x00B0(0x0028)(Edit, DisableEditOnInstance, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TArray<struct FFortLivingWorldConfigOverride> LagerConfigOverrides;                              // 0x00D8(0x0010)(Edit, ZeroConstructor, DisableEditOnInstance, NativeAccessSpecifierPrivate)
 	struct FScalableFloat                         LagerEnabled;                                      // 0x00E8(0x0028)(Edit, DisableEditOnInstance, NativeAccessSpecifierPrivate)
@@ -117,12 +150,28 @@ public:
 	class AFortGameStateAthena*                   CachedGameState;                                   // 0x0260(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UWorld*                                 CachedWorld;                                       // 0x0268(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UFortAthenaLivingWorldConfigData*       CachedConfig;                                      // 0x0270(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_278[0x108];                                    // 0x0278(0x0108)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_278[0x8];
+	TArray<FLivingWorldEventRequest>              PendingEventRequests;
+	TArray<FLivingWorldEventInstance>             EventInstances;
+	TMap<const struct FFortAthenaLivingWorldEvent*, FLivingWorldEventRuntimeData> EventRuntimeDataMap;
+	uint8                                         Pad_2F0[0x58];
+	float                                         NextEventGenerationTime;
+	uint8                                         Pad_34C[0x4];
+	struct FGameplayTagContainer                  CachedPlaylistContextTags;
+	bool                                          bVerboseLogging;
+	bool                                          bToggleGenerateEvents;
+	uint8                                         Pad_372[0x2];
+	int32                                         CurrentDebugProviderIndex;
+	bool                                          bToggleActorOnMinimap;
+	uint8                                         Pad_379[0x7];
 	TArray<class AActor*>                         RuntimePointProviderList;                          // 0x0380(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
 	TSet<class AActor*>                           RuntimePointProviderOwners;                        // 0x0390(0x0050)(Transient, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_3E0[0x18];                                     // 0x03E0(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class AActor*>                         SpawnedPawns;                                      // 0x03F8(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_408[0x168];                                    // 0x0408(0x0168)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_408[0x18];
+	struct FFortAthenaLivingWorldDensityGrid      ActorDensityGrid;
+	float                                         DensityComputationDistanceSqr;
+	uint8                                         Pad_56C[0x4];
 	class AActor*                                 EQSHelper;                                         // 0x0570(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_578[0x8];                                      // 0x0578(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
@@ -142,6 +191,52 @@ public:
 	void RequestEventGeneration();
 
 	int32 QueryEventBudget(const struct FDataTableRowHandle& EventEntry, const class AActor* SpawnLocation) const;
+
+	static void Init();
+	static class UFortAthenaLivingWorldManager* GetLivingWorldManager(class UObject* WorldContextObject);
+	static void HandleCurrentPlaylistLoaded(class AFortGameStateAthena* GameState, class FName PlaylistName);
+	static void GetAllCategoryRows(const class UDataTable* Table, TArray<struct FFortAthenaLivingWorldCategory*>& OutRows);
+	static void GetAllEventRows(const class UDataTable* Table, TArray<struct FFortAthenaLivingWorldEvent*>& OutRows);
+	static void InitializeHook(UFortAthenaLivingWorldManager* This);
+	static void TickComponentHook(UFortAthenaLivingWorldManager* This, float DeltaTime, ELevelTick TickType, struct FActorComponentTickFunction* ThisTickFunction);
+	static void OnActorSpawnedCallback(class UObject* UserObject, class AActor* SpawnedActor, int32 RequestID);
+	DECLARE_FUNCTION(execLivingWorldManagerRegisterPointProvider);
+	DECLARE_FUNCTION(execLivingWorldManagerUnregisterPointProvider);
+
+	bool IsLivingWorldEnabled() const;
+	void Initialize();
+	void TickComponent(float DeltaTime, ELevelTick TickType, struct FActorComponentTickFunction* ThisTickFunction);
+	void GatherPatrolPaths();
+	void EnableNewPointProviders();
+	void GetAllCategories(TArray<struct FFortAthenaLivingWorldCategory*>& OutCategories) const;
+	void GenerateEvents();
+	void GenerateEventsFromCategories(const TArray<struct FFortAthenaLivingWorldCategory*>& Categories);
+	void ProcessCategory(const struct FFortAthenaLivingWorldCategory* Category);
+	int32 ComputeCategoryRemainingBudget(const struct FFortAthenaLivingWorldCategory* Category) const;
+	void GenerateEventRequests(const struct FFortAthenaLivingWorldCategory* Category, const class UDataTable* EventTable, int32 RemainingBudget);
+	void ComputeActiveEvents(const class UDataTable* EventTable, TArray<const struct FFortAthenaLivingWorldEvent*>& ActiveEvents, float& ActiveEventsTotalWeight);
+	const struct FFortAthenaLivingWorldEvent* GetRandomEventFromEvents(const TArray<const struct FFortAthenaLivingWorldEvent*>& ActiveEvents, float ActiveEventsTotalWeight) const;
+	TScriptInterface<class IFortAthenaLivingWorldPointProviderInterface> GetRandomPointProviderFromEventRuntimeData(const FLivingWorldEventRuntimeData& EventRuntimeData, const struct FFortAthenaLivingWorldPointProviderFilterRules& ProviderFilterRules) const;
+	void ProcessEventRequests();
+	void CreateSpawnRequestFromEventRequest(const FLivingWorldEventRequest& EventRequest);
+	TSubclassOf<class UFortAthenaAISpawnerData> GetSpawnerDataClassFromSpawnDescription(const struct FFortAthenaLivingWorldEventDataActorSpawnDescription& ActorDescription) const;
+	int32 RequestSpawnToAISpawnerSystem(class UAthenaAISpawner& SpawnerSystem, const struct FTransform& SpawnTransform, const TSubclassOf<class UFortAthenaAISpawnerData>& SpawnerData);
+	void OnActorSpawned(class AActor* Actor, int32 RequestId);
+	void ReleaseInstances();
+	void RegisterPointProvider(class AActor* PointProvider);
+	void UnregisterPointProvider(class AActor* PointProvider);
+	float GetActorDensity(const struct FVector& Location, float Radius) const;
+	float GetDensityComputationDistance() const;
+	float GetMaxActorDensity() const;
+	uint8 GetSafeZonePhase() const;
+	float GetArrayValueForPhase(const TArray<float>& Values, uint8 SafeZonePhase) const;
+	int32 GetCategoryCurrentCount(const struct FFortAthenaLivingWorldCategory* Category) const;
+	int32 GetEventCurrentCount(const struct FFortAthenaLivingWorldEvent* Event) const;
+	int32 GetTotalActorCount() const;
+	int32 GetEventBudget(const struct FFortAthenaLivingWorldEvent* Event, const FLivingWorldEventRuntimeData* EventRuntimeData, uint8 SafeZonePhase) const;
+	bool IsEventActive(const struct FFortAthenaLivingWorldEvent* Event, const class UFortAthenaLivingWorldEventData* EventData, bool bSkipActivationPhaseValidation, EAthenaGamePhaseStep GamePhaseStep, uint8 SafeZonePhase) const;
+	FLivingWorldEventRuntimeData* FindEventRuntimeData(const struct FFortAthenaLivingWorldEvent* Event);
+	FLivingWorldEventRuntimeData* FindOrCreateEventRuntimeData(const struct FFortAthenaLivingWorldEvent* Event);
 
 public:
 	static class UClass* StaticClass()
@@ -172,19 +267,58 @@ static_assert(offsetof(UFortAthenaLivingWorldManager, RuntimePointProviderList) 
 static_assert(offsetof(UFortAthenaLivingWorldManager, RuntimePointProviderOwners) == 0x000390, "Member 'UFortAthenaLivingWorldManager::RuntimePointProviderOwners' has a wrong offset!");
 static_assert(offsetof(UFortAthenaLivingWorldManager, SpawnedPawns) == 0x0003F8, "Member 'UFortAthenaLivingWorldManager::SpawnedPawns' has a wrong offset!");
 static_assert(offsetof(UFortAthenaLivingWorldManager, EQSHelper) == 0x000570, "Member 'UFortAthenaLivingWorldManager::EQSHelper' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, PendingEventRequests) == 0x000280, "Member 'UFortAthenaLivingWorldManager::PendingEventRequests' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, EventInstances) == 0x000290, "Member 'UFortAthenaLivingWorldManager::EventInstances' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, EventRuntimeDataMap) == 0x0002A0, "Member 'UFortAthenaLivingWorldManager::EventRuntimeDataMap' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, NextEventGenerationTime) == 0x000348, "Member 'UFortAthenaLivingWorldManager::NextEventGenerationTime' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, CachedPlaylistContextTags) == 0x000350, "Member 'UFortAthenaLivingWorldManager::CachedPlaylistContextTags' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, bVerboseLogging) == 0x000370, "Member 'UFortAthenaLivingWorldManager::bVerboseLogging' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, bToggleGenerateEvents) == 0x000371, "Member 'UFortAthenaLivingWorldManager::bToggleGenerateEvents' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, CurrentDebugProviderIndex) == 0x000374, "Member 'UFortAthenaLivingWorldManager::CurrentDebugProviderIndex' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, bToggleActorOnMinimap) == 0x000378, "Member 'UFortAthenaLivingWorldManager::bToggleActorOnMinimap' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, ActorDensityGrid) == 0x000420, "Member 'UFortAthenaLivingWorldManager::ActorDensityGrid' has a wrong offset!");
+static_assert(offsetof(UFortAthenaLivingWorldManager, DensityComputationDistanceSqr) == 0x000568, "Member 'UFortAthenaLivingWorldManager::DensityComputationDistanceSqr' has a wrong offset!");
+static_assert(sizeof(UFortAthenaLivingWorldManager::FLivingWorldEventRequest) == 0x000030, "Wrong size on UFortAthenaLivingWorldManager::FLivingWorldEventRequest");
+static_assert(sizeof(UFortAthenaLivingWorldManager::FLivingWorldEventInstance) == 0x000048, "Wrong size on UFortAthenaLivingWorldManager::FLivingWorldEventInstance");
+static_assert(sizeof(UFortAthenaLivingWorldManager::FLivingWorldEventRuntimeData) == 0x000078, "Wrong size on UFortAthenaLivingWorldManager::FLivingWorldEventRuntimeData");
 
 // Class LagerRuntime.FortAthenaLivingWorldPointProviderInterface
 // 0x0000 (0x0028 - 0x0028)
 class IFortAthenaLivingWorldPointProviderInterface final : public IInterface
 {
 public:
-	void OnEventRequested();
-	void OnSpawnedActor(class AActor* SpawnedActor, const struct FVector& PositionFromProvider);
-	void OnSpawnedActorFailed();
+	class UObject* _getUObject() const
+	{
+		return reinterpret_cast<class UObject* (*)(const IFortAthenaLivingWorldPointProviderInterface*)>((*reinterpret_cast<void* const* const*>(this))[1])(this);
+	}
+	bool GetValidLocation(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter, const float ActorDensityComputationRadius, struct FVector& OutPosition, struct FRotator& OutRotation) const
+	{
+		return reinterpret_cast<bool (*)(const IFortAthenaLivingWorldPointProviderInterface*, const struct FFortAthenaLivingWorldPointProviderFilterRules*, float, struct FVector*, struct FRotator*)>((*reinterpret_cast<void* const* const*>(this))[2])(this, &PointFilter, ActorDensityComputationRadius, &OutPosition, &OutRotation);
+	}
+	void GetFiltersTags(struct FGameplayTagContainer& FilterTags) const
+	{
+		reinterpret_cast<void (*)(const IFortAthenaLivingWorldPointProviderInterface*, struct FGameplayTagContainer*)>((*reinterpret_cast<void* const* const*>(this))[3])(this, &FilterTags);
+	}
+	void OnSpawnedActor(class AActor* SpawnedActor, const struct FVector& PositionFromProvider)
+	{
+		reinterpret_cast<void (*)(IFortAthenaLivingWorldPointProviderInterface*, class AActor*, const struct FVector*)>((*reinterpret_cast<void* const* const*>(this))[4])(this, SpawnedActor, &PositionFromProvider);
+	}
+	void OnSpawnedActorFailed()
+	{
+		reinterpret_cast<void (*)(IFortAthenaLivingWorldPointProviderInterface*)>((*reinterpret_cast<void* const* const*>(this))[5])(this);
+	}
+	void OnEventRequested()
+	{
+		reinterpret_cast<void (*)(IFortAthenaLivingWorldPointProviderInterface*)>((*reinterpret_cast<void* const* const*>(this))[6])(this);
+	}
+	bool IsEnabled(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter) const
+	{
+		return reinterpret_cast<bool (*)(const IFortAthenaLivingWorldPointProviderInterface*, const struct FFortAthenaLivingWorldPointProviderFilterRules*)>((*reinterpret_cast<void* const* const*>(this))[7])(this, &PointFilter);
+	}
 
-	void GetFiltersTags(struct FGameplayTagContainer* FilterTags) const;
-	bool GetValidLocation(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter, const float ActorDensityComputationRadius, struct FVector* OutPosition, struct FRotator* OutRotation) const;
-	bool IsEnabled(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter) const;
+	static bool IsPointWithinSafeZoneRules(const struct FFortAthenaLivingWorldPointProviderFilterRules& FilterRules, const struct FVector& TargetPoint, const class AFortGameStateAthena* GameState, float RadiusSlack);
+	static bool IsPointWithinDensityRules(const struct FFortAthenaLivingWorldPointProviderFilterRules& FilterRules, const struct FVector& TargetPoint, const class UFortAthenaLivingWorldManager* LivingWorldManager, float ActorDensityComputationRadius);
+	static bool IsPointWithinFilterRules(const struct FFortAthenaLivingWorldPointProviderFilterRules& FilterRules, const struct FVector& TargetPoint, const class AFortGameStateAthena* GameState, const class UFortAthenaLivingWorldManager* LivingWorldManager, float ActorDensityComputationRadius, float RadiusSlack);
 
 public:
 	static class UClass* StaticClass()
@@ -215,12 +349,45 @@ public:
 	struct FScalableFloat                         WaterLevelIndexMin;                                // 0x02E0(0x0028)(Edit, NativeAccessSpecifierPrivate)
 	struct FScalableFloat                         WaterLevelIndexMax;                                // 0x0308(0x0028)(Edit, NativeAccessSpecifierPrivate)
 	class AFortGameStateAthena*                   CachedGameState;                                   // 0x0330(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_338[0xC0];                                     // 0x0338(0x00C0)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	TArray<struct FVector>                        EnvironmentQueryResults;
+	TMap<TWeakObjectPtr<class AActor>, struct FVector> EnvironmentQueryResultsUsed;
+	TArray<struct FVector>                        ClusteredEnvironmentQueryResults;
+	float                                         PointProviderMaxRadiusSqr;
+	struct FVector                                CachedSafeZoneFilteredResultsCenter;
+	float                                         CachedSafeZoneFilteredResultsRadiusSqr;
+	uint8                                         Pad_3BC[0x4];
+	TArray<struct FVector>                        CachedSafeZoneFilteredResults;
+	int32                                         CachedSafeZoneFilteredResultsSourceCount;
+	uint8                                         Pad_3D4[0x4];
+	TArray<struct FVector>                        CachedDensityFilteredResults;
+	int32                                         EQSRequestID;
+	bool                                          bIsEnabled;
+	uint8                                         Pad_3ED[0x3];
+	struct FTimerHandle                           RunEQSTimerHandle;
 
 public:
 	void OnCurrentPlaylistLoaded(class FName PlaylistName, const struct FGameplayTagContainer& PlaylistContextTags);
 	void OnPointProviderRegistered(const TScriptInterface<class IFortAthenaLivingWorldPointProviderInterface>& PointProvider);
 	void OnSpawnedActorDestroyed(class AActor* DestroyedActor);
+
+	static void Init();
+	static void OnCurrentPlaylistLoadedForAllVolumes(class UWorld* World, class FName PlaylistName, const struct FGameplayTagContainer& PlaylistContextTags);
+	static void EnablePendingVolumes(class UFortAthenaLivingWorldManager* LivingWorldManager);
+	static void ProcessPendingEnvironmentQueries();
+	static bool GetValidLocationHook(const class IFortAthenaLivingWorldPointProviderInterface* This, const struct FFortAthenaLivingWorldPointProviderFilterRules* PointFilter, float ActorDensityComputationRadius, struct FVector* OutPosition, struct FRotator* OutRotation);
+	static bool IsEnabledHook(const class IFortAthenaLivingWorldPointProviderInterface* This, const struct FFortAthenaLivingWorldPointProviderFilterRules* PointFilter);
+	DECLARE_FUNCTION(execOnCurrentPlaylistLoaded);
+	DECLARE_FUNCTION(execOnPointProviderRegistered);
+
+	void EnablePointProvider();
+	void DisablePointProvider();
+	void RunEQS();
+	void OnEnvQueryFinished(const TArray<struct FVector>& QueryLocations);
+	bool GetValidLocation(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter, const float ActorDensityComputationRadius, struct FVector& OutPosition, struct FRotator& OutRotation) const;
+	bool IsEnabled(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter) const;
+	void GetPointsInsideSafeZone(const struct FVector& SafeZoneCenter, float SafeZoneRadiusSqr, TArray<struct FVector>& FilteredPoints) const;
+	const TArray<struct FVector>* GetSafeZoneFilteredPoints(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter) const;
+	bool IsRegisteredToLivingWorldManager() const;
 
 public:
 	static class UClass* StaticClass()
@@ -242,6 +409,18 @@ static_assert(offsetof(AFortAthenaLivingWorldVolume, bRemoveUsedPoint) == 0x0002
 static_assert(offsetof(AFortAthenaLivingWorldVolume, WaterLevelIndexMin) == 0x0002E0, "Member 'AFortAthenaLivingWorldVolume::WaterLevelIndexMin' has a wrong offset!");
 static_assert(offsetof(AFortAthenaLivingWorldVolume, WaterLevelIndexMax) == 0x000308, "Member 'AFortAthenaLivingWorldVolume::WaterLevelIndexMax' has a wrong offset!");
 static_assert(offsetof(AFortAthenaLivingWorldVolume, CachedGameState) == 0x000330, "Member 'AFortAthenaLivingWorldVolume::CachedGameState' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, EnvironmentQueryResults) == 0x000338, "Member 'AFortAthenaLivingWorldVolume::EnvironmentQueryResults' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, EnvironmentQueryResultsUsed) == 0x000348, "Member 'AFortAthenaLivingWorldVolume::EnvironmentQueryResultsUsed' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, ClusteredEnvironmentQueryResults) == 0x000398, "Member 'AFortAthenaLivingWorldVolume::ClusteredEnvironmentQueryResults' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, PointProviderMaxRadiusSqr) == 0x0003A8, "Member 'AFortAthenaLivingWorldVolume::PointProviderMaxRadiusSqr' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, CachedSafeZoneFilteredResultsCenter) == 0x0003AC, "Member 'AFortAthenaLivingWorldVolume::CachedSafeZoneFilteredResultsCenter' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, CachedSafeZoneFilteredResultsRadiusSqr) == 0x0003B8, "Member 'AFortAthenaLivingWorldVolume::CachedSafeZoneFilteredResultsRadiusSqr' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, CachedSafeZoneFilteredResults) == 0x0003C0, "Member 'AFortAthenaLivingWorldVolume::CachedSafeZoneFilteredResults' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, CachedSafeZoneFilteredResultsSourceCount) == 0x0003D0, "Member 'AFortAthenaLivingWorldVolume::CachedSafeZoneFilteredResultsSourceCount' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, CachedDensityFilteredResults) == 0x0003D8, "Member 'AFortAthenaLivingWorldVolume::CachedDensityFilteredResults' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, EQSRequestID) == 0x0003E8, "Member 'AFortAthenaLivingWorldVolume::EQSRequestID' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, bIsEnabled) == 0x0003EC, "Member 'AFortAthenaLivingWorldVolume::bIsEnabled' has a wrong offset!");
+static_assert(offsetof(AFortAthenaLivingWorldVolume, RunEQSTimerHandle) == 0x0003F0, "Member 'AFortAthenaLivingWorldVolume::RunEQSTimerHandle' has a wrong offset!");
 
 // Class LagerRuntime.FortAthenaPatrolPathPointProvider
 // 0x0060 (0x0280 - 0x0220)
@@ -258,13 +437,22 @@ public:
 	TMulticastInlineDelegate<void(class AActor* SpawnedActor, bool bResult)> OnActorSpawnedResult;                              // 0x0258(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPrivate)
 	TWeakObjectPtr<class AFortAthenaPatrolPath>   RuntimePatrolPathWeakPtr;                          // 0x0268(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class AFortGameStateAthena*                   CachedGameState;                                   // 0x0270(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_278[0x8];                                      // 0x0278(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	float                                         PointProviderMaxRadius;
+	float                                         PointProviderMaxRadiusSqr;
 
 public:
 	void DisablePointProvider();
 	void EnablePointProvider();
 	void OnCurrentPlaylistLoaded(class FName PlaylistName, const struct FGameplayTagContainer& PlaylistContextTags);
 	void OnSpawnedActorDestroyed(class AActor* DestroyedActor);
+
+	static void Init();
+	static void InitPointProviderHook(AFortAthenaPatrolPathPointProvider* This, class AFortAthenaPatrolPath* PatrolPath, bool bUsePatrolPathTags);
+	static bool GetValidLocationHook(const class IFortAthenaLivingWorldPointProviderInterface* This, const struct FFortAthenaLivingWorldPointProviderFilterRules* PointFilter, float ActorDensityComputationRadius, struct FVector* OutPosition, struct FRotator* OutRotation);
+	static bool IsEnabledHook(const class IFortAthenaLivingWorldPointProviderInterface* This, const struct FFortAthenaLivingWorldPointProviderFilterRules* PointFilter);
+
+	bool GetValidLocation(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter, const float ActorDensityComputationRadius, struct FVector& OutPosition, struct FRotator& OutRotation) const;
+	bool IsEnabled(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter) const;
 
 public:
 	static class UClass* StaticClass()
@@ -283,6 +471,8 @@ static_assert(offsetof(AFortAthenaPatrolPathPointProvider, AssociatedPatrolPath)
 static_assert(offsetof(AFortAthenaPatrolPathPointProvider, OnActorSpawnedResult) == 0x000258, "Member 'AFortAthenaPatrolPathPointProvider::OnActorSpawnedResult' has a wrong offset!");
 static_assert(offsetof(AFortAthenaPatrolPathPointProvider, RuntimePatrolPathWeakPtr) == 0x000268, "Member 'AFortAthenaPatrolPathPointProvider::RuntimePatrolPathWeakPtr' has a wrong offset!");
 static_assert(offsetof(AFortAthenaPatrolPathPointProvider, CachedGameState) == 0x000270, "Member 'AFortAthenaPatrolPathPointProvider::CachedGameState' has a wrong offset!");
+static_assert(offsetof(AFortAthenaPatrolPathPointProvider, PointProviderMaxRadius) == 0x000278, "Member 'AFortAthenaPatrolPathPointProvider::PointProviderMaxRadius' has a wrong offset!");
+static_assert(offsetof(AFortAthenaPatrolPathPointProvider, PointProviderMaxRadiusSqr) == 0x00027C, "Member 'AFortAthenaPatrolPathPointProvider::PointProviderMaxRadiusSqr' has a wrong offset!");
 
 // Class LagerRuntime.FortCheatManager_LivingWorldManager
 // 0x0018 (0x0040 - 0x0028)

@@ -166,6 +166,18 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Items">
       <UniqueIdentifier>{e15af958-21e4-4726-bf48-088c2f37b7b7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\Lager">
+      <UniqueIdentifier>{d1a33071-3e7f-429d-b5c8-3c152691b16a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\Lager\Source">
+      <UniqueIdentifier>{7511cd64-5ca3-46cb-8dd7-390abaedb51e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime">
+      <UniqueIdentifier>{008f81cf-b476-492a-9d62-005544c51528}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private">
+      <UniqueIdentifier>{945ddf6b-2353-45db-9cb4-51b4b4e60647}</UniqueIdentifier>
+    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Pawns">
       <UniqueIdentifier>{a1ddfd28-8bbb-4b7a-949a-eb6bf10ad53d}</UniqueIdentifier>
     </Filter>
@@ -719,6 +731,12 @@
     <ClCompile Include="SDK\SDK\FortniteGame_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SDK\SDK\AIModule_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SDK\SDK\LagerRuntime_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SDK\SDK\GameplayAbilities_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -814,6 +832,18 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Pawns\FortPlayerPawn.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Pawns</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private\FortAthenaLivingWorldManager.cpp">
+      <Filter>FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private\FortAthenaLivingWorldVolume.cpp">
+      <Filter>FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private\FortAthenaPatrolPathPointProvider.cpp">
+      <Filter>FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private\FortAthenaLivingWorldPointProviderInterface.cpp">
+      <Filter>FortniteGame\Plugins\GameFeatures\Lager\Source\LagerRuntime\Private</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\GameDataBR.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>

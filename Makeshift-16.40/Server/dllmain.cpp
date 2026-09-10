@@ -76,6 +76,9 @@ DWORD WINAPI Main(LPVOID) {
     UInventoryManagementLibrary::Init();
     UFortGadgetItemDefinition::Init();
     UFortAIFunctionLibrary::Init();
+    UFortAthenaLivingWorldManager::Init();
+    AFortAthenaLivingWorldVolume::Init();
+    AFortAthenaPatrolPathPointProvider::Init();
     UConversationContextHelpers::Init();
     UConversationLibrary::Init();
     UConversationParticipantComponent::Init();

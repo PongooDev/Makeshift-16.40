@@ -53,3 +53,10 @@ inline void FFortAssets::GetAssetArray(const TArray<TSoftObjectPtr<UDataTable>>&
 	void (*Fn)(const TArray<TSoftObjectPtr<UDataTable>>*, TArray<UDataTable*>*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x454412C);
 	Fn(&SoftObjectPtrs, &OutAssets);
 }
+
+template<>
+inline UFortAthenaLivingWorldEventData* FFortAssets::GetAsset(const TSoftObjectPtr<UFortAthenaLivingWorldEventData>& SoftObjectPtr)
+{
+	UFortAthenaLivingWorldEventData* (*Fn)(const TSoftObjectPtr<UFortAthenaLivingWorldEventData>*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x3C78FFC);
+	return Fn(&SoftObjectPtr);
+}

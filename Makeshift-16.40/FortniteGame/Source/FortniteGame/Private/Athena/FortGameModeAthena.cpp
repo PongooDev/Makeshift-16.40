@@ -135,6 +135,8 @@ void AFortGameModeAthena::InitGameStateHook(AFortGameModeAthena* This) {
 	GameState->CurrentPlaylistInfo.MarkArrayDirty();
 
 	GameState->OnRep_CurrentPlaylistInfo();
+
+	UFortAthenaLivingWorldManager::HandleCurrentPlaylistLoaded(GameState, This->CurrentPlaylistName);
 }
 
 static int16 NextWorldPlayerId = 0;

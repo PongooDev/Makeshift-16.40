@@ -147,10 +147,13 @@ static_assert(offsetof(FFortLivingWorldConfigOverride, LagerConfig) == 0x000048,
 struct FFortAthenaLivingWorldPointProviderFilterRules final
 {
 public:
-	uint8                                         Pad_0[0x2];                                        // 0x0000(0x0002)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	bool                                          bOnlyPointsInSafeZone;
+	bool                                          bCheckForActorDensity;
 };
 static_assert(alignof(FFortAthenaLivingWorldPointProviderFilterRules) == 0x000001, "Wrong alignment on FFortAthenaLivingWorldPointProviderFilterRules");
 static_assert(sizeof(FFortAthenaLivingWorldPointProviderFilterRules) == 0x000002, "Wrong size on FFortAthenaLivingWorldPointProviderFilterRules");
+static_assert(offsetof(FFortAthenaLivingWorldPointProviderFilterRules, bOnlyPointsInSafeZone) == 0x000000, "Member 'FFortAthenaLivingWorldPointProviderFilterRules::bOnlyPointsInSafeZone' has a wrong offset!");
+static_assert(offsetof(FFortAthenaLivingWorldPointProviderFilterRules, bCheckForActorDensity) == 0x000001, "Member 'FFortAthenaLivingWorldPointProviderFilterRules::bCheckForActorDensity' has a wrong offset!");
 
 }
 

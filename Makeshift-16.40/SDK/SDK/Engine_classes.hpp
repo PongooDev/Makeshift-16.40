@@ -245,6 +245,10 @@ public:
 
 	bool ComponentHasTag(class FName Tag) const;
 	float GetComponentTickInterval() const;
+	void RegisterComponentTickFunctions(bool bRegister)
+	{
+		reinterpret_cast<void (*)(UActorComponent*, bool)>(VTable[101])(this, bRegister);
+	}
 	class AActor* GetOwner() const
 	{
 		return OwnerPrivate;

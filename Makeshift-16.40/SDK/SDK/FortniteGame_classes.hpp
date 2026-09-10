@@ -47223,6 +47223,10 @@ public:
 	{
 		return GetDefaultObjImpl<AFortPawn>();
 	}
+	class IFortInventoryOwnerInterface* GetInventoryOwnerInterface()
+	{
+		return reinterpret_cast<class IFortInventoryOwnerInterface* (*)(AFortPawn*)>(VTable[397])(this);
+	}
 };
 static_assert(alignof(AFortPawn) == 0x000010, "Wrong alignment on AFortPawn");
 static_assert(sizeof(AFortPawn) == 0x001280, "Wrong size on AFortPawn");
@@ -57681,7 +57685,13 @@ public:
 	uint8                                         Pad_534[0x4];                                      // 0x0534(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
 	class UFortSimpleMiniMapIndicator*            MinimapIndicator;                                  // 0x0538(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	class UFortSlateHUDIndicator*                 HUDLabel;                                          // 0x0540(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
-	uint8                                         Pad_548[0xC4];                                     // 0x0548(0x00C4)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_548[0x68];
+	uint8                                         bIsInStorm : 1;
+	uint8                                         bIsAutoPickup : 1;
+	uint8                                         bIsVisualOnlyPickup : 1;
+	uint8                                         Pad_5B1[0x3];
+	float                                         SpawnedTime;
+	uint8                                         Pad_5B8[0x54];
 	bool                                          bRandomRotation;                                   // 0x060C(0x0001)(BlueprintVisible, BlueprintReadOnly, Net, ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	uint8                                         Pad_60D[0x1B];                                     // 0x060D(0x001B)(Fixing Size After Last Property [ Dumper-7 ])
 	float                                         DespawnTime;                                       // 0x0628(0x0004)(ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
@@ -57742,6 +57752,37 @@ public:
 	{
 		return GetDefaultObjImpl<AFortPickup>();
 	}
+	bool CheckForRePickup(class AFortPlayerPawn* FortPlayerPawn)
+	{
+		bool (*Fn)(AFortPickup*, class AFortPlayerPawn*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4A51654);
+		return Fn(this, FortPlayerPawn);
+	}
+	bool ShouldBlockPickup(const class AFortPawn* FortPawn) const
+	{
+		return reinterpret_cast<bool (*)(const AFortPickup*, const class AFortPawn*)>(VTable[216])(this, FortPawn);
+	}
+	bool IsAllowedToAutoPickUpItemOnServer(const class AFortPlayerController* FortPC)
+	{
+		return reinterpret_cast<bool (*)(AFortPickup*, const class AFortPlayerController*)>(VTable[214])(this, FortPC);
+	}
+	void OnPickupGivenTo(class IFortInventoryOwnerInterface* InventoryOwner) const
+	{
+		reinterpret_cast<void (*)(const AFortPickup*, class IFortInventoryOwnerInterface*)>(VTable[205])(this, InventoryOwner);
+	}
+	void UpdateSpecialActorStat(ESpecialActorStatType InStat)
+	{
+		void (*Fn)(AFortPickup*, ESpecialActorStatType) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1495560);
+		Fn(this, InStat);
+	}
+	void MarkVisualOnlyPickup()
+	{
+		bIsVisualOnlyPickup = true;
+	}
+	void GivePickupTo(class IFortInventoryOwnerInterface* InventoryOwner, bool DestoryAfterPickup);
+	void GivePickupItemsToInventoryOwner(class IFortInventoryOwnerInterface* InventoryOwner);
+	static void GivePickupToHook(AFortPickup* This, class IFortInventoryOwnerInterface* InventoryOwner, bool DestoryAfterPickup);
+	static void GivePickupItemsToInventoryOwnerHook(AFortPickup* This, class IFortInventoryOwnerInterface* InventoryOwner);
+	static void Init();
 };
 static_assert(alignof(AFortPickup) == 0x000008, "Wrong alignment on AFortPickup");
 static_assert(sizeof(AFortPickup) == 0x000638, "Wrong size on AFortPickup");
@@ -57792,6 +57833,7 @@ static_assert(offsetof(AFortPickup, SpecialActorID) == 0x00052C, "Member 'AFortP
 static_assert(offsetof(AFortPickup, MinimapIndicator) == 0x000538, "Member 'AFortPickup::MinimapIndicator' has a wrong offset!");
 static_assert(offsetof(AFortPickup, HUDLabel) == 0x000540, "Member 'AFortPickup::HUDLabel' has a wrong offset!");
 static_assert(offsetof(AFortPickup, bRandomRotation) == 0x00060C, "Member 'AFortPickup::bRandomRotation' has a wrong offset!");
+static_assert(offsetof(AFortPickup, SpawnedTime) == 0x0005B4, "Member 'AFortPickup::SpawnedTime' has a wrong offset!");
 static_assert(offsetof(AFortPickup, DespawnTime) == 0x000628, "Member 'AFortPickup::DespawnTime' has a wrong offset!");
 static_assert(offsetof(AFortPickup, StormDespawnTime) == 0x00062C, "Member 'AFortPickup::StormDespawnTime' has a wrong offset!");
 static_assert(offsetof(AFortPickup, StartSimulatingTime) == 0x000630, "Member 'AFortPickup::StartSimulatingTime' has a wrong offset!");
@@ -60207,6 +60249,9 @@ public:
 	{
 		reinterpret_cast<void (*)(AFortPlayerPawn*)>(VTable[327])(this);
 	}
+	void ServerHandlePickupInfo_Implementation(class AFortPickup* Pickup, struct FFortPickupRequestInfo Params);
+	static void ServerHandlePickupInfoHook(AFortPlayerPawn* This, class AFortPickup* Pickup, struct FFortPickupRequestInfo Params);
+	static void Init();
 };
 static_assert(alignof(AFortPlayerPawn) == 0x000010, "Wrong alignment on AFortPlayerPawn");
 static_assert(sizeof(AFortPlayerPawn) == 0x0031A0, "Wrong size on AFortPlayerPawn");

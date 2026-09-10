@@ -359,6 +359,7 @@
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\ScriptCore.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortPickup.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Pawns\FortPlayerPawn.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\GameDataBR.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortLootTier.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortInventory.cpp" />

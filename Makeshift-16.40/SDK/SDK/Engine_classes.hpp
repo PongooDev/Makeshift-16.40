@@ -1142,6 +1142,11 @@ public:
 	{
 		return static_cast<T*>(FindComponentByClass(T::StaticClass()));
 	}
+	bool Destroy(bool bNetForce = false, bool bShouldModifyLevel = true)
+	{
+		bool (*Fn)(AActor*, bool, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xE3B2F8);
+		return Fn(this, bNetForce, bShouldModifyLevel);
+	}
 };
 static_assert(alignof(AActor) == 0x000008, "Wrong alignment on AActor");
 static_assert(sizeof(AActor) == 0x000220, "Wrong size on AActor");

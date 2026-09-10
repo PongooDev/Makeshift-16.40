@@ -784,6 +784,11 @@ public:
 		float (*Fn)(const FScalableFloat*, float, const FString*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xC2B198);
 		return Fn(this, Level, ContextString);
 	}
+
+	int32 AsInteger(float Level, const FString* ContextString = nullptr) const
+	{
+		return static_cast<int32>(GetValueAtLevel(Level, ContextString));
+	}
 };
 static_assert(alignof(FScalableFloat) == 0x000008, "Wrong alignment on FScalableFloat");
 static_assert(sizeof(FScalableFloat) == 0x000028, "Wrong size on FScalableFloat");

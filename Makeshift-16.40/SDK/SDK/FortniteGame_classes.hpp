@@ -1751,6 +1751,30 @@ public:
 	{
 		return GetDefaultObjImpl<AFortGameStateAthena>();
 	}
+
+public:
+	void SetSafeZonePhase(uint8 NewSafeZonePhase)
+	{
+		void (*Fn)(AFortGameStateAthena*, uint8) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4596318);
+		Fn(this, NewSafeZonePhase);
+	}
+
+	void SetSafeZoneIndicator(class AFortSafeZoneIndicator* InSafeZoneIndicator)
+	{
+		SafeZoneIndicator = InSafeZoneIndicator;
+	}
+
+	void RefreshSafeZone(const struct FVector& Center, float Radius)
+	{
+		void (*Fn)(AFortGameStateAthena*, const struct FVector*, float) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4594098);
+		Fn(this, &Center, Radius);
+	}
+
+	void ShutDownSkyTubes()
+	{
+		void (*Fn)(AFortGameStateAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4597414);
+		Fn(this);
+	}
 };
 static_assert(alignof(AFortGameStateAthena) == 0x000008, "Wrong alignment on AFortGameStateAthena");
 static_assert(sizeof(AFortGameStateAthena) == 0x002C78, "Wrong size on AFortGameStateAthena");
@@ -4902,6 +4926,17 @@ public:
 	static class AFortAthenaMutator* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AFortAthenaMutator>();
+	}
+
+public:
+	void ApplyContextActor(const class AActor* ContextActor)
+	{
+		reinterpret_cast<void (*)(AFortAthenaMutator*, const AActor*)>(VTable[219])(this, ContextActor);
+	}
+
+	EFortMutatorReturnValue FortGameModeAthena_ShouldSpawnSafeZoneIndicator(bool& bShouldSpawnSafeZoneIndicator) const
+	{
+		return reinterpret_cast<EFortMutatorReturnValue (*)(const AFortAthenaMutator*, bool*)>(VTable[239])(this, &bShouldSpawnSafeZoneIndicator);
 	}
 };
 static_assert(alignof(AFortAthenaMutator) == 0x000008, "Wrong alignment on AFortAthenaMutator");
@@ -57042,6 +57077,48 @@ public:
 		void (*Fn)(AFortGameModeAthena*, class AFortPlayerControllerAthena*, class APlayerState*, class APawn*, class UFortWeaponItemDefinition*, EDeathCause, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x456BA44);
 		Fn(this, PC, RemovalInstigator, FinisherPawn, FinishingWeapon, DeathCause, bIsTeamSwitching);
 	}
+
+public:
+	static void SpawnInitialSafeZoneHook(AFortGameModeAthena* This);
+	static void StartNewSafeZonePhaseHook(AFortGameModeAthena* This, int32 NewSafeZonePhase);
+	void SpawnInitialSafeZone();
+	void StartNewSafeZonePhase(int32 NewSafeZonePhase);
+
+	void SendPreSafeZonePhaseChangedAnalytics(const bool bInitialSafeZone)
+	{
+		void (*Fn)(AFortGameModeAthena*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x456F848);
+		Fn(this, bInitialSafeZone);
+	}
+
+	void SendPostSafeZonePhaseChangedAnalytics()
+	{
+		void (*Fn)(AFortGameModeAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x456F6E8);
+		Fn(this);
+	}
+
+	void TriggerBuildingGameplayActorSpawning()
+	{
+		void (*Fn)(AFortGameModeAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x457DDE8);
+		Fn(this);
+	}
+
+	bool UpdateNextNextSafeZone(class AFortGameStateAthena* FortGameState, class AFortAthenaMapInfo* MapInfo)
+	{
+		bool (*Fn)(AFortGameModeAthena*, class AFortGameStateAthena*, class AFortAthenaMapInfo*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4570E98);
+		return Fn(this, FortGameState, MapInfo);
+	}
+
+	void UpdateSafeZoneEventDriven()
+	{
+		void (*Fn)(AFortGameModeAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4570210);
+		Fn(this);
+	}
+
+	bool CalculateRespawnData(struct FVector& OutLocation, struct FRotator& OutRotation, float& OutCameraDistance, class AFortPlayerControllerAthena* PC, class AFortPlayerStateAthena* PS, class AFortPlayerPawnAthena* Pawn)
+	{
+		bool (*Fn)(AFortGameModeAthena*, struct FVector*, struct FRotator*, float*, class AFortPlayerControllerAthena*, class AFortPlayerStateAthena*, class AFortPlayerPawnAthena*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4549074);
+		return Fn(this, &OutLocation, &OutRotation, &OutCameraDistance, PC, PS, Pawn);
+	}
 };
 static_assert(alignof(AFortGameModeAthena) == 0x000008, "Wrong alignment on AFortGameModeAthena");
 static_assert(sizeof(AFortGameModeAthena) == 0x001670, "Wrong size on AFortGameModeAthena");
@@ -59445,7 +59522,9 @@ public:
 	uint8                                         Pad_1508[0x38];                                    // 0x1508(0x0038)(Fixing Size After Last Property [ Dumper-7 ])
 	uint8                                         bIsInAnyStorm : 1;                                 // 0x1540(0x0001)(BitIndex: 0x00, PropSize: 0x0001 (BlueprintVisible, BlueprintReadOnly, Net, RepNotify, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected))
 	uint8                                         bIsInsideSafeZone : 1;                             // 0x1540(0x0001)(BitIndex: 0x01, PropSize: 0x0001 (BlueprintVisible, BlueprintReadOnly, Net, RepNotify, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected))
-	uint8                                         Pad_1541[0xF];                                     // 0x1541(0x000F)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_1541[0x3];
+	struct FActiveGameplayEffectHandle            GE_OutsideSafeZone_Handle;
+	uint8                                         Pad_154C[0x4];
 	TSubclassOf<class UGameplayEffect>            SafeZoneAppliedGE;                                 // 0x1550(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_1558[0x18];                                    // 0x1558(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
 	TSubclassOf<class UGameplayEffect>            SelfReviveGameplayEffect;                          // 0x1570(0x0008)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, Protected, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierProtected)
@@ -60176,6 +60255,7 @@ static_assert(offsetof(AFortPlayerPawn, ReplicatedCustomMeshHeightAdjustTarget) 
 static_assert(offsetof(AFortPlayerPawn, UnburrowLaunchXYSpeed) == 0x0014AC, "Member 'AFortPlayerPawn::UnburrowLaunchXYSpeed' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, UnburrowLaunchZSpeed) == 0x0014B0, "Member 'AFortPlayerPawn::UnburrowLaunchZSpeed' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, VehicleInputStateUnreliable) == 0x0014E0, "Member 'AFortPlayerPawn::VehicleInputStateUnreliable' has a wrong offset!");
+static_assert(offsetof(AFortPlayerPawn, GE_OutsideSafeZone_Handle) == 0x001544, "Member 'AFortPlayerPawn::GE_OutsideSafeZone_Handle' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, SafeZoneAppliedGE) == 0x001550, "Member 'AFortPlayerPawn::SafeZoneAppliedGE' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, SelfReviveGameplayEffect) == 0x001570, "Member 'AFortPlayerPawn::SelfReviveGameplayEffect' has a wrong offset!");
 static_assert(offsetof(AFortPlayerPawn, TeammateReviveGameplayEffect) == 0x001578, "Member 'AFortPlayerPawn::TeammateReviveGameplayEffect' has a wrong offset!");
@@ -63529,6 +63609,13 @@ public:
 	{
 		return GetDefaultObjImpl<AFortAthenaMapInfo>();
 	}
+
+public:
+	int32 GetSafeZoneCount() const
+	{
+		int32 (*Fn)(const AFortAthenaMapInfo*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x3CA4DA8);
+		return Fn(this);
+	}
 };
 static_assert(alignof(AFortAthenaMapInfo) == 0x000008, "Wrong alignment on AFortAthenaMapInfo");
 static_assert(sizeof(AFortAthenaMapInfo) == 0x0008B8, "Wrong size on AFortAthenaMapInfo");
@@ -66707,6 +66794,13 @@ public:
 	static class AMegaStormManager* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<AMegaStormManager>();
+	}
+
+public:
+	void StartMegaStormCircle(const struct FVector& Center, const float& Radius, int32 GridCellThickness)
+	{
+		void (*Fn)(AMegaStormManager*, const struct FVector*, const float*, int32) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x45AC244);
+		Fn(this, &Center, &Radius, GridCellThickness);
 	}
 };
 static_assert(alignof(AMegaStormManager) == 0x000008, "Wrong alignment on AMegaStormManager");
@@ -111556,6 +111650,12 @@ public:
 
 	void SetKillScore(int32 NewScore);
 	void SetTeamKillScore(int32 NewScore);
+	void SetRespawnData(const struct FVector& RespawnLocation, const struct FRotator& RespawnRotation, float RespawnCameraDistance);
+
+	bool IsReadyToRespawn() const
+	{
+		return RespawnData.bClientIsReady && RespawnData.bServerIsReady;
+	}
 };
 static_assert(alignof(AFortPlayerStateAthena) == 0x000008, "Wrong alignment on AFortPlayerStateAthena");
 static_assert(sizeof(AFortPlayerStateAthena) == 0x0014F0, "Wrong size on AFortPlayerStateAthena");
@@ -115570,6 +115670,10 @@ public:
 	{
 		return GetDefaultObjImpl<AFortSafeZoneIndicator>();
 	}
+
+public:
+	void SetShrinkDuration(float NewShrinkDuration);
+	void OffsetShrinkTimesFromServerTime(float TimeOffset);
 };
 static_assert(alignof(AFortSafeZoneIndicator) == 0x000008, "Wrong alignment on AFortSafeZoneIndicator");
 static_assert(sizeof(AFortSafeZoneIndicator) == 0x000480, "Wrong size on AFortSafeZoneIndicator");

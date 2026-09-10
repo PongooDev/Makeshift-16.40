@@ -301,6 +301,8 @@
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\Items\FortPickup.h" />
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortAssets.h" />
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortGlobals.h" />
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\Athena\Modifiers\FortAthenaMutator.h" />
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\Analytics\FortAnalytics.h" />
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectGlobals.h" />
     <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\CommonConversationRuntimeLogging.h" />
     <ClInclude Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Public\ConversationTypes.h" />
@@ -351,6 +353,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerControllerAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerPawnAthena.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortSafeZoneIndicator.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerStateAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\ScriptCore.cpp" />

@@ -8,3 +8,10 @@ void AFortPlayerStateAthena::SetKillScore(int32 NewScore) {
 void AFortPlayerStateAthena::SetTeamKillScore(int32 NewScore) {
 	TeamKillScore = NewScore;
 }
+
+void AFortPlayerStateAthena::SetRespawnData(const FVector& RespawnLocation, const FRotator& RespawnRotation, float RespawnCameraDistance) {
+	RespawnData.RespawnLocation = RespawnLocation;
+	RespawnData.RespawnRotation = RespawnRotation;
+	RespawnData.RespawnCameraDistance = RespawnCameraDistance;
+	RespawnData.bRespawnDataAvailable = true;
+}

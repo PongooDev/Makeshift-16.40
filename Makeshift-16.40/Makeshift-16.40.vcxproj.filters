@@ -85,6 +85,15 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena">
       <UniqueIdentifier>{053bbb06-8a94-4a46-93fd-935c02b9b4e4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena">
+      <UniqueIdentifier>{164bc175-35f6-4e3a-8ec7-813853ffdcce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Modifiers">
+      <UniqueIdentifier>{926ad02f-da95-4107-8c28-a9322353282e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Public\Analytics">
+      <UniqueIdentifier>{33153780-2793-4af2-adab-950cd4e3eae5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Engine\Source\Runtime\Engine\Classes">
       <UniqueIdentifier>{0f25f1c9-61c8-4bd4-bfe4-5ccb142341d2}</UniqueIdentifier>
     </Filter>
@@ -636,6 +645,12 @@
     <ClInclude Include="FortniteGame\Source\FortniteGame\Public\FortGlobals.h">
       <Filter>FortniteGame\Source\FortniteGame\Public</Filter>
     </ClInclude>
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\Athena\Modifiers\FortAthenaMutator.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Athena\Modifiers</Filter>
+    </ClInclude>
+    <ClInclude Include="FortniteGame\Source\FortniteGame\Public\Analytics\FortAnalytics.h">
+      <Filter>FortniteGame\Source\FortniteGame\Public\Analytics</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\CoreUObject\Public\UObject\UObjectGlobals.h">
       <Filter>Engine\Source\Runtime\CoreUObject\Public\UObject</Filter>
     </ClInclude>
@@ -774,6 +789,9 @@
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerPawnAthena.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortSafeZoneIndicator.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerStateAthena.cpp">

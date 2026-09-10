@@ -49455,11 +49455,12 @@ struct FMutatorContext final
 {
 public:
 	TArray<class AActor*>                         MutatorOwners;                                     // 0x0000(0x0010)(BlueprintVisible, ZeroConstructor, NativeAccessSpecifierPublic)
-	uint8                                         Pad_10[0x8];                                       // 0x0010(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	TWeakObjectPtr<const class AActor>            ContextActor;
 };
 static_assert(alignof(FMutatorContext) == 0x000008, "Wrong alignment on FMutatorContext");
 static_assert(sizeof(FMutatorContext) == 0x000018, "Wrong size on FMutatorContext");
 static_assert(offsetof(FMutatorContext, MutatorOwners) == 0x000000, "Member 'FMutatorContext::MutatorOwners' has a wrong offset!");
+static_assert(offsetof(FMutatorContext, ContextActor) == 0x000010, "Member 'FMutatorContext::ContextActor' has a wrong offset!");
 
 // ScriptStruct FortniteGame.NativizationCachedFieldsToCompare
 // 0x0020 (0x0020 - 0x0000)
@@ -52488,7 +52489,92 @@ public:
 	struct FScalableFloat                         PlayerCapSolo;                                     // 0x0168(0x0028)(Edit, Protected, NativeAccessSpecifierProtected)
 	struct FScalableFloat                         PlayerCapDuo;                                      // 0x0190(0x0028)(Edit, Protected, NativeAccessSpecifierProtected)
 	struct FScalableFloat                         PlayerCapSquad;                                    // 0x01B8(0x0028)(Edit, Protected, NativeAccessSpecifierProtected)
-	uint8                                         Pad_1E0[0xB8];                                     // 0x01E0(0x00B8)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	mutable int32                                 CachedCurveTableVersion;
+	mutable float                                 CountCached;
+	mutable TArray<float>                         RadiusCached;
+	mutable TArray<float>                         ForceDistanceMinCached;
+	mutable TArray<float>                         ForceDistanceMaxCached;
+	mutable TArray<float>                         RejectRadiusCached;
+	mutable TArray<float>                         RejectOuterDistanceCached;
+	mutable TArray<float>                         WaitTimeCached;
+	mutable TArray<float>                         ShrinkTimeCached;
+	mutable TArray<float>                         MegaStormGridCellThicknessCached;
+	mutable TArray<float>                         PlayerCapSoloCached;
+	mutable TArray<float>                         PlayerCapDuoCached;
+	mutable TArray<float>                         PlayerCapSquadCached;
+
+public:
+	static int32& CurveTableVersion()
+	{
+		return *reinterpret_cast<int32*>(InSDKUtils::GetImageBase() + 0x932CE7C);
+	}
+
+	void UpdateCachedValues() const
+	{
+		if (CachedCurveTableVersion == CurveTableVersion())
+		{
+			return;
+		}
+
+		CachedCurveTableVersion = CurveTableVersion();
+		CountCached = Count.GetValueAtLevel(0.f);
+		RadiusCached.Reset();
+		ForceDistanceMinCached.Reset();
+		ForceDistanceMaxCached.Reset();
+		RejectRadiusCached.Reset();
+		RejectOuterDistanceCached.Reset();
+		WaitTimeCached.Reset();
+		ShrinkTimeCached.Reset();
+		MegaStormGridCellThicknessCached.Reset();
+		PlayerCapSoloCached.Reset();
+		PlayerCapDuoCached.Reset();
+		PlayerCapSquadCached.Reset();
+		for (int32 Index = 0; static_cast<float>(Index) < CountCached; ++Index)
+		{
+			const float Level = static_cast<float>(Index);
+			RadiusCached.Add(Radius.GetValueAtLevel(Level));
+			ForceDistanceMinCached.Add(ForceDistanceMin.GetValueAtLevel(Level));
+			ForceDistanceMaxCached.Add(ForceDistanceMax.GetValueAtLevel(Level));
+			RejectRadiusCached.Add(RejectRadius.GetValueAtLevel(Level));
+			RejectOuterDistanceCached.Add(RejectOuterDistance.GetValueAtLevel(Level));
+			WaitTimeCached.Add(WaitTime.GetValueAtLevel(Level));
+			ShrinkTimeCached.Add(ShrinkTime.GetValueAtLevel(Level));
+			MegaStormGridCellThicknessCached.Add(MegaStormGridCellThickness.GetValueAtLevel(Level));
+			PlayerCapSoloCached.Add(PlayerCapSolo.GetValueAtLevel(Level));
+			PlayerCapDuoCached.Add(PlayerCapDuo.GetValueAtLevel(Level));
+			PlayerCapSquadCached.Add(PlayerCapSquad.GetValueAtLevel(Level));
+		}
+	}
+
+	int32 GetCount() const
+	{
+		UpdateCachedValues();
+		return static_cast<int32>(CountCached);
+	}
+
+	float GetRadius(int32 Index) const
+	{
+		UpdateCachedValues();
+		return Index >= 0 && Index < RadiusCached.Num() ? RadiusCached[Index] : 0.f;
+	}
+
+	float GetWaitTime(int32 Index) const
+	{
+		UpdateCachedValues();
+		return Index >= 0 && Index < WaitTimeCached.Num() ? WaitTimeCached[Index] : 0.f;
+	}
+
+	float GetShrinkTime(int32 Index) const
+	{
+		UpdateCachedValues();
+		return Index >= 0 && Index < ShrinkTimeCached.Num() ? ShrinkTimeCached[Index] : 0.f;
+	}
+
+	float GetMegaStormGridCellThickness(int32 Index) const
+	{
+		UpdateCachedValues();
+		return Index >= 0 && Index < MegaStormGridCellThicknessCached.Num() ? MegaStormGridCellThicknessCached[Index] : 0.f;
+	}
 };
 static_assert(alignof(FFortSafeZoneDefinition) == 0x000008, "Wrong alignment on FFortSafeZoneDefinition");
 static_assert(sizeof(FFortSafeZoneDefinition) == 0x000298, "Wrong size on FFortSafeZoneDefinition");
@@ -52504,6 +52590,12 @@ static_assert(offsetof(FFortSafeZoneDefinition, MegaStormGridCellThickness) == 0
 static_assert(offsetof(FFortSafeZoneDefinition, PlayerCapSolo) == 0x000168, "Member 'FFortSafeZoneDefinition::PlayerCapSolo' has a wrong offset!");
 static_assert(offsetof(FFortSafeZoneDefinition, PlayerCapDuo) == 0x000190, "Member 'FFortSafeZoneDefinition::PlayerCapDuo' has a wrong offset!");
 static_assert(offsetof(FFortSafeZoneDefinition, PlayerCapSquad) == 0x0001B8, "Member 'FFortSafeZoneDefinition::PlayerCapSquad' has a wrong offset!");
+static_assert(offsetof(FFortSafeZoneDefinition, CachedCurveTableVersion) == 0x0001E0, "Member 'FFortSafeZoneDefinition::CachedCurveTableVersion' has a wrong offset!");
+static_assert(offsetof(FFortSafeZoneDefinition, CountCached) == 0x0001E4, "Member 'FFortSafeZoneDefinition::CountCached' has a wrong offset!");
+static_assert(offsetof(FFortSafeZoneDefinition, RadiusCached) == 0x0001E8, "Member 'FFortSafeZoneDefinition::RadiusCached' has a wrong offset!");
+static_assert(offsetof(FFortSafeZoneDefinition, WaitTimeCached) == 0x000238, "Member 'FFortSafeZoneDefinition::WaitTimeCached' has a wrong offset!");
+static_assert(offsetof(FFortSafeZoneDefinition, ShrinkTimeCached) == 0x000248, "Member 'FFortSafeZoneDefinition::ShrinkTimeCached' has a wrong offset!");
+static_assert(offsetof(FFortSafeZoneDefinition, PlayerCapSquadCached) == 0x000288, "Member 'FFortSafeZoneDefinition::PlayerCapSquadCached' has a wrong offset!");
 
 // ScriptStruct FortniteGame.SanitizationData
 // 0x0060 (0x0060 - 0x0000)

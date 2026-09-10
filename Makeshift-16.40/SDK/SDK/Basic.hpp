@@ -1238,6 +1238,11 @@ public:
 	TArray<FScriptDelegate>                       InvocationList;                                    // 0x0000(0x0010)(NOT AUTO-GENERATED PROPERTY)
 
 public:
+	void ProcessMulticastDelegate(void* Parameters) const
+	{
+		reinterpret_cast<void (*)(const TMulticastInlineDelegate*, void*)>(InSDKUtils::GetImageBase() + 0xBE4BCC)(this, Parameters);
+	}
+
 	void AddUnique(const FScriptDelegate& InDelegate)
 	{
 		bool bAlreadyBound = false;

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include "Engine/Source/Runtime/Engine/Classes/GameFramework/GameMode.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
 #include "FortniteGame/Source/FortniteGame/Public/Athena/Modifiers/FortAthenaMutator.h"
@@ -347,11 +348,62 @@ void AFortGameModeAthena::StartNewSafeZonePhaseHook(AFortGameModeAthena* This, i
 	This->StartNewSafeZonePhase(NewSafeZonePhase);
 }
 
+void AFortGameModeAthena::PauseWarmup() {
+	bWarmupPaused = true;
+}
+
+void AFortGameModeAthena::UnPauseWarmup() {
+	bWarmupPaused = false;
+}
+
+void AFortGameModeAthena::CreateServerBotManager() {
+	if (ServerBotManager || !ServerBotManagerClass) {
+		return;
+	}
+
+	ServerBotManager = NewObject<UFortServerBotManagerAthena>(this, ServerBotManagerClass);
+	if (!ServerBotManager) {
+		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateServerBotManager : Failed to create the server bot manager from %hs"), ServerBotManagerClass->GetName().c_str());
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	ServerBotManager->CachedGameMode = this;
+	ServerBotManager->CachedGameState = GameState ? GameState->Cast<AFortGameStateAthena>() : nullptr;
+	ServerBotManager->CachedAIPopulationTracker = UAthenaAISystem::GetAIPopulationTracker(World);
+
+	UAthenaAISystem* AthenaAISystem = (World && World->AISystem) ? World->AISystem->Cast<UAthenaAISystem>() : nullptr;
+	if (AthenaAISystem) {
+		AthenaAISystem->PlayerBotManager = ServerBotManager;
+	}
+
+	AFortGameplayMutator* Mutator = GetMutatorByClass(this, AFortAthenaMutator_Bots::StaticClass());
+	AFortAthenaMutator_Bots* BotMutator = Mutator ? Mutator->Cast<AFortAthenaMutator_Bots>() : nullptr;
+	if (BotMutator && !ServerBotManager->CachedBotMutator) {
+		ServerBotManager->SetBotMutator(BotMutator);
+		ServerBotManager->bBotHostileToHumanPlayersOnly = BotMutator->bBotHostileToHumanPlayersOnly;
+	}
+
+	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : Created %hs"), ServerBotManager->GetName().c_str());
+}
+
+void AFortGameModeAthena::OnPlaylistDataLoadedHook(AFortGameModeAthena* This) {
+	OnPlaylistDataLoadedOG(This);
+
+	AFortGameStateAthena* FortGameState = This->GameState ? This->GameState->Cast<AFortGameStateAthena>() : nullptr;
+	if (!FortGameState || !FortGameState->GetCurrentPlaylistData()) {
+		return;
+	}
+
+	This->CreateServerBotManager();
+}
+
 void AFortGameModeAthena::Init() {
 	Memory::HookDetour(ImageBase + 0x4551FC0, FinishWorldInitializationHook, &FinishWorldInitializationOG);
 	Memory::HookDetour(ImageBase + 0x456AE14, ReadyToStartMatchHook);
 	Memory::HookDetour(ImageBase + 0x45742D8, SpawnDefaultPawnForHook);
 	Memory::HookDetour(ImageBase + 0x455CAD8, InitGameStateHook, &InitGameStateOG);
+	Memory::HookDetour(ImageBase + 0x4563F08, OnPlaylistDataLoadedHook, &OnPlaylistDataLoadedOG);
 	Memory::HookDetour(ImageBase + 0x4566D60, PostLoginHook, &PostLoginOG);
 	Memory::HookDetour(ImageBase + 0x4574D64, SpawnInitialSafeZoneHook);
 	Memory::HookDetour(ImageBase + 0x45799A4, StartNewSafeZonePhaseHook);

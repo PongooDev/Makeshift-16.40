@@ -1617,6 +1617,9 @@ public:
 	void OnRep_CurrentHighScore();
 	void OnRep_CurrentPlaylistId();
 	void OnRep_CurrentPlaylistInfo();
+	const class UFortPlaylistAthena* GetCurrentPlaylistData() const {
+		return CurrentPlaylistInfo.OverridePlaylist ? CurrentPlaylistInfo.OverridePlaylist : CurrentPlaylistInfo.BasePlaylist;
+	}
 	void OnRep_DamageForStormCapMarking();
 	void OnRep_EndGameKickPlayerTime();
 	void OnRep_EventTournamentRound();
@@ -5984,6 +5987,10 @@ public:
 public:
 	void AIProfiling_OnGamePhaseChanged(EAthenaGamePhase GamePhase);
 	void AIProfiling_OnSafeZoneUpdated();
+	static class UAthenaAIPopulationTracker* GetAIPopulationTracker(const class UWorld* World) {
+		class UAthenaAIPopulationTracker* (*Fn)(const class UWorld*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x44DB758);
+		return Fn(World);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -56589,6 +56596,9 @@ public:
 public:
 	void OnSafeZoneUpdated();
 	class AFortPlayerPawnAthena* SpawnBot(TSubclassOf<class AFortPlayerPawnAthena> BotPawnClass, const class AActor* InSpawnLocator, const struct FVector& InSpawnLocation, const struct FRotator& InSpawnRotation, const bool bSnapToGround);
+	static void Init();
+	static inline void (*UnpauseWarmupOG)(AFortAthenaMutator_Bots* This);
+	static void UnpauseWarmupHook(AFortAthenaMutator_Bots* This);
 
 public:
 	static class UClass* StaticClass()
@@ -56954,7 +56964,12 @@ public:
 	uint8                                         Pad_D40[0xD0];                                     // 0x0D40(0x00D0)(Fixing Size After Last Property [ Dumper-7 ])
 	bool                                          bAlwaysIncludeDisconnectedTeammates;               // 0x0E10(0x0001)(ZeroConstructor, Config, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	bool                                          bIncludeDisconnectedTeammatesFromAircraftPhase;    // 0x0E11(0x0001)(ZeroConstructor, Config, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
-	uint8                                         Pad_E12[0x36];                                     // 0x0E12(0x0036)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_E12[0xE];
+	uint8                                         bSkipWarmup : 1;
+	uint8                                         bWarmupPaused : 1;
+	uint8                                         bSkipAircraft : 1;
+	uint8                                         BitPad_E20_3 : 5;
+	uint8                                         Pad_E21[0x27];
 	EForceKickAfterDeathMode                      ForceKickAfterDeathMode;                           // 0x0E48(0x0001)(ZeroConstructor, Config, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	uint8                                         Pad_E49[0x3];                                      // 0x0E49(0x0003)(Fixing Size After Last Property [ Dumper-7 ])
 	float                                         ForceKickAfterDeathTime;                           // 0x0E4C(0x0004)(ZeroConstructor, Config, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
@@ -57147,6 +57162,12 @@ public:
 	static void PostLoginHook(AFortGameModeAthena* This, class APlayerController* NewPlayer);
 	static inline void (*PostLoginOG)(AFortGameModeAthena* This, class APlayerController* NewPlayer);
 	static void InitGameStateHook(AFortGameModeAthena* This);
+
+	static inline void (*OnPlaylistDataLoadedOG)(AFortGameModeAthena* This);
+	static void OnPlaylistDataLoadedHook(AFortGameModeAthena* This);
+	void CreateServerBotManager();
+	void PauseWarmup();
+	void UnPauseWarmup();
 
 	int32 CountReadyPlayers() {
 		int32(*Fn)(AFortGameModeAthena*, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x454C99C);
@@ -113802,6 +113823,12 @@ public:
 
 	bool ContainsLocationTag(const struct FGameplayTag& Tag) const;
 
+	static void Init();
+	static inline void (*PostInitializeComponentsOG)(AFortPoiVolume* This);
+	static void PostInitializeComponentsHook(AFortPoiVolume* This);
+	bool ReconstructBrushComponent();
+	bool GetLocationBoundsFromBuildingFoundations(struct FVector& OutOrigin, struct FVector& OutExtent, int32& OutFoundationCount) const;
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -114322,6 +114349,10 @@ public:
 
 public:
 	bool IsWeaponSupported(class AFortWeapon* FortWeapon);
+	void SetBotMutator(class AFortAthenaMutator_Bots* BotMutator) {
+		void (*Fn)(UFortServerBotManagerAthena*, class AFortAthenaMutator_Bots*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46231D4);
+		Fn(this, BotMutator);
+	}
 	void JoinTeam(const class AController* SourceTeamController, class AController* DestinationTeamController);
 	void KillBots(bool bKillPlayers, bool bKillNoneParticipants, uint8 TeamIndex, class AActor* BotOwner);
 	void OnGamePhaseStepChanged(const TScriptInterface<class IFortSafeZoneInterface>& SafeZoneInterface, const EAthenaGamePhaseStep GamePhaseStep);

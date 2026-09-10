@@ -351,6 +351,8 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Online\FortGameSession.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortGameModeAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortGameStateAthena.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPoiVolume.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\Modifiers\FortAthenaMutator_Bots.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameMode.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp" />

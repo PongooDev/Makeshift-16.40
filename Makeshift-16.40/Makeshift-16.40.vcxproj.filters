@@ -91,6 +91,9 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Athena\Modifiers">
       <UniqueIdentifier>{926ad02f-da95-4107-8c28-a9322353282e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena\Modifiers">
+      <UniqueIdentifier>{f9707ef4-d82b-4567-b380-2f050ec287c5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Analytics">
       <UniqueIdentifier>{33153780-2793-4af2-adab-950cd4e3eae5}</UniqueIdentifier>
     </Filter>
@@ -799,6 +802,12 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortGameStateAthena.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPoiVolume.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\Modifiers\FortAthenaMutator_Bots.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena\Modifiers</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameMode.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>

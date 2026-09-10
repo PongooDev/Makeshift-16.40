@@ -245,6 +245,12 @@ public:
 
 	bool ComponentHasTag(class FName Tag) const;
 	float GetComponentTickInterval() const;
+	void RegisterComponentWithWorld(class UWorld* InWorld, struct FRegisterComponentContext* Context = nullptr)
+	{
+		void (*Fn)(UActorComponent*, class UWorld*, struct FRegisterComponentContext*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xF59990);
+		Fn(this, InWorld, Context);
+	}
+
 	void RegisterComponentTickFunctions(bool bRegister)
 	{
 		reinterpret_cast<void (*)(UActorComponent*, bool)>(VTable[101])(this, bRegister);
@@ -291,7 +297,8 @@ public:
 	class FName                                   AttachSocketName;                                  // 0x00C8(0x0008)(Net, ZeroConstructor, IsPlainOldData, RepNotify, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TArray<class USceneComponent*>                AttachChildren;                                    // 0x00D0(0x0010)(ExportObject, Net, ZeroConstructor, Transient, RepNotify, ContainsInstancedReference, NativeAccessSpecifierPrivate)
 	TArray<class USceneComponent*>                ClientAttachedChildren;                            // 0x00E0(0x0010)(ExportObject, ZeroConstructor, Transient, ContainsInstancedReference, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_F0[0x2C];                                      // 0x00F0(0x002C)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_F0[0x10];
+	struct FBoxSphereBounds                       Bounds;
 	struct FVector                                RelativeLocation;                                  // 0x011C(0x000C)(Edit, BlueprintVisible, BlueprintReadOnly, Net, ZeroConstructor, IsPlainOldData, RepNotify, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	struct FRotator                               RelativeRotation;                                  // 0x0128(0x000C)(Edit, BlueprintVisible, BlueprintReadOnly, Net, ZeroConstructor, IsPlainOldData, RepNotify, NoDestructor, NativeAccessSpecifierPrivate)
 	struct FVector                                RelativeScale3D;                                   // 0x0134(0x000C)(Edit, BlueprintVisible, BlueprintReadOnly, Net, ZeroConstructor, IsPlainOldData, RepNotify, Interp, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
@@ -412,6 +419,7 @@ static_assert(offsetof(USceneComponent, AttachParent) == 0x0000C0, "Member 'USce
 static_assert(offsetof(USceneComponent, AttachSocketName) == 0x0000C8, "Member 'USceneComponent::AttachSocketName' has a wrong offset!");
 static_assert(offsetof(USceneComponent, AttachChildren) == 0x0000D0, "Member 'USceneComponent::AttachChildren' has a wrong offset!");
 static_assert(offsetof(USceneComponent, ClientAttachedChildren) == 0x0000E0, "Member 'USceneComponent::ClientAttachedChildren' has a wrong offset!");
+static_assert(offsetof(USceneComponent, Bounds) == 0x000100, "Member 'USceneComponent::Bounds' has a wrong offset!");
 static_assert(offsetof(USceneComponent, RelativeLocation) == 0x00011C, "Member 'USceneComponent::RelativeLocation' has a wrong offset!");
 static_assert(offsetof(USceneComponent, RelativeRotation) == 0x000128, "Member 'USceneComponent::RelativeRotation' has a wrong offset!");
 static_assert(offsetof(USceneComponent, RelativeScale3D) == 0x000134, "Member 'USceneComponent::RelativeScale3D' has a wrong offset!");

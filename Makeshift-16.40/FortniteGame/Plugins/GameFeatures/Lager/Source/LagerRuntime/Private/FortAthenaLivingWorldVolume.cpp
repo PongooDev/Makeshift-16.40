@@ -1,13 +1,38 @@
 ﻿#include "pch.h"
+#include "Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include <vector>
 
 struct FPendingEnvironmentQuery
 {
 	TWeakObjectPtr<AFortAthenaLivingWorldVolume> Volume;
 	TWeakObjectPtr<UEnvQueryInstanceBlueprintWrapper> QueryInstance;
+	float StartTime;
 };
 
 static std::vector<FPendingEnvironmentQuery> PendingEnvironmentQueries;
+
+static const int32 MaxEnvironmentQueryGridPointsPerSide = 48;
+
+struct FReconstructedVolumeBounds
+{
+	TWeakObjectPtr<AFortAthenaLivingWorldVolume> Volume;
+	FVector Extent;
+};
+
+static std::vector<FReconstructedVolumeBounds> ReconstructedVolumeBounds;
+
+static bool FindReconstructedVolumeExtent(const AFortAthenaLivingWorldVolume* Volume, FVector& OutExtent)
+{
+	for (size_t Index = 0; Index < ReconstructedVolumeBounds.size(); ++Index)
+	{
+		if (ReconstructedVolumeBounds[Index].Volume.Get() == Volume)
+		{
+			OutExtent = ReconstructedVolumeBounds[Index].Extent;
+			return true;
+		}
+	}
+	return false;
+}
 
 static FPendingEnvironmentQuery* FindPendingEnvironmentQuery(const AFortAthenaLivingWorldVolume* Volume)
 {
@@ -57,6 +82,164 @@ static void ShieldQueryInstanceFromGarbageCollection(UEnvQueryInstanceBlueprintW
 	{
 		ObjectItem->Flags &= ~int32(EInternalObjectFlags::RootSet);
 	}
+}
+
+static bool RequiresVolumeBounds(UEnvQuery* EnvironmentQuery)
+{
+	if (!EnvironmentQuery)
+	{
+		return false;
+	}
+
+	for (int32 OptionIndex = 0; OptionIndex < EnvironmentQuery->Options.Num(); ++OptionIndex)
+	{
+		UEnvQueryOption* Option = EnvironmentQuery->Options[OptionIndex];
+		UEnvQueryGenerator* Generator = Option ? Option->Generator : nullptr;
+		if (Generator && Generator->IsA(UEnvQueryGenerator_SimpleGrid::StaticClass()))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+static int32 RemoveVolumeContainmentTests(UEnvQuery* EnvironmentQuery)
+{
+	int32 RemovedCount = 0;
+	if (!EnvironmentQuery)
+	{
+		return RemovedCount;
+	}
+
+	for (int32 OptionIndex = 0; OptionIndex < EnvironmentQuery->Options.Num(); ++OptionIndex)
+	{
+		UEnvQueryOption* Option = EnvironmentQuery->Options[OptionIndex];
+		if (!Option)
+		{
+			continue;
+		}
+
+		for (int32 TestIndex = Option->Tests.Num() - 1; TestIndex >= 0; --TestIndex)
+		{
+			UEnvQueryTest* Test = Option->Tests[TestIndex];
+			if (Test && Test->IsA(UEnvQueryTest_Volume::StaticClass()))
+			{
+				Option->Tests.RemoveAt(TestIndex, 1, false);
+				++RemovedCount;
+			}
+		}
+	}
+
+	return RemovedCount;
+}
+
+static bool GetPlayableBounds(AFortGameStateAthena* GameState, FVector& OutOrigin, FVector& OutExtent)
+{
+	AFortAthenaMapInfo* MapInfo = GameState ? GameState->MapInfo : nullptr;
+	if (!MapInfo)
+	{
+		return false;
+	}
+
+	OutOrigin = MapInfo->CachedPlayableBoundsForClients.Origin;
+	OutExtent = MapInfo->CachedPlayableBoundsForClients.BoxExtent;
+	if (OutExtent.X > 0.f && OutExtent.Y > 0.f)
+	{
+		return true;
+	}
+
+	if (AVolume* PlayableBoundsVolume = MapInfo->PlayableBoundsVolume)
+	{
+		PlayableBoundsVolume->GetActorBounds(false, &OutOrigin, &OutExtent, false);
+		if (OutExtent.X > 0.f && OutExtent.Y > 0.f)
+		{
+			return true;
+		}
+	}
+
+	const FBox2D& AircraftDropZone = MapInfo->AircraftDropZone;
+	if (AircraftDropZone.max.X > AircraftDropZone.min.X && AircraftDropZone.max.Y > AircraftDropZone.min.Y)
+	{
+		OutOrigin = FVector((AircraftDropZone.min.X + AircraftDropZone.max.X) * 0.5f, (AircraftDropZone.min.Y + AircraftDropZone.max.Y) * 0.5f, 0.f);
+		OutExtent = FVector((AircraftDropZone.max.X - AircraftDropZone.min.X) * 0.5f, (AircraftDropZone.max.Y - AircraftDropZone.min.Y) * 0.5f, 0.f);
+		return true;
+	}
+
+	return false;
+}
+
+static float GetGroundReferenceZ(AFortAthenaLivingWorldVolume* Volume, float DefaultZ)
+{
+	UFortAthenaLivingWorldManager* LivingWorldManager = UFortAthenaLivingWorldManager::GetLivingWorldManager(Volume);
+	if (!LivingWorldManager)
+	{
+		return DefaultZ;
+	}
+
+	float TotalZ = 0.f;
+	int32 Count = 0;
+	for (int32 Index = 0; Index < LivingWorldManager->PointProviders.Num(); ++Index)
+	{
+		UObject* Object = LivingWorldManager->PointProviders[Index].ObjectPointer;
+		AActor* PointProviderActor = Object ? Object->Cast<AActor>() : nullptr;
+		if (!PointProviderActor || !PointProviderActor->IsA(AFortAthenaPatrolPathPointProvider::StaticClass()))
+		{
+			continue;
+		}
+
+		TotalZ += PointProviderActor->GetActorLocation().Z;
+		++Count;
+	}
+
+	return Count > 0 ? TotalZ / float(Count) : DefaultZ;
+}
+
+static float ApplyVolumeBoundsToGridGenerator(const AFortAthenaLivingWorldVolume* Volume, UEnvQuery* EnvironmentQuery)
+{
+	if (!Volume || !EnvironmentQuery)
+	{
+		return 0.f;
+	}
+
+	FVector BoxExtent;
+	if (!FindReconstructedVolumeExtent(Volume, BoxExtent))
+	{
+		FVector Origin;
+		const_cast<AFortAthenaLivingWorldVolume*>(Volume)->GetActorBounds(false, &Origin, &BoxExtent, false);
+	}
+
+	float GridSize = FMath::Max(BoxExtent.X, BoxExtent.Y) * 2.f;
+	if (GridSize <= 0.f)
+	{
+		GridSize = 60000.f;
+	}
+
+	for (int32 OptionIndex = 0; OptionIndex < EnvironmentQuery->Options.Num(); ++OptionIndex)
+	{
+		UEnvQueryOption* Option = EnvironmentQuery->Options[OptionIndex];
+		UEnvQueryGenerator* Generator = Option ? Option->Generator : nullptr;
+		if (!Generator || !Generator->IsA(UEnvQueryGenerator_SimpleGrid::StaticClass()))
+		{
+			continue;
+		}
+
+		UEnvQueryGenerator_SimpleGrid* SimpleGrid = static_cast<UEnvQueryGenerator_SimpleGrid*>(Generator);
+		SimpleGrid->GridSize.DataBinding = nullptr;
+		if (GridSize > SimpleGrid->GridSize.DefaultValue)
+		{
+			SimpleGrid->GridSize.DefaultValue = GridSize;
+		}
+
+		const float MinimumSpaceBetween = SimpleGrid->GridSize.DefaultValue / float(MaxEnvironmentQueryGridPointsPerSide);
+		SimpleGrid->SpaceBetween.DataBinding = nullptr;
+		if (MinimumSpaceBetween > SimpleGrid->SpaceBetween.DefaultValue)
+		{
+			SimpleGrid->SpaceBetween.DefaultValue = MinimumSpaceBetween;
+		}
+	}
+
+	return GridSize;
 }
 
 static AFortGameStateAthena* GetFortGameStateAthena(UWorld* World)
@@ -112,6 +295,38 @@ void AFortAthenaLivingWorldVolume::DisablePointProvider()
 	}
 }
 
+bool AFortAthenaLivingWorldVolume::ReconstructVolumeRootComponent()
+{
+	FVector Origin;
+	FVector Extent;
+	if (RootComponent || !EnvironmentQuery || !GetPlayableBounds(CachedGameState, Origin, Extent))
+	{
+		return false;
+	}
+
+	Origin.Z = GetGroundReferenceZ(this, Origin.Z);
+
+	USceneComponent* SceneComponent = NewObject<USceneComponent>(this, USceneComponent::StaticClass());
+	if (!SceneComponent)
+	{
+		return false;
+	}
+
+	SceneComponent->SetMobility(EComponentMobility::Movable);
+	RootComponent = SceneComponent;
+	K2_SetActorLocation(Origin, false, nullptr, true);
+
+	FReconstructedVolumeBounds Bounds;
+	Bounds.Volume = TWeakObjectPtr<AFortAthenaLivingWorldVolume>(this);
+	Bounds.Extent = Extent;
+	ReconstructedVolumeBounds.push_back(Bounds);
+
+	const int32 RemovedTestCount = RemoveVolumeContainmentTests(EnvironmentQuery);
+	const FVector ActorLocation = GetActorLocation();
+	UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::ReconstructVolumeRootComponent (%hs) The brush component is missing from this build, a root component was created at %f %f %f with an extent of %f %f, %d volume containment test(s) removed from %hs"), GetName().c_str(), ActorLocation.X, ActorLocation.Y, ActorLocation.Z, Extent.X, Extent.Y, RemovedTestCount, EnvironmentQuery->GetName().c_str());
+	return true;
+}
+
 void AFortAthenaLivingWorldVolume::RunEQS()
 {
 	if (!EnvironmentQuery)
@@ -121,6 +336,13 @@ void AFortAthenaLivingWorldVolume::RunEQS()
 		return;
 	}
 
+	if (!RootComponent && RequiresVolumeBounds(EnvironmentQuery) && !ReconstructVolumeRootComponent())
+	{
+		UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::RunEQS (%hs) has no brush component in this build and the playable bounds are not available yet, the environment query will be started later"), GetName().c_str());
+		return;
+	}
+
+	const float GridSize = ApplyVolumeBoundsToGridGenerator(this, EnvironmentQuery);
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, EnvironmentQuery, this, EEnvQueryRunMode::AllMatching, UEnvQueryInstanceBlueprintWrapper::StaticClass());
 	if (!QueryInstance)
 	{
@@ -131,20 +353,25 @@ void AFortAthenaLivingWorldVolume::RunEQS()
 	EQSRequestID = QueryInstance->QueryID;
 	ShieldQueryInstanceFromGarbageCollection(QueryInstance, true);
 
-	if (EQSRequestID == -1)
-	{
-		UE_LOG(LogLivingWorldManager, Warning, TEXT("AFortAthenaLivingWorldVolume::RunEQS (%hs) The environment query did not start"), GetName().c_str());
-	}
+	UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::RunEQS (%hs) started query %hs id %d, grid size %f, %d pending"), GetName().c_str(), EnvironmentQuery->GetName().c_str(), EQSRequestID, GridSize, static_cast<int32>(PendingEnvironmentQueries.size()) + 1);
 
 	RemovePendingEnvironmentQuery(this);
 	FPendingEnvironmentQuery PendingQuery;
 	PendingQuery.Volume = TWeakObjectPtr<AFortAthenaLivingWorldVolume>(this);
 	PendingQuery.QueryInstance = TWeakObjectPtr<UEnvQueryInstanceBlueprintWrapper>(QueryInstance);
+	PendingQuery.StartTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
 	PendingEnvironmentQueries.push_back(PendingQuery);
 }
 
 void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 {
+	static size_t LastReportedPendingCount = 0;
+	if (PendingEnvironmentQueries.size() != LastReportedPendingCount)
+	{
+		LastReportedPendingCount = PendingEnvironmentQueries.size();
+		UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries : %d environment query/queries pending"), static_cast<int32>(LastReportedPendingCount));
+	}
+
 	for (size_t Index = 0; Index < PendingEnvironmentQueries.size();)
 	{
 		AFortAthenaLivingWorldVolume* Volume = PendingEnvironmentQueries[Index].Volume.Get();
@@ -167,6 +394,18 @@ void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 		TArray<FVector> QueryLocations;
 		if (!QueryInstance->GetQueryResultsAsLocations(&QueryLocations))
 		{
+			UWorld* World = Volume->GetWorld();
+			const float TimeSeconds = World ? World->GetTimeSeconds() : 0.f;
+			if (TimeSeconds - PendingEnvironmentQueries[Index].StartTime > 60.f)
+			{
+				UE_LOG(LogLivingWorldManager, Warning, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries (%hs) The environment query returned no usable result, disabling volume"), Volume->GetName().c_str());
+				Volume->EQSRequestID = -1;
+				Volume->bIsEnabled = false;
+				ShieldQueryInstanceFromGarbageCollection(QueryInstance, false);
+				PendingEnvironmentQueries.erase(PendingEnvironmentQueries.begin() + Index);
+				continue;
+			}
+
 			++Index;
 			continue;
 		}

@@ -385,6 +385,7 @@ public:
 
 	void EnablePointProvider();
 	void DisablePointProvider();
+	bool ReconstructVolumeRootComponent();
 	void RunEQS();
 	void OnEnvQueryFinished(const TArray<struct FVector>& QueryLocations);
 	bool GetValidLocation(const struct FFortAthenaLivingWorldPointProviderFilterRules& PointFilter, const float ActorDensityComputationRadius, struct FVector& OutPosition, struct FRotator& OutRotation) const;

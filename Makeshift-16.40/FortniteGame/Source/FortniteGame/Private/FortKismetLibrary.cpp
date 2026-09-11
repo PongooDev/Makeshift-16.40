@@ -948,9 +948,10 @@ DEFINE_FUNCTION(UFortKismetLibrary::execUpgradeAllWeaponsVerticalToRarity)
 
 void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x5098E58, execIncrementAnalyticMatchCount, nullptr);
-	Memory::HookDetour(ImageBase + 0x508ADCC, execChangeTeam, nullptr);
+	UClass* KismetLibraryClass = UFortKismetLibrary::StaticClass();
+	Memory::HookUFunction(KismetLibraryClass->GetFunction("FortKismetLibrary", "ChangeTeam"), (void*)&UFortKismetLibrary::execChangeTeam);
 	Memory::HookDetour(ImageBase + 0x509B410, execK2_SpawnPickupInWorld, nullptr);
-	Memory::HookDetour(ImageBase + 0x509B870, execK2_SpawnPickupInWorldWithClass, nullptr);
+	Memory::HookUFunction(KismetLibraryClass->GetFunction("FortKismetLibrary", "K2_SpawnPickupInWorldWithClass"), (void*)&UFortKismetLibrary::execK2_SpawnPickupInWorldWithClass);
 	Memory::HookDetour(ImageBase + 0x509BD24, execK2_SpawnPickupInWorldWithClassAndLevel, nullptr);
 	Memory::HookDetour(ImageBase + 0x509C224, execK2_SpawnPickupInWorldWithLevel, nullptr);
 	Memory::HookDetour(ImageBase + 0x50A0FD8, execSpawnInstancedPickupInWorld, nullptr);
@@ -960,14 +961,14 @@ void UFortKismetLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x509C6D8, execK2_SpawnPickupInWorldWithLootTier, nullptr);
 	Memory::HookDetour(ImageBase + 0x508DB48, execDropInstancedLoot, nullptr);
 	Memory::HookDetour(ImageBase + 0x508DCE0, execDropInstancedLootAtLocation, nullptr);
-	Memory::HookDetour(ImageBase + 0x509A70C, execK2_GiveItemToPlayer, nullptr);
+	Memory::HookUFunction(KismetLibraryClass->GetFunction("FortKismetLibrary", "K2_GiveItemToPlayer"), (void*)&UFortKismetLibrary::execK2_GiveItemToPlayer);
 	Memory::HookDetour(ImageBase + 0x5098800, execGiveItemToInventoryOwner, nullptr);
 	Memory::HookDetour(ImageBase + 0x5087E10, execAddRegenItemToInventoryOwner, nullptr);
-	Memory::HookDetour(ImageBase + 0x509AC40, execK2_RemoveItemFromPlayer, nullptr);
+	Memory::HookUFunction(KismetLibraryClass->GetFunction("FortKismetLibrary", "K2_RemoveItemFromPlayer"), (void*)&UFortKismetLibrary::execK2_RemoveItemFromPlayer);
 	Memory::HookDetour(ImageBase + 0x509AED8, execK2_RemoveItemFromPlayerByGuid, nullptr);
 	Memory::HookDetour(ImageBase + 0x509B04C, execK2_RemoveItemsFromPlayerByIntStateValue, nullptr);
-	Memory::HookDetour(ImageBase + 0x509B1BC, execK2_RemoveItemsFromPlayerByNameStateValue, nullptr);
-	Memory::HookDetour(ImageBase + 0x509ADB4, execK2_RemoveItemFromAllPlayers, nullptr);
+	Memory::HookUFunction(KismetLibraryClass->GetFunction("FortKismetLibrary", "K2_RemoveItemsFromPlayerByNameStateValue"), (void*)&UFortKismetLibrary::execK2_RemoveItemsFromPlayerByNameStateValue);
+	Memory::HookUFunction(KismetLibraryClass->GetFunction("FortKismetLibrary", "K2_RemoveItemFromAllPlayers"), (void*)&UFortKismetLibrary::execK2_RemoveItemFromAllPlayers);
 	Memory::HookDetour(ImageBase + 0x509A5E8, execK2_GiveBuildingResource, nullptr);
 	Memory::HookDetour(ImageBase + 0x50A2B18, execUpgradeAllWeaponsVerticalToRarity, nullptr);
 }

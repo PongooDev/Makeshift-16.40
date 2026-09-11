@@ -746,6 +746,9 @@
     <ClCompile Include="SDK\SDK\AIModule_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SDK\SDK\NavigationSystem_functions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="SDK\SDK\LagerRuntime_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "pch.h"
+#include "Engine/Source/Runtime/Core/Public/HAL/IConsoleManager.h"
 #include "Engine/Source/Runtime/Engine/Classes/AI/NavigationSystemBase.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 
@@ -36,6 +37,7 @@ static UNavigationSystemConfig* ResolveNavigationSystemConfig(AWorldSettings* Wo
 
 	AthenaConfig->bAutoSpawnMissingNavData = true;
 	AthenaConfig->bUsesStreamedInNavLevel = false;
+	AthenaConfig->bRebuildOnInitialUnlock = true;
 
 	WorldSettings->SetNavigationSystemConfigOverride(AthenaConfig);
 
@@ -72,19 +74,31 @@ static void AllowEveryAgentOnNavigationBoundsVolumes(UWorld& WorldOwner)
 	}
 }
 
-static void LogSupportedAgents(UWorld& WorldOwner)
+void UAthenaNavSystem::BuildNavigationData(UWorld* WorldOwner)
 {
-	UNavigationSystemV1* NavigationSystem = WorldOwner.NavigationSystem ? WorldOwner.NavigationSystem->Cast<UNavigationSystemV1>() : nullptr;
+	UFortNavSystem* NavigationSystem = (WorldOwner != nullptr && WorldOwner->NavigationSystem != nullptr) ? WorldOwner->NavigationSystem->Cast<UFortNavSystem>() : nullptr;
 	if (NavigationSystem == nullptr)
 	{
 		return;
 	}
 
-	for (int32 AgentIndex = 0; AgentIndex < NavigationSystem->SupportedAgents.Num(); ++AgentIndex)
+	UE_LOG(LogNavigation, Log, TEXT("UAthenaNavSystem::BuildNavigationData : navigation octree locked %d, navigation building locked %d"), NavigationSystem->IsNavigationOctreeLocked(), NavigationSystem->IsNavigationBuildingLocked());
+
+	NavigationSystem->BuildNavigationData();
+}
+
+static void PreloadBuildNavigationData()
+{
+	UAthenaNavSystem::GetDefaultObj()->bInitialBuildingLocked = true;
+
+	IConsoleVariable* PreloadBuildNavigationDataVariable = IConsoleManager::Get().FindConsoleVariable(TEXT("Preload.BuildNavigationData"));
+	if (PreloadBuildNavigationDataVariable == nullptr)
 	{
-		FNavDataConfig& NavConfig = NavigationSystem->SupportedAgents[AgentIndex];
-		UE_LOG(LogNavigation, Log, TEXT("UAthenaNavSystem::AddNavigationSystemToWorld : SupportedAgent[%d] is %hs, navigation data class %hs, radius %f height %f"), AgentIndex, NavConfig.Name.ToString().c_str(), NavConfig.NavigationDataClass.Get() ? NavConfig.NavigationDataClass.Get()->GetName().c_str() : "none", NavConfig.AgentRadius, NavConfig.AgentHeight);
+		UE_LOG(LogNavigation, Warning, TEXT("UAthenaNavSystem::AddNavigationSystemToWorld : Preload.BuildNavigationData is not registered, the navigation octree will be unlocked before the playlist levels are visible"));
+		return;
 	}
+
+	PreloadBuildNavigationDataVariable->Set(true, ECVF_SetByCode);
 }
 
 static void AddNavigationSystemToWorldHook(UWorld& WorldOwner, const FNavigationSystemRunMode RunMode, UNavigationSystemConfig* NavigationSystemConfig, const bool bInitializeForWorld, const bool bOverridePreviousNavSys)
@@ -94,6 +108,11 @@ static void AddNavigationSystemToWorldHook(UWorld& WorldOwner, const FNavigation
 
 	if (WorldOwner.NavigationSystem == nullptr || bOverridePreviousNavSys)
 	{
+		if (bIsAthenaWorld)
+		{
+			PreloadBuildNavigationData();
+		}
+
 		NavigationSystemConfig = ResolveNavigationSystemConfig(WorldSettings, NavigationSystemConfig);
 	}
 
@@ -104,12 +123,8 @@ static void AddNavigationSystemToWorldHook(UWorld& WorldOwner, const FNavigation
 
 	FNavigationSystem::AddNavigationSystemToWorldOG(WorldOwner, RunMode, NavigationSystemConfig, bInitializeForWorld, bOverridePreviousNavSys);
 
-	UE_LOG(LogNavigation, Log, TEXT("UAthenaNavSystem::AddNavigationSystemToWorld : %hs has %hs"), WorldOwner.GetName().c_str(), WorldOwner.NavigationSystem ? WorldOwner.NavigationSystem->GetName().c_str() : "no navigation system");
-
-	if (bInitializeForWorld && bIsAthenaWorld)
-	{
-		LogSupportedAgents(WorldOwner);
-	}
+	UNavigationSystemV1* NavigationSystem = WorldOwner.NavigationSystem ? WorldOwner.NavigationSystem->Cast<UNavigationSystemV1>() : nullptr;
+	UE_LOG(LogNavigation, Log, TEXT("UAthenaNavSystem::AddNavigationSystemToWorld : %hs has %hs, navigation octree locked %d, navigation building locked %d"), WorldOwner.GetName().c_str(), NavigationSystem ? NavigationSystem->GetName().c_str() : "no navigation system", NavigationSystem != nullptr && NavigationSystem->IsNavigationOctreeLocked(), NavigationSystem != nullptr && NavigationSystem->IsNavigationBuildingLocked());
 }
 
 void UAthenaNavSystem::Init()

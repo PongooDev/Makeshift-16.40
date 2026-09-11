@@ -40,5 +40,6 @@ DEFINE_FUNCTION(UFortAIFunctionLibrary::execSetHearingRange)
 }
 
 void UFortAIFunctionLibrary::Init() {
-	Memory::HookDetour(ImageBase + 0x4F5DF94, execSetHearingRange, nullptr);
+	UClass* AIFunctionLibraryClass = UFortAIFunctionLibrary::StaticClass();
+	Memory::HookUFunction(AIFunctionLibraryClass->GetFunction("FortAIFunctionLibrary", "SetHearingRange"), (void*)&UFortAIFunctionLibrary::execSetHearingRange);
 }

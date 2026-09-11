@@ -114,7 +114,8 @@ DEFINE_FUNCTION(UInventoryManagementLibrary::execRemoveItems)
 
 void UInventoryManagementLibrary::Init() {
 	Memory::HookDetour(ImageBase + 0x51E5A44, execAddItem, nullptr);
-	Memory::HookDetour(ImageBase + 0x51E5B8C, execAddItems, nullptr);
+	UClass* InventoryManagementLibraryClass = UInventoryManagementLibrary::StaticClass();
+	Memory::HookUFunction(InventoryManagementLibraryClass->GetFunction("InventoryManagementLibrary", "AddItems"), (void*)&UInventoryManagementLibrary::execAddItems);
 	Memory::HookDetour(ImageBase + 0x51E63DC, execGiveItemEntryToInventoryOwner, nullptr);
 	Memory::HookDetour(ImageBase + 0x51E6C3C, execRemoveItem, nullptr);
 	Memory::HookDetour(ImageBase + 0x51E6D94, execRemoveItems, nullptr);

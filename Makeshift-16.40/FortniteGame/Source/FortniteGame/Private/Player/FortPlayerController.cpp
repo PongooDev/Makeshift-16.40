@@ -892,14 +892,15 @@ void AFortPlayerController::Init() {
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(891, DropItemsOnPawnDestructionHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(893, DropItemsAsPickupsAsyncHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(451, ServerDropAllItemsHook);
-	Memory::HookDetour(ImageBase + 0x51315A8, execDropAllItems, nullptr);
-	Memory::HookDetour(ImageBase + 0x3BEFE48, execDropSpecificItem, nullptr);
-	Memory::HookDetour(ImageBase + 0x513D47C, execTossSpecificItem, nullptr);
+	UClass* PlayerControllerClass = AFortPlayerController::StaticClass();
+	Memory::HookUFunction(PlayerControllerClass->GetFunction("FortPlayerController", "DropAllItems"), (void*)&AFortPlayerController::execDropAllItems);
+	Memory::HookUFunction(PlayerControllerClass->GetFunction("FortPlayerController", "DropSpecificItem"), (void*)&AFortPlayerController::execDropSpecificItem);
+	Memory::HookUFunction(PlayerControllerClass->GetFunction("FortPlayerController", "TossSpecificItem"), (void*)&AFortPlayerController::execTossSpecificItem);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(524, ServerSetInventoryStateValueHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(522, ServerRemoveInventoryStateValueHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(18, ModDurabilityHook, offsetof(AFortPlayerController, InventoryOwnerInterface));
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(738, ForceEquipValidWeaponHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(464, ServerPlayEmoteItemHook);
 	Memory::SwapVTableEntryInAllSubClasses<AFortPlayerController>(595, ServerSpotActorHook);
-	Memory::HookDetour(ImageBase + 0x513CCDC, execSpawnToyInstance, nullptr);
+	Memory::HookUFunction(PlayerControllerClass->GetFunction("FortPlayerController", "SpawnToyInstance"), (void*)&AFortPlayerController::execSpawnToyInstance);
 }

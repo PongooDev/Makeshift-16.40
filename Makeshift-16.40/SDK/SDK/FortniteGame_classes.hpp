@@ -3867,6 +3867,8 @@ public:
 	uint8                                         Pad_EC[0x4];                                       // 0x00EC(0x0004)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	static void DigestHealingItems(const TArray<struct FFortBotHealingItems>& SkillSetItems, TArray<struct FFortBotDigestedHealingItems>& DigestedItems, float Level);
+	static void DigestRangedWeaponSkill(const struct FRangedWeaponSkill& WeaponSkill, struct FDigestedRangedWeaponSkill& Digested, float Level);
 	static void DigestAimingSkillSet(class UFortAthenaAIBotAimingSkillSet* SkillSet, class UFortAthenaAIBotAimingDigestedSkillSet* Digested, float Level);
 	static void DigestAttackingSkillSet(class UFortAthenaAIBotAttackingSkillSet* SkillSet, class UFortAthenaAIBotAttackingDigestedSkillSet* Digested, float Level);
 	static void DigestBuildingSkillSet(class UFortAthenaAIBotBuildingSkillSet* SkillSet, class UFortAthenaAIBotBuildingDigestedSkillSet* Digested, float Level);
@@ -3874,11 +3876,14 @@ public:
 	static void DigestEmoteSkillSet(class UFortAthenaAIBotEmoteSkillSet* SkillSet, class UFortAthenaAIBotEmoteDigestedSkillSet* Digested, float Level);
 	static void DigestEvasiveManeuversSkillSet(class UFortAthenaAIBotEvasiveManeuversSkillSet* SkillSet, class UFortAthenaAIBotEvasiveManeuversDigestedSkillSet* Digested, float Level);
 	static void DigestHarvestSkillSet(class UFortAthenaAIBotHarvestSkillSet* SkillSet, class UFortAthenaAIBotHarvestDigestedSkillSet* Digested, float Level);
+	static void DigestHealingSkillSet(class UFortAthenaAIBotHealingSkillSet* SkillSet, class UFortAthenaAIBotHealingDigestedSkillSet* Digested, float Level);
 	static void DigestInventorySkillSet(class UFortAthenaAIBotInventorySkillSet* SkillSet, class UFortAthenaAIBotInventoryDigestedSkillSet* Digested, float Level);
 	static void DigestLootingSkillSet(class UFortAthenaAIBotLootingSkillSet* SkillSet, class UFortAthenaAIBotLootingDigestedSkillSet* Digested, float Level);
 	static void DigestMovementSkillSet(class UFortAthenaAIBotMovementSkillSet* SkillSet, class UFortAthenaAIBotMovementDigestedSkillSet* Digested, float Level);
 	static void DigestPerceptionSkillSet(class UFortAthenaAIBotPerceptionSkillSet* SkillSet, class UFortAthenaAIBotPerceptionDigestedSkillSet* Digested, float Level);
 	static void DigestPlayStyleSkillSet(class UFortAthenaAIBotPlayStyleSkillSet* SkillSet, class UFortAthenaAIBotPlayStyleDigestedSkillSet* Digested, float Level);
+	static void DigestPropagateAwarenessSkillSet(class UFortAthenaAIBotPropagateAwarenessSkillSet* SkillSet, class UFortAthenaAIBotPropagateAwarenessDigestedSkillSet* Digested, float Level);
+	static void DigestRangeAttackSkillSet(class UFortAthenaAIBotRangeAttackSkillSet* SkillSet, class UFortAthenaAIBotRangeAttackDigestedSkillSet* Digested, float Level);
 	static void DigestReviveSkillSet(class UFortAthenaAIBotReviveSkillSet* SkillSet, class UFortAthenaAIBotReviveDigestedSkillSet* Digested, float Level);
 	static void DigestUnstuckSkillSet(class UFortAthenaAIBotUnstuckSkillSet* SkillSet, class UFortAthenaAIBotUnstuckDigestedSkillSet* Digested, float Level);
 	static void DigestWarmupSkillSet(class UFortAthenaAIBotWarmupSkillSet* SkillSet, class UFortAthenaAIBotWarmupDigestedSkillSet* Digested, float Level);
@@ -27361,6 +27366,12 @@ public:
 
 	void OnNavDataRegistered(class ANavigationData* NavData);
 
+	void BuildNavigationData()
+	{
+		void (*Fn)(UFortNavSystem*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x438FED0);
+		Fn(this);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -27413,6 +27424,7 @@ public:
 	static void UnregisterNavGenerationObserver(class USceneComponent* Component);
 
 public:
+	static void BuildNavigationData(class UWorld* WorldOwner);
 	static void Init();
 
 public:

@@ -201,6 +201,15 @@ public:
 		bool (*Fn)(UNavigationSystemV1*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x6240938);
 		return Fn(this);
 	}
+	bool IsNavigationOctreeLocked() const
+	{
+		return (*(reinterpret_cast<const uint8*>(this) + 0x318) & 1) != 0;
+	}
+
+	bool IsNavigationBuildingLocked() const
+	{
+		return *(reinterpret_cast<const uint8*>(this) + 0x3B8) != 0;
+	}
 	static bool K2_GetRandomLocationInNavigableRadius(class UObject* WorldContextObject, const struct FVector& Origin, struct FVector* RandomLocation, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);
 	static bool K2_GetRandomPointInNavigableRadius(class UObject* WorldContextObject, const struct FVector& Origin, struct FVector* RandomLocation, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);
 	static bool K2_GetRandomReachablePointInRadius(class UObject* WorldContextObject, const struct FVector& Origin, struct FVector* RandomLocation, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);

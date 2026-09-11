@@ -343,6 +343,7 @@
     <ClCompile Include="SDK\SDK\GameplayAbilities_functions.cpp" />
     <ClCompile Include="SDK\SDK\CommonConversationRuntime_functions.cpp" />
     <ClCompile Include="SDK\SDK\AIModule_functions.cpp" />
+    <ClCompile Include="SDK\SDK\NavigationSystem_functions.cpp" />
     <ClCompile Include="SDK\SDK\LagerRuntime_functions.cpp" />
     <ClCompile Include="SDK\SDK\Basic.cpp" />
     <ClCompile Include="pch.cpp">

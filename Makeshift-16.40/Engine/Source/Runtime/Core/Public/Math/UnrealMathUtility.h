@@ -306,4 +306,28 @@ struct FMath : public FPlatformMath
 	{
 		return (T)((A * (1.0f - Alpha)) + (B * Alpha));
 	}
+
+	// Conversion Functions
+
+	/**
+	 * Converts radians to degrees.
+	 * @param	RadVal			Value in radians.
+	 * @return					Value in degrees.
+	 */
+	template<class T>
+	static FORCEINLINE auto RadiansToDegrees(T const& RadVal) -> decltype(RadVal * (180.f / PI))
+	{
+		return RadVal * (180.f / PI);
+	}
+
+	/**
+	 * Converts degrees to radians.
+	 * @param	DegVal			Value in degrees.
+	 * @return					Value in radians.
+	 */
+	template<class T>
+	static FORCEINLINE auto DegreesToRadians(T const& DegVal) -> decltype(DegVal * (PI / 180.f))
+	{
+		return DegVal * (PI / 180.f);
+	}
 };

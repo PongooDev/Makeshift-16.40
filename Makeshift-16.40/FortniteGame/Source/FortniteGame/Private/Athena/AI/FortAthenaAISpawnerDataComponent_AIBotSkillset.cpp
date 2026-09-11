@@ -1,5 +1,31 @@
 #include "pch.h"
 
+void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestHealingItems(const TArray<FFortBotHealingItems>& SkillSetItems, TArray<FFortBotDigestedHealingItems>& DigestedItems, float Level)
+{
+	DigestedItems.Empty(SkillSetItems.Num());
+
+	for (int32 Index = 0; Index < SkillSetItems.Num(); ++Index)
+	{
+		const FFortBotHealingItems& Item = SkillSetItems[Index];
+
+		FFortBotDigestedHealingItems DigestedItem{};
+		DigestedItem.UseItemResourceThreshold = Item.UseItemResourceThreshold.GetValueAtLevel(Level);
+		DigestedItem.ItemTags = Item.ItemTags;
+
+		DigestedItems.Add(DigestedItem);
+	}
+}
+
+void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestRangedWeaponSkill(const FRangedWeaponSkill& WeaponSkill, FDigestedRangedWeaponSkill& Digested, float Level)
+{
+	Digested.DelayBetweenShots = WeaponSkill.DelayBetweenShots.GetValueAtLevel(Level);
+	Digested.DelayDeviationTimeBetweenShots = WeaponSkill.DelayDeviationTimeBetweenShots.GetValueAtLevel(Level);
+	Digested.TriggerHoldDuration = WeaponSkill.TriggerHoldDuration.GetValueAtLevel(Level);
+	Digested.TriggerHoldDeviationTime = WeaponSkill.TriggerHoldDeviationTime.GetValueAtLevel(Level);
+	Digested.DelayBeforeFirstShot = WeaponSkill.DelayBeforeFirstShot.GetValueAtLevel(Level);
+	Digested.ShotDelayAfterTargeting = WeaponSkill.ShotDelayAfterTargeting.GetValueAtLevel(Level);
+}
+
 void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestAimingSkillSet(UFortAthenaAIBotAimingSkillSet* SkillSet, UFortAthenaAIBotAimingDigestedSkillSet* Digested, float Level)
 {
 	Digested->bAllowScanAroundWhileSwimming = SkillSet->AllowScanAroundWhileSwimming.GetValueAtLevel(Level) > 0.f;
@@ -129,6 +155,12 @@ void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestHarvestSkillSet(UFor
 	Digested->WeakSpotHitProbability = SkillSet->WeakSpotHitProbability.GetValueAtLevel(Level);
 }
 
+void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestHealingSkillSet(UFortAthenaAIBotHealingSkillSet* SkillSet, UFortAthenaAIBotHealingDigestedSkillSet* Digested, float Level)
+{
+	DigestHealingItems(SkillSet->HealthItems, Digested->HealthItems, Level);
+	DigestHealingItems(SkillSet->ShieldItems, Digested->ShieldItems, Level);
+}
+
 void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestInventorySkillSet(UFortAthenaAIBotInventorySkillSet* SkillSet, UFortAthenaAIBotInventoryDigestedSkillSet* Digested, float Level)
 {
 	Digested->DefaultWeaponSelectionDistance = SkillSet->DefaultWeaponSelectionDistance.GetValueAtLevel(Level);
@@ -253,6 +285,40 @@ void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestPlayStyleSkillSet(UF
 	Digested->DefensiveTowardsThreatWeight = SkillSet->DefensiveTowardsThreatWeight;
 }
 
+void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestPropagateAwarenessSkillSet(UFortAthenaAIBotPropagateAwarenessSkillSet* SkillSet, UFortAthenaAIBotPropagateAwarenessDigestedSkillSet* Digested, float Level)
+{
+	const float PropagationMaxDistance = SkillSet->PropagationMaxDistance.GetValueAtLevel(Level);
+	Digested->PropagationMaxDistanceSQ = PropagationMaxDistance * PropagationMaxDistance;
+	Digested->CosineFOV = FMath::Cos(FMath::DegreesToRadians(SkillSet->FOV.GetValueAtLevel(Level) * 0.5f));
+}
+
+void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestRangeAttackSkillSet(UFortAthenaAIBotRangeAttackSkillSet* SkillSet, UFortAthenaAIBotRangeAttackDigestedSkillSet* Digested, float Level)
+{
+	Digested->RangedWeaponCategorySkills.Empty(SkillSet->RangedWeaponSkills.Num());
+
+	for (int32 CategoryIndex = 0; CategoryIndex < SkillSet->RangedWeaponSkills.Num(); ++CategoryIndex)
+	{
+		const FRangedWeaponSkillCategory& Category = SkillSet->RangedWeaponSkills[CategoryIndex];
+
+		FDigestedRangedWeaponSkillCategory DigestedCategory{};
+		DigestedCategory.Tags = Category.Tags;
+		DigestRangedWeaponSkill(Category.WeaponSkill, DigestedCategory.WeaponSkill, Level);
+
+		for (int32 SpecializationIndex = 0; SpecializationIndex < Category.Specializations.Num(); ++SpecializationIndex)
+		{
+			const FRangedWeaponSkillCategorySpecialization& Specialization = Category.Specializations[SpecializationIndex];
+
+			FDigestedRangedWeaponSkillCategorySpecialization DigestedSpecialization{};
+			DigestedSpecialization.Tags = Specialization.Tags;
+			DigestRangedWeaponSkill(Specialization.WeaponSkill, DigestedSpecialization.WeaponSkill, Level);
+
+			DigestedCategory.Specializations.Add(DigestedSpecialization);
+		}
+
+		Digested->RangedWeaponCategorySkills.Add(DigestedCategory);
+	}
+}
+
 void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestReviveSkillSet(UFortAthenaAIBotReviveSkillSet* SkillSet, UFortAthenaAIBotReviveDigestedSkillSet* Digested, float Level)
 {
 	Digested->AllyEvaluationTime = SkillSet->AllyEvaluationTime.GetValueAtLevel(Level);
@@ -328,6 +394,11 @@ void UFortAthenaAISpawnerDataComponent_AIBotSkillset::GetAIRuntimeParametersClas
 		OutClasses.Add(UFortAthenaAIBotHarvestDigestedSkillSet::StaticClass());
 	}
 
+	if (This->HealingSkillSet.Get())
+	{
+		OutClasses.Add(UFortAthenaAIBotHealingDigestedSkillSet::StaticClass());
+	}
+
 	if (This->InventorySkillSet.Get())
 	{
 		OutClasses.Add(UFortAthenaAIBotInventoryDigestedSkillSet::StaticClass());
@@ -351,6 +422,16 @@ void UFortAthenaAISpawnerDataComponent_AIBotSkillset::GetAIRuntimeParametersClas
 	if (This->PlayStyleSkillSet.Get())
 	{
 		OutClasses.Add(UFortAthenaAIBotPlayStyleDigestedSkillSet::StaticClass());
+	}
+
+	if (This->PropagateAwarenessSkillSet.Get())
+	{
+		OutClasses.Add(UFortAthenaAIBotPropagateAwarenessDigestedSkillSet::StaticClass());
+	}
+
+	if (This->RangeAttackSkillSet.Get())
+	{
+		OutClasses.Add(UFortAthenaAIBotRangeAttackDigestedSkillSet::StaticClass());
 	}
 
 	if (This->ReviveSkillSet.Get())
@@ -471,6 +552,19 @@ uint32 UFortAthenaAISpawnerDataComponent_AIBotSkillset::ExtractHook(void* Provid
 		return CRC;
 	}
 
+	UFortAthenaAIBotHealingDigestedSkillSet* HealingDigested = RuntimeParameters->Cast<UFortAthenaAIBotHealingDigestedSkillSet>();
+	if (HealingDigested)
+	{
+		UClass* SkillSetClass = This->HealingSkillSet.Get();
+		UFortAthenaAIBotHealingSkillSet* SkillSet = SkillSetClass && SkillSetClass->DefaultObject ? SkillSetClass->DefaultObject->Cast<UFortAthenaAIBotHealingSkillSet>() : nullptr;
+		if (SkillSet)
+		{
+			DigestHealingSkillSet(SkillSet, HealingDigested, SkillLevel);
+		}
+
+		return CRC;
+	}
+
 	UFortAthenaAIBotInventoryDigestedSkillSet* InventoryDigested = RuntimeParameters->Cast<UFortAthenaAIBotInventoryDigestedSkillSet>();
 	if (InventoryDigested)
 	{
@@ -531,6 +625,32 @@ uint32 UFortAthenaAISpawnerDataComponent_AIBotSkillset::ExtractHook(void* Provid
 		if (SkillSet)
 		{
 			DigestPlayStyleSkillSet(SkillSet, PlayStyleDigested, SkillLevel);
+		}
+
+		return CRC;
+	}
+
+	UFortAthenaAIBotPropagateAwarenessDigestedSkillSet* PropagateAwarenessDigested = RuntimeParameters->Cast<UFortAthenaAIBotPropagateAwarenessDigestedSkillSet>();
+	if (PropagateAwarenessDigested)
+	{
+		UClass* SkillSetClass = This->PropagateAwarenessSkillSet.Get();
+		UFortAthenaAIBotPropagateAwarenessSkillSet* SkillSet = SkillSetClass && SkillSetClass->DefaultObject ? SkillSetClass->DefaultObject->Cast<UFortAthenaAIBotPropagateAwarenessSkillSet>() : nullptr;
+		if (SkillSet)
+		{
+			DigestPropagateAwarenessSkillSet(SkillSet, PropagateAwarenessDigested, SkillLevel);
+		}
+
+		return CRC;
+	}
+
+	UFortAthenaAIBotRangeAttackDigestedSkillSet* RangeAttackDigested = RuntimeParameters->Cast<UFortAthenaAIBotRangeAttackDigestedSkillSet>();
+	if (RangeAttackDigested)
+	{
+		UClass* SkillSetClass = This->RangeAttackSkillSet.Get();
+		UFortAthenaAIBotRangeAttackSkillSet* SkillSet = SkillSetClass && SkillSetClass->DefaultObject ? SkillSetClass->DefaultObject->Cast<UFortAthenaAIBotRangeAttackSkillSet>() : nullptr;
+		if (SkillSet)
+		{
+			DigestRangeAttackSkillSet(SkillSet, RangeAttackDigested, SkillLevel);
 		}
 
 		return CRC;

@@ -434,6 +434,8 @@ bool AFortGameModeAthena::StartWarmupPhaseHook(AFortGameModeAthena* This) {
 		}
 	}
 
+	UAthenaNavSystem::BuildNavigationData(This->GetWorld());
+
 	return StartWarmupPhaseOG(This);
 }
 

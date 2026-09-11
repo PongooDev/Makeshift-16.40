@@ -19169,10 +19169,13 @@ static_assert(offsetof(FFortActiveThreatPlayerData, Encounter) == 0x000008, "Mem
 struct alignas(0x04) FMMRSpawningBaseRuntimeInfo
 {
 public:
-	uint8                                         Pad_0[0x8];                                        // 0x0000(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	int32                                         MinMMR;
+	int32                                         MaxMMR;
 };
 static_assert(alignof(FMMRSpawningBaseRuntimeInfo) == 0x000004, "Wrong alignment on FMMRSpawningBaseRuntimeInfo");
 static_assert(sizeof(FMMRSpawningBaseRuntimeInfo) == 0x000008, "Wrong size on FMMRSpawningBaseRuntimeInfo");
+static_assert(offsetof(FMMRSpawningBaseRuntimeInfo, MinMMR) == 0x000000, "Member 'FMMRSpawningBaseRuntimeInfo::MinMMR' has a wrong offset!");
+static_assert(offsetof(FMMRSpawningBaseRuntimeInfo, MaxMMR) == 0x000004, "Member 'FMMRSpawningBaseRuntimeInfo::MaxMMR' has a wrong offset!");
 
 // ScriptStruct FortniteGame.AIPawnCustomizationPreloadData
 // 0x0010 (0x0010 - 0x0000)
@@ -26899,11 +26902,14 @@ struct FMMRSpawningBotsRuntimeInfo final : public FMMRSpawningBaseRuntimeInfo
 public:
 	uint8                                         Pad_8[0x10];                                       // 0x0008(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class UBotELOSpawningInfo*>            ELOSpawningInfos;                                  // 0x0018(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPublic)
-	uint8                                         Pad_28[0x8];                                       // 0x0028(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	int32                                         TotalSpawnWeight;
+	int32                                         TotalBotsAssigned;
 };
 static_assert(alignof(FMMRSpawningBotsRuntimeInfo) == 0x000008, "Wrong alignment on FMMRSpawningBotsRuntimeInfo");
 static_assert(sizeof(FMMRSpawningBotsRuntimeInfo) == 0x000030, "Wrong size on FMMRSpawningBotsRuntimeInfo");
 static_assert(offsetof(FMMRSpawningBotsRuntimeInfo, ELOSpawningInfos) == 0x000018, "Member 'FMMRSpawningBotsRuntimeInfo::ELOSpawningInfos' has a wrong offset!");
+static_assert(offsetof(FMMRSpawningBotsRuntimeInfo, TotalSpawnWeight) == 0x000028, "Member 'FMMRSpawningBotsRuntimeInfo::TotalSpawnWeight' has a wrong offset!");
+static_assert(offsetof(FMMRSpawningBotsRuntimeInfo, TotalBotsAssigned) == 0x00002C, "Member 'FMMRSpawningBotsRuntimeInfo::TotalBotsAssigned' has a wrong offset!");
 
 // ScriptStruct FortniteGame.SavedPlayerSpectatorCameraData
 // 0x0050 (0x0050 - 0x0000)

@@ -11,7 +11,99 @@ struct FPendingEnvironmentQuery
 
 static std::vector<FPendingEnvironmentQuery> PendingEnvironmentQueries;
 
-static const int32 MaxEnvironmentQueryGridPointsPerSide = 48;
+struct FDeferredEnvironmentQuery
+{
+	TWeakObjectPtr<AFortAthenaLivingWorldVolume> Volume;
+	int32 Attempts;
+	float NextAttemptTime;
+	int32 GridPointsPerSide;
+	bool bWaitingForNavigation;
+};
+
+static std::vector<FDeferredEnvironmentQuery> DeferredEnvironmentQueries;
+
+static const int32 MaxEnvironmentQueryAttempts = 8;
+
+static const int32 MinEnvironmentQueryGridPointsPerSide = 48;
+
+static const int32 MaxEnvironmentQueryGridPointsPerSide = 256;
+
+static const int32 MinEnvironmentQueryPoints = 64;
+
+static const float EnvironmentQueryRetryDelay = 10.f;
+
+static FDeferredEnvironmentQuery* DeferEnvironmentQuery(AFortAthenaLivingWorldVolume* Volume, float TimeSeconds, bool bCountAttempt)
+{
+	FDeferredEnvironmentQuery* DeferredQuery = nullptr;
+	for (size_t Index = 0; Index < DeferredEnvironmentQueries.size(); ++Index)
+	{
+		if (DeferredEnvironmentQueries[Index].Volume.Get() == Volume)
+		{
+			DeferredQuery = &DeferredEnvironmentQueries[Index];
+			break;
+		}
+	}
+
+	if (!DeferredQuery)
+	{
+		FDeferredEnvironmentQuery NewDeferredQuery;
+		NewDeferredQuery.Volume = TWeakObjectPtr<AFortAthenaLivingWorldVolume>(Volume);
+		NewDeferredQuery.Attempts = 0;
+		NewDeferredQuery.NextAttemptTime = 0.f;
+		NewDeferredQuery.GridPointsPerSide = 0;
+		NewDeferredQuery.bWaitingForNavigation = false;
+		DeferredEnvironmentQueries.push_back(NewDeferredQuery);
+		DeferredQuery = &DeferredEnvironmentQueries.back();
+	}
+
+	DeferredQuery->NextAttemptTime = TimeSeconds + EnvironmentQueryRetryDelay;
+	if (bCountAttempt)
+	{
+		++DeferredQuery->Attempts;
+	}
+
+	return DeferredQuery;
+}
+
+static int32 GetEnvironmentQueryGridPointsPerSide(const AFortAthenaLivingWorldVolume* Volume)
+{
+	for (size_t Index = 0; Index < DeferredEnvironmentQueries.size(); ++Index)
+	{
+		if (DeferredEnvironmentQueries[Index].Volume.Get() == Volume && DeferredEnvironmentQueries[Index].GridPointsPerSide > 0)
+		{
+			return DeferredEnvironmentQueries[Index].GridPointsPerSide;
+		}
+	}
+
+	return MinEnvironmentQueryGridPointsPerSide;
+}
+
+static void PostponeDeferredEnvironmentQuery(const AFortAthenaLivingWorldVolume* Volume, float TimeSeconds)
+{
+	for (size_t Index = 0; Index < DeferredEnvironmentQueries.size(); ++Index)
+	{
+		if (DeferredEnvironmentQueries[Index].Volume.Get() == Volume)
+		{
+			DeferredEnvironmentQueries[Index].NextAttemptTime = TimeSeconds + EnvironmentQueryRetryDelay;
+			return;
+		}
+	}
+}
+
+static void RemoveDeferredEnvironmentQuery(const AFortAthenaLivingWorldVolume* Volume)
+{
+	for (size_t Index = 0; Index < DeferredEnvironmentQueries.size();)
+	{
+		AFortAthenaLivingWorldVolume* DeferredVolume = DeferredEnvironmentQueries[Index].Volume.Get();
+		if (!DeferredVolume || DeferredVolume == Volume)
+		{
+			DeferredEnvironmentQueries.erase(DeferredEnvironmentQueries.begin() + Index);
+			continue;
+		}
+
+		++Index;
+	}
+}
 
 struct FReconstructedVolumeBounds
 {
@@ -83,6 +175,24 @@ static void ShieldQueryInstanceFromGarbageCollection(UEnvQueryInstanceBlueprintW
 		ObjectItem->Flags &= ~int32(EInternalObjectFlags::RootSet);
 	}
 }
+
+struct FVolumeGridGeneratorSettings
+{
+	float GridSize;
+	float SpaceBetween;
+	float ProjectDown;
+	float ProjectUp;
+	int32 TraceMode;
+
+	FVolumeGridGeneratorSettings()
+		: GridSize(0.f)
+		, SpaceBetween(0.f)
+		, ProjectDown(0.f)
+		, ProjectUp(0.f)
+		, TraceMode(0)
+	{
+	}
+};
 
 static bool RequiresVolumeBounds(UEnvQuery* EnvironmentQuery)
 {
@@ -195,11 +305,37 @@ static float GetGroundReferenceZ(AFortAthenaLivingWorldVolume* Volume, float Def
 	return Count > 0 ? TotalZ / float(Count) : DefaultZ;
 }
 
-static float ApplyVolumeBoundsToGridGenerator(const AFortAthenaLivingWorldVolume* Volume, UEnvQuery* EnvironmentQuery)
+struct FOriginalGridGeneratorSettings
+{
+	TWeakObjectPtr<UEnvQueryGenerator_SimpleGrid> Generator;
+	float GridSize;
+};
+
+static std::vector<FOriginalGridGeneratorSettings> OriginalGridGeneratorSettings;
+
+static float GetOriginalGridSize(UEnvQueryGenerator_SimpleGrid* SimpleGrid)
+{
+	for (size_t Index = 0; Index < OriginalGridGeneratorSettings.size(); ++Index)
+	{
+		if (OriginalGridGeneratorSettings[Index].Generator.Get() == SimpleGrid)
+		{
+			return OriginalGridGeneratorSettings[Index].GridSize;
+		}
+	}
+
+	FOriginalGridGeneratorSettings Original;
+	Original.Generator = TWeakObjectPtr<UEnvQueryGenerator_SimpleGrid>(SimpleGrid);
+	Original.GridSize = SimpleGrid->GridSize.DefaultValue;
+	OriginalGridGeneratorSettings.push_back(Original);
+
+	return Original.GridSize;
+}
+
+static void ApplyVolumeBoundsToGridGenerator(const AFortAthenaLivingWorldVolume* Volume, UEnvQuery* EnvironmentQuery, int32 GridPointsPerSide, FVolumeGridGeneratorSettings& OutSettings)
 {
 	if (!Volume || !EnvironmentQuery)
 	{
-		return 0.f;
+		return;
 	}
 
 	FVector BoxExtent;
@@ -209,10 +345,10 @@ static float ApplyVolumeBoundsToGridGenerator(const AFortAthenaLivingWorldVolume
 		const_cast<AFortAthenaLivingWorldVolume*>(Volume)->GetActorBounds(false, &Origin, &BoxExtent, false);
 	}
 
-	float GridSize = FMath::Max(BoxExtent.X, BoxExtent.Y) * 2.f;
+	float GridSize = FMath::Max(BoxExtent.X, BoxExtent.Y);
 	if (GridSize <= 0.f)
 	{
-		GridSize = 60000.f;
+		GridSize = 30000.f;
 	}
 
 	for (int32 OptionIndex = 0; OptionIndex < EnvironmentQuery->Options.Num(); ++OptionIndex)
@@ -226,20 +362,17 @@ static float ApplyVolumeBoundsToGridGenerator(const AFortAthenaLivingWorldVolume
 
 		UEnvQueryGenerator_SimpleGrid* SimpleGrid = static_cast<UEnvQueryGenerator_SimpleGrid*>(Generator);
 		SimpleGrid->GridSize.DataBinding = nullptr;
-		if (GridSize > SimpleGrid->GridSize.DefaultValue)
-		{
-			SimpleGrid->GridSize.DefaultValue = GridSize;
-		}
+		SimpleGrid->GridSize.DefaultValue = FMath::Max(GridSize, GetOriginalGridSize(SimpleGrid));
 
-		const float MinimumSpaceBetween = SimpleGrid->GridSize.DefaultValue / float(MaxEnvironmentQueryGridPointsPerSide);
 		SimpleGrid->SpaceBetween.DataBinding = nullptr;
-		if (MinimumSpaceBetween > SimpleGrid->SpaceBetween.DefaultValue)
-		{
-			SimpleGrid->SpaceBetween.DefaultValue = MinimumSpaceBetween;
-		}
-	}
+		SimpleGrid->SpaceBetween.DefaultValue = (SimpleGrid->GridSize.DefaultValue * 2.f) / float(GridPointsPerSide - 1);
 
-	return GridSize;
+		OutSettings.GridSize = SimpleGrid->GridSize.DefaultValue;
+		OutSettings.SpaceBetween = SimpleGrid->SpaceBetween.DefaultValue;
+		OutSettings.ProjectDown = SimpleGrid->ProjectionData.ProjectDown;
+		OutSettings.ProjectUp = SimpleGrid->ProjectionData.ProjectUp;
+		OutSettings.TraceMode = static_cast<int32>(SimpleGrid->ProjectionData.TraceMode);
+	}
 }
 
 static AFortGameStateAthena* GetFortGameStateAthena(UWorld* World)
@@ -342,7 +475,8 @@ void AFortAthenaLivingWorldVolume::RunEQS()
 		return;
 	}
 
-	const float GridSize = ApplyVolumeBoundsToGridGenerator(this, EnvironmentQuery);
+	FVolumeGridGeneratorSettings GridGeneratorSettings;
+	ApplyVolumeBoundsToGridGenerator(this, EnvironmentQuery, GetEnvironmentQueryGridPointsPerSide(this), GridGeneratorSettings);
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, EnvironmentQuery, this, EEnvQueryRunMode::AllMatching, UEnvQueryInstanceBlueprintWrapper::StaticClass());
 	if (!QueryInstance)
 	{
@@ -353,7 +487,7 @@ void AFortAthenaLivingWorldVolume::RunEQS()
 	EQSRequestID = QueryInstance->QueryID;
 	ShieldQueryInstanceFromGarbageCollection(QueryInstance, true);
 
-	UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::RunEQS (%hs) started query %hs id %d, grid size %f, %d pending"), GetName().c_str(), EnvironmentQuery->GetName().c_str(), EQSRequestID, GridSize, static_cast<int32>(PendingEnvironmentQueries.size()) + 1);
+	UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::RunEQS (%hs) started query %hs id %d, grid size %f, %f between points, projecting %f down and %f up in trace mode %d, %d pending"), GetName().c_str(), EnvironmentQuery->GetName().c_str(), EQSRequestID, GridGeneratorSettings.GridSize, GridGeneratorSettings.SpaceBetween, GridGeneratorSettings.ProjectDown, GridGeneratorSettings.ProjectUp, GridGeneratorSettings.TraceMode, static_cast<int32>(PendingEnvironmentQueries.size()) + 1);
 
 	RemovePendingEnvironmentQuery(this);
 	FPendingEnvironmentQuery PendingQuery;
@@ -365,6 +499,35 @@ void AFortAthenaLivingWorldVolume::RunEQS()
 
 void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 {
+	if (DeferredEnvironmentQueries.size() > 0)
+	{
+		std::vector<FDeferredEnvironmentQuery> DeferredQueries = DeferredEnvironmentQueries;
+		for (size_t Index = 0; Index < DeferredQueries.size(); ++Index)
+		{
+			AFortAthenaLivingWorldVolume* DeferredVolume = DeferredQueries[Index].Volume.Get();
+			if (!DeferredVolume)
+			{
+				RemoveDeferredEnvironmentQuery(nullptr);
+				continue;
+			}
+
+			if (!DeferredVolume->bIsEnabled || FindPendingEnvironmentQuery(DeferredVolume))
+			{
+				continue;
+			}
+
+			UWorld* DeferredWorld = DeferredVolume->GetWorld();
+			const float DeferredTimeSeconds = DeferredWorld ? DeferredWorld->GetTimeSeconds() : 0.f;
+			if (DeferredTimeSeconds < DeferredQueries[Index].NextAttemptTime)
+			{
+				continue;
+			}
+
+			PostponeDeferredEnvironmentQuery(DeferredVolume, DeferredTimeSeconds);
+			DeferredVolume->RunEQS();
+		}
+	}
+
 	static size_t LastReportedPendingCount = 0;
 	if (PendingEnvironmentQueries.size() != LastReportedPendingCount)
 	{
@@ -396,13 +559,37 @@ void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 		{
 			UWorld* World = Volume->GetWorld();
 			const float TimeSeconds = World ? World->GetTimeSeconds() : 0.f;
-			if (TimeSeconds - PendingEnvironmentQueries[Index].StartTime > 60.f)
+			UClass* FinishedItemType = QueryInstance->ItemType;
+			const bool bFinished = FinishedItemType != nullptr;
+			if (bFinished || TimeSeconds - PendingEnvironmentQueries[Index].StartTime > 180.f)
 			{
-				UE_LOG(LogLivingWorldManager, Warning, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries (%hs) The environment query returned no usable result, disabling volume"), Volume->GetName().c_str());
 				Volume->EQSRequestID = -1;
-				Volume->bIsEnabled = false;
 				ShieldQueryInstanceFromGarbageCollection(QueryInstance, false);
 				PendingEnvironmentQueries.erase(PendingEnvironmentQueries.begin() + Index);
+
+				UNavigationSystemV1* NavigationSystem = World && World->NavigationSystem ? World->NavigationSystem->Cast<UNavigationSystemV1>() : nullptr;
+				const bool bNavigationBeingBuilt = NavigationSystem && NavigationSystem->IsNavigationBuildInProgress();
+				FDeferredEnvironmentQuery* DeferredQuery = DeferEnvironmentQuery(Volume, TimeSeconds, !bNavigationBeingBuilt);
+				if (bNavigationBeingBuilt)
+				{
+					if (!DeferredQuery->bWaitingForNavigation)
+					{
+						DeferredQuery->bWaitingForNavigation = true;
+						UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries (%hs) The navigation data is still being built, the environment query will keep being started until it is ready"), Volume->GetName().c_str());
+					}
+
+					continue;
+				}
+
+				if (DeferredQuery->Attempts < MaxEnvironmentQueryAttempts)
+				{
+					UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries (%hs) The environment query %hs, attempt %d of %d, starting it again in %f second(s)"), Volume->GetName().c_str(), bFinished ? "found no point to spawn at" : "did not finish in time", DeferredQuery->Attempts, MaxEnvironmentQueryAttempts, EnvironmentQueryRetryDelay);
+					continue;
+				}
+
+				UE_LOG(LogLivingWorldManager, Warning, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries (%hs) The environment query returned no usable result, disabling volume"), Volume->GetName().c_str());
+				Volume->bIsEnabled = false;
+				RemoveDeferredEnvironmentQuery(Volume);
 				continue;
 			}
 
@@ -412,6 +599,20 @@ void AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries()
 
 		ShieldQueryInstanceFromGarbageCollection(QueryInstance, false);
 		PendingEnvironmentQueries.erase(PendingEnvironmentQueries.begin() + Index);
+
+		const int32 GridPointsPerSide = GetEnvironmentQueryGridPointsPerSide(Volume);
+		if (QueryLocations.Num() < MinEnvironmentQueryPoints && GridPointsPerSide < MaxEnvironmentQueryGridPointsPerSide)
+		{
+			UWorld* VolumeWorld = Volume->GetWorld();
+			const float VolumeTimeSeconds = VolumeWorld ? VolumeWorld->GetTimeSeconds() : 0.f;
+			FDeferredEnvironmentQuery* DeferredQuery = DeferEnvironmentQuery(Volume, VolumeTimeSeconds, false);
+			DeferredQuery->GridPointsPerSide = FMath::Min(GridPointsPerSide * 2, MaxEnvironmentQueryGridPointsPerSide);
+
+			UE_LOG(LogLivingWorldManager, Log, TEXT("AFortAthenaLivingWorldVolume::ProcessPendingEnvironmentQueries (%hs) The environment query only computed %d point(s), starting it again with %d grid point(s) per side"), Volume->GetName().c_str(), QueryLocations.Num(), DeferredQuery->GridPointsPerSide);
+			continue;
+		}
+
+		RemoveDeferredEnvironmentQuery(Volume);
 		Volume->OnEnvQueryFinished(QueryLocations);
 	}
 }

@@ -420,6 +420,21 @@ void AFortGameModeAthena::CreateServerBotManager() {
 	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : Created %hs"), ServerBotManager->GetName().c_str());
 }
 
+bool AFortGameModeAthena::StartWarmupPhaseHook(AFortGameModeAthena* This) {
+	AFortPartyBeaconHost* ReservationBeaconHost = This->FortGameSession ? This->FortGameSession->ReservationBeaconHost : nullptr;
+	if (!ReservationBeaconHost || !ReservationBeaconHost->State) {
+		AFortGameplayMutator* Mutator = This->GetMutatorByClass(This, AFortAthenaMutator_Bots::StaticClass());
+		AFortAthenaMutator_Bots* BotMutator = Mutator ? Mutator->Cast<AFortAthenaMutator_Bots>() : nullptr;
+		if (BotMutator && !BotMutator->bSpawningInfosUpdated) {
+			const int32 NumReservationsConsumedWithoutABeacon = 1;
+			BotMutator->NumExpectedPlayers = NumReservationsConsumedWithoutABeacon;
+			BotMutator->InitializeMMRInfos();
+		}
+	}
+
+	return StartWarmupPhaseOG(This);
+}
+
 void AFortGameModeAthena::OnPlaylistDataLoadedHook(AFortGameModeAthena* This) {
 	OnPlaylistDataLoadedOG(This);
 
@@ -437,6 +452,7 @@ void AFortGameModeAthena::Init() {
 	Memory::HookDetour(ImageBase + 0x45742D8, SpawnDefaultPawnForHook);
 	Memory::HookDetour(ImageBase + 0x455CAD8, InitGameStateHook, &InitGameStateOG);
 	Memory::HookDetour(ImageBase + 0x4563F08, OnPlaylistDataLoadedHook, &OnPlaylistDataLoadedOG);
+	Memory::HookDetour(ImageBase + 0x457BBA4, StartWarmupPhaseHook, &StartWarmupPhaseOG);
 	Memory::HookDetour(ImageBase + 0x4566D60, PostLoginHook, &PostLoginOG);
 	Memory::HookDetour(ImageBase + 0x4574D64, SpawnInitialSafeZoneHook);
 	Memory::HookDetour(ImageBase + 0x45799A4, StartNewSafeZonePhaseHook);

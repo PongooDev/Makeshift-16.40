@@ -56578,7 +56578,10 @@ public:
 	bool                                          bBotHostileToHumanPlayersOnly;                     // 0x0478(0x0001)(Edit, ZeroConstructor, DisableEditOnInstance, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_479[0x7];                                      // 0x0479(0x0007)(Fixing Size After Last Property [ Dumper-7 ])
 	class UFortAthenaAIBotCustomizationData*      CacheBotData;                                      // 0x0480(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_488[0x18];                                     // 0x0488(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          bSpawningInfosUpdated;
+	uint8                                         Pad_489[0xF];
+	int32                                         NumExpectedPlayers;
+	uint8                                         Pad_49C[0x4];
 	TSoftObjectPtr<class UDataTable>              MMRSpawnSpec;                                      // 0x04A0(0x0028)(Edit, DisableEditOnInstance, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TSoftObjectPtr<class UDataTable>              OverrideTableInfo;                                 // 0x04C8(0x0028)(Edit, DisableEditOnInstance, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TSoftObjectPtr<class UDataTable>              ABTestOverrideTableInfo;                           // 0x04F0(0x0028)(Edit, DisableEditOnInstance, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
@@ -56602,6 +56605,7 @@ public:
 	static void Init();
 	static inline void (*UnpauseWarmupOG)(AFortAthenaMutator_Bots* This);
 	static void UnpauseWarmupHook(AFortAthenaMutator_Bots* This);
+	void InitializeMMRInfos();
 
 public:
 	static class UClass* StaticClass()
@@ -56617,6 +56621,8 @@ static_assert(alignof(AFortAthenaMutator_Bots) == 0x000008, "Wrong alignment on 
 static_assert(sizeof(AFortAthenaMutator_Bots) == 0x0005E8, "Wrong size on AFortAthenaMutator_Bots");
 static_assert(offsetof(AFortAthenaMutator_Bots, BotSpawningDataItemClasses) == 0x000468, "Member 'AFortAthenaMutator_Bots::BotSpawningDataItemClasses' has a wrong offset!");
 static_assert(offsetof(AFortAthenaMutator_Bots, bBotHostileToHumanPlayersOnly) == 0x000478, "Member 'AFortAthenaMutator_Bots::bBotHostileToHumanPlayersOnly' has a wrong offset!");
+static_assert(offsetof(AFortAthenaMutator_Bots, bSpawningInfosUpdated) == 0x000488, "Member 'AFortAthenaMutator_Bots::bSpawningInfosUpdated' has a wrong offset!");
+static_assert(offsetof(AFortAthenaMutator_Bots, NumExpectedPlayers) == 0x000498, "Member 'AFortAthenaMutator_Bots::NumExpectedPlayers' has a wrong offset!");
 static_assert(offsetof(AFortAthenaMutator_Bots, CacheBotData) == 0x000480, "Member 'AFortAthenaMutator_Bots::CacheBotData' has a wrong offset!");
 static_assert(offsetof(AFortAthenaMutator_Bots, MMRSpawnSpec) == 0x0004A0, "Member 'AFortAthenaMutator_Bots::MMRSpawnSpec' has a wrong offset!");
 static_assert(offsetof(AFortAthenaMutator_Bots, OverrideTableInfo) == 0x0004C8, "Member 'AFortAthenaMutator_Bots::OverrideTableInfo' has a wrong offset!");
@@ -57168,6 +57174,8 @@ public:
 
 	static inline void (*OnPlaylistDataLoadedOG)(AFortGameModeAthena* This);
 	static void OnPlaylistDataLoadedHook(AFortGameModeAthena* This);
+	static inline bool (*StartWarmupPhaseOG)(AFortGameModeAthena* This);
+	static bool StartWarmupPhaseHook(AFortGameModeAthena* This);
 	void CreateSpawningPolicyManager();
 	void CreateServerBotManager();
 	void PauseWarmup();

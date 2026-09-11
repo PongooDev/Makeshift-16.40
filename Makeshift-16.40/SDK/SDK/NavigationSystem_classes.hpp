@@ -196,6 +196,11 @@ public:
 	static struct FVector GetRandomReachablePointInRadius(class UObject* WorldContextObject, const struct FVector& Origin, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);
 	static bool IsNavigationBeingBuilt(class UObject* WorldContextObject);
 	static bool IsNavigationBeingBuiltOrLocked(class UObject* WorldContextObject);
+	bool IsNavigationBuildInProgress()
+	{
+		bool (*Fn)(UNavigationSystemV1*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x6240938);
+		return Fn(this);
+	}
 	static bool K2_GetRandomLocationInNavigableRadius(class UObject* WorldContextObject, const struct FVector& Origin, struct FVector* RandomLocation, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);
 	static bool K2_GetRandomPointInNavigableRadius(class UObject* WorldContextObject, const struct FVector& Origin, struct FVector* RandomLocation, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);
 	static bool K2_GetRandomReachablePointInRadius(class UObject* WorldContextObject, const struct FVector& Origin, struct FVector* RandomLocation, float Radius, class ANavigationData* NavData, TSubclassOf<class UNavigationQueryFilter> FilterClass);

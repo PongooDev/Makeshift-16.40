@@ -112,6 +112,8 @@ APawn* AFortGameModeAthena::SpawnDefaultPawnForHook(AFortGameModeAthena* This, A
 void AFortGameModeAthena::InitGameStateHook(AFortGameModeAthena* This) {
 	InitGameStateOG(This);
 
+	This->CreateSpawningPolicyManager();
+
 	AFortGameStateAthena* GameState = This->GameState ? This->GameState->Cast<AFortGameStateAthena>() : nullptr;
 	if (!GameState) {
 		return;
@@ -356,9 +358,40 @@ void AFortGameModeAthena::UnPauseWarmup() {
 	bWarmupPaused = false;
 }
 
-void AFortGameModeAthena::CreateServerBotManager() {
-	if (ServerBotManager || !ServerBotManagerClass) {
+void AFortGameModeAthena::CreateSpawningPolicyManager() {
+	if (SpawningPolicyManager) {
 		return;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.bNoFail = true;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	FTransform Transform{};
+	Transform.Rotation = FQuat(0.f, 0.f, 0.f, 1.f);
+	Transform.Translation = FVector(0.f, 0.f, 0.f);
+	Transform.Scale3D = FVector(1.f, 1.f, 1.f);
+	SpawningPolicyManager = GetWorld()->SpawnActor<AFortAthenaSpawningPolicyManager>(AFortAthenaSpawningPolicyManager::StaticClass(), Transform, SpawnParams);
+	if (!SpawningPolicyManager) {
+		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateSpawningPolicyManager : Failed to spawn the spawning policy manager"));
+		return;
+	}
+
+	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateSpawningPolicyManager : Created %hs"), SpawningPolicyManager->GetName().c_str());
+}
+
+void AFortGameModeAthena::CreateServerBotManager() {
+	if (ServerBotManager) {
+		return;
+	}
+
+	if (!GetPlaylistEnableBots()) {
+		UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : Bots are not enabled for this playlist, not creating the server bot manager"));
+		return;
+	}
+
+	if (!ServerBotManagerClass) {
+		ServerBotManagerClass = UFortServerBotManagerAthena::StaticClass();
+		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateServerBotManager : ServerBotManagerClass is not set, falling back to %hs"), ServerBotManagerClass->GetName().c_str());
 	}
 
 	ServerBotManager = NewObject<UFortServerBotManagerAthena>(this, ServerBotManagerClass);

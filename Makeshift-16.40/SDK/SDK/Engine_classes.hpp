@@ -9877,7 +9877,9 @@ static_assert(sizeof(UAnimCurveCompressionCodec) == 0x000028, "Wrong size on UAn
 class UModel final : public UObject
 {
 public:
-	uint8                                         Pad_28[0x230];                                     // 0x0028(0x0230)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_28[0x210];
+	struct FBoxSphereBounds                       Bounds;
+	uint8                                         Pad_254[0x4];
 
 public:
 	static class UClass* StaticClass()
@@ -9891,6 +9893,7 @@ public:
 };
 static_assert(alignof(UModel) == 0x000008, "Wrong alignment on UModel");
 static_assert(sizeof(UModel) == 0x000258, "Wrong size on UModel");
+static_assert(offsetof(UModel, Bounds) == 0x000238, "Member 'UModel::Bounds' has a wrong offset!");
 
 // Class Engine.InterpTrackFloatBase
 // 0x0020 (0x0090 - 0x0070)
@@ -10935,6 +10938,9 @@ public:
 	class FName                                   DefaultAgentName;                                  // 0x0044(0x0008)(Edit, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         bIsOverriden : 1;                                  // 0x004C(0x0001)(BitIndex: 0x00, PropSize: 0x0001 (Edit, EditConst, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected))
 	uint8                                         Pad_4D[0x3];                                       // 0x004D(0x0003)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	void SetIsOverriden(const bool bInNewValue) { bIsOverriden = bInNewValue; }
 
 public:
 	static class UClass* StaticClass()
@@ -13880,6 +13886,20 @@ public:
 
 public:
 	void OnRep_WorldGravityZ();
+
+public:
+	/** @return configuration for NavigationSystem's creation. Null means 
+	 *	no navigation system will be created*/
+	class UNavigationSystemConfig* const GetNavigationSystemConfig() const { return NavigationSystemConfigOverride ? NavigationSystemConfigOverride : NavigationSystemConfig; }
+
+	/** 
+	 * Sets a configuration override for NavigationSystem's creation. 
+	 * If set, GetNavigationSystemConfig will return this configuration instead NavigationSystemConfig. 
+	 */
+	void SetNavigationSystemConfigOverride(class UNavigationSystemConfig* NewConfig);
+
+	/** @return current configuration override for NavigationSystem's creation, if any. */
+	const class UNavigationSystemConfig* GetNavigationSystemConfigOverride() const { return NavigationSystemConfigOverride; }
 
 public:
 	static class UClass* StaticClass()

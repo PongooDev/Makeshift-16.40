@@ -58,8 +58,10 @@ DWORD WINAPI Main(LPVOID) {
         GIsServer = 1;
     }
 
+    UObject::Init();
     UWorld::Init();
     UEngine::Init();
+    UAthenaNavSystem::Init();
     UMcpProfileGroup::Init();
     AFortGameSession::Init();
     AFortGameMode::Init();

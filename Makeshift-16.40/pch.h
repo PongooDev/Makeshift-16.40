@@ -106,6 +106,7 @@ namespace Configuration {
 #include "Engine/Source/Runtime/Engine/Classes/Engine/EngineLogs.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/Engine.h"
 #include "Engine/Source/Runtime/Engine/Classes/Engine/World.h"
+#include "Engine/Source/Runtime/Engine/Classes/AI/NavigationSystemBase.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/UObjectBaseUtility.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/CoreNative.h"
 #include "Engine/Source/Runtime/CoreUObject/Public/UObject/Stack.h"
@@ -135,6 +136,8 @@ DECLARE_LOG_CATEGORY_OFFSET(LogFortBuilding, Log, All)
 #define LogFortBuilding UE_LOG_CATEGORY_AT(LogFortBuilding, 0x93CAB68)
 DECLARE_LOG_CATEGORY_OFFSET(LogFortAI, Warning, All)
 #define LogFortAI UE_LOG_CATEGORY_AT(LogFortAI, 0x93CAB88)
+DECLARE_LOG_CATEGORY_OFFSET(LogNavigation, Warning, All)
+#define LogNavigation UE_LOG_CATEGORY_AT(LogNavigation, 0x94579C0)
 DECLARE_LOG_CATEGORY_OFFSET(LogFortReplicationGraph, Display, All)
 #define LogFortReplicationGraph UE_LOG_CATEGORY_AT(LogFortReplicationGraph, 0x93CC700)
 

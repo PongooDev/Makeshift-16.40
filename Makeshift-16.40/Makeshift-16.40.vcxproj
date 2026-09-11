@@ -201,6 +201,7 @@
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\DataTable.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineBaseTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\EngineLogs.h" />
+    <ClInclude Include="Engine\Source\Runtime\Engine\Classes\AI\NavigationSystemBase.h" />
     <ClInclude Include="Engine\Source\Runtime\Engine\Classes\Engine\World.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\LowLevelMemTracker.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\Char.h" />
@@ -324,6 +325,8 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Private\UObject\UnrealNames.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\URL.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\WorldSettings.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\Navigation\AthenaNavSystem.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\World.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\HAL\ThreadingBase.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\HAL\ConsoleManager.cpp" />
@@ -361,6 +364,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortSafeZoneIndicator.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\FortPlayerStateAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerState.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\Obj.cpp" />
     <ClCompile Include="Engine\Source\Runtime\CoreUObject\Private\UObject\ScriptCore.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortKismetLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortPickup.cpp" />

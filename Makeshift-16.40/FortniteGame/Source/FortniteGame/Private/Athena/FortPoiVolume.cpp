@@ -18,6 +18,84 @@ static const TArray<AActor*>& GetBuildingFoundations(UWorld* World)
 	return CachedBuildingFoundations;
 }
 
+static void AddPointToBounds(FVector& Min, FVector& Max, const FVector& Point, bool& bInitialized)
+{
+	if (!bInitialized)
+	{
+		Min = Point;
+		Max = Point;
+		bInitialized = true;
+		return;
+	}
+
+	Min = FVector(FMath::Min(Min.X, Point.X), FMath::Min(Min.Y, Point.Y), FMath::Min(Min.Z, Point.Z));
+	Max = FVector(FMath::Max(Max.X, Point.X), FMath::Max(Max.Y, Point.Y), FMath::Max(Max.Z, Point.Z));
+}
+
+bool AFortPoiVolume::GetLocationFromChallengeMapPoiData(FVector& OutLocation) const
+{
+	UFortQuestIndicatorData* QuestIndicatorData = UFortQuestIndicatorData::Get();
+	if (!QuestIndicatorData)
+	{
+		return false;
+	}
+
+	const FFortChallengeMapPoiData* FoundPoiData = nullptr;
+	for (int32 Index = 0; Index < QuestIndicatorData->ChallengeMapPoiData.Num(); ++Index)
+	{
+		const FFortChallengeMapPoiData& PoiData = QuestIndicatorData->ChallengeMapPoiData[Index];
+		if (!PoiData.LocationTag.IsValid() || !LocationTags.HasTagExact(PoiData.LocationTag))
+		{
+			continue;
+		}
+
+		if (PoiData.CalendarEventsRequired.Num() == 0)
+		{
+			FoundPoiData = &PoiData;
+			break;
+		}
+
+		if (!FoundPoiData)
+		{
+			FoundPoiData = &PoiData;
+		}
+	}
+
+	if (!FoundPoiData)
+	{
+		return false;
+	}
+
+	FVector MapLocationTextLocationOffset(0.f, 0.f, 0.f);
+	UActorComponent* Component = GetComponentByClass(UFortPoi_DiscoverableComponent::StaticClass());
+	const UFortPoi_DiscoverableComponent* DiscoverableComponent = Component ? Component->Cast<UFortPoi_DiscoverableComponent>() : nullptr;
+	if (DiscoverableComponent)
+	{
+		MapLocationTextLocationOffset = DiscoverableComponent->MapLocationTextLocationOffset;
+	}
+
+	OutLocation = FVector(FoundPoiData->WorldLocation.X - MapLocationTextLocationOffset.X, FoundPoiData->WorldLocation.Y - MapLocationTextLocationOffset.Y, FoundPoiData->WorldLocation.Z - MapLocationTextLocationOffset.Z);
+	return true;
+}
+
+bool AFortPoiVolume::GetBrushBounds(FVector& OutLocalOrigin, FVector& OutExtent) const
+{
+	if (!Brush)
+	{
+		return false;
+	}
+
+	const FBoxSphereBounds& BrushBounds = Brush->Bounds;
+	if (BrushBounds.BoxExtent.X <= 0.f || BrushBounds.BoxExtent.Y <= 0.f || BrushBounds.BoxExtent.Z <= 0.f)
+	{
+		return false;
+	}
+
+	OutLocalOrigin = BrushBounds.Origin;
+	OutExtent = BrushBounds.BoxExtent;
+	return true;
+}
+
 bool AFortPoiVolume::GetLocationBoundsFromBuildingFoundations(FVector& OutOrigin, FVector& OutExtent, int32& OutFoundationCount) const
 {
 	OutFoundationCount = 0;
@@ -28,8 +106,9 @@ bool AFortPoiVolume::GetLocationBoundsFromBuildingFoundations(FVector& OutOrigin
 		return false;
 	}
 
-	FVector Min;
-	FVector Max;
+	FVector Min(0.f, 0.f, 0.f);
+	FVector Max(0.f, 0.f, 0.f);
+	bool bInitialized = false;
 	const TArray<AActor*>& BuildingFoundations = GetBuildingFoundations(World);
 	for (int32 Index = 0; Index < BuildingFoundations.Num(); ++Index)
 	{
@@ -39,31 +118,24 @@ bool AFortPoiVolume::GetLocationBoundsFromBuildingFoundations(FVector& OutOrigin
 			continue;
 		}
 
-		FVector FoundationMin;
-		FVector FoundationMax;
 		if (BuildingFoundation->StreamingBoundingBox.IsValid)
 		{
-			FoundationMin = BuildingFoundation->StreamingBoundingBox.min;
-			FoundationMax = BuildingFoundation->StreamingBoundingBox.max;
+			const FTransform FoundationTransform = BuildingFoundation->GetTransform();
+			const FVector& BoxMin = BuildingFoundation->StreamingBoundingBox.min;
+			const FVector& BoxMax = BuildingFoundation->StreamingBoundingBox.max;
+			for (int32 CornerIndex = 0; CornerIndex < 8; ++CornerIndex)
+			{
+				const FVector LocalCorner((CornerIndex & 1) ? BoxMax.X : BoxMin.X, (CornerIndex & 2) ? BoxMax.Y : BoxMin.Y, (CornerIndex & 4) ? BoxMax.Z : BoxMin.Z);
+				AddPointToBounds(Min, Max, UKismetMathLibrary::TransformLocation(FoundationTransform, LocalCorner), bInitialized);
+			}
 		}
 		else
 		{
-			FVector FoundationOrigin;
-			FVector FoundationExtent;
+			FVector FoundationOrigin(0.f, 0.f, 0.f);
+			FVector FoundationExtent(0.f, 0.f, 0.f);
 			BuildingFoundation->GetActorBounds(false, &FoundationOrigin, &FoundationExtent, true);
-			FoundationMin = FVector(FoundationOrigin.X - FoundationExtent.X, FoundationOrigin.Y - FoundationExtent.Y, FoundationOrigin.Z - FoundationExtent.Z);
-			FoundationMax = FVector(FoundationOrigin.X + FoundationExtent.X, FoundationOrigin.Y + FoundationExtent.Y, FoundationOrigin.Z + FoundationExtent.Z);
-		}
-
-		if (OutFoundationCount == 0)
-		{
-			Min = FoundationMin;
-			Max = FoundationMax;
-		}
-		else
-		{
-			Min = FVector(FMath::Min(Min.X, FoundationMin.X), FMath::Min(Min.Y, FoundationMin.Y), FMath::Min(Min.Z, FoundationMin.Z));
-			Max = FVector(FMath::Max(Max.X, FoundationMax.X), FMath::Max(Max.Y, FoundationMax.Y), FMath::Max(Max.Z, FoundationMax.Z));
+			AddPointToBounds(Min, Max, FVector(FoundationOrigin.X - FoundationExtent.X, FoundationOrigin.Y - FoundationExtent.Y, FoundationOrigin.Z - FoundationExtent.Z), bInitialized);
+			AddPointToBounds(Min, Max, FVector(FoundationOrigin.X + FoundationExtent.X, FoundationOrigin.Y + FoundationExtent.Y, FoundationOrigin.Z + FoundationExtent.Z), bInitialized);
 		}
 		++OutFoundationCount;
 	}
@@ -85,12 +157,18 @@ bool AFortPoiVolume::ReconstructBrushComponent()
 		return true;
 	}
 
-	FVector Origin;
-	FVector Extent;
+	FVector Location(0.f, 0.f, 0.f);
+	FVector LocalOrigin(0.f, 0.f, 0.f);
+	FVector Extent(0.f, 0.f, 0.f);
 	int32 FoundationCount = 0;
-	if (!GetLocationBoundsFromBuildingFoundations(Origin, Extent, FoundationCount))
+	bool bPlacedFromChallengeMapPoiData = false;
+	if (GetLocationFromChallengeMapPoiData(Location) && GetBrushBounds(LocalOrigin, Extent))
 	{
-		UE_LOG(LogFortQuest, Warning, TEXT("AFortPoiVolume::PostInitializeComponents (%hs) The brush component is missing from this build and no building foundation carries any of its %d location tag(s), the volume cannot be placed"), GetName().c_str(), LocationTags.GameplayTags.Num());
+		bPlacedFromChallengeMapPoiData = true;
+	}
+	else if (!GetLocationBoundsFromBuildingFoundations(Location, Extent, FoundationCount))
+	{
+		UE_LOG(LogFortQuest, Warning, TEXT("AFortPoiVolume::PostInitializeComponents (%hs) The brush component is missing from this build and neither the challenge map POI data nor any building foundation carries one of its %d location tag(s), the volume cannot be placed"), GetName().c_str(), LocationTags.GameplayTags.Num());
 		return false;
 	}
 
@@ -107,13 +185,19 @@ bool AFortPoiVolume::ReconstructBrushComponent()
 	}
 	BoxComponent->SetBoxExtent(Extent, false);
 
+	UBodySetup* BrushBodySetup = BoxComponent->ShapeBodySetup;
+	if (BrushBodySetup && BrushBodySetup->AggGeom.BoxElems.Num() > 0)
+	{
+		BrushBodySetup->AggGeom.BoxElems[0].Center = LocalOrigin;
+	}
+
 	NewBrushComponent->Brush = Brush;
-	NewBrushComponent->BrushBodySetup = BoxComponent->ShapeBodySetup;
+	NewBrushComponent->BrushBodySetup = BrushBodySetup;
 	NewBrushComponent->SetCollisionProfileName(FName(L"NoCollision"), false);
 
 	FTransform Transform{};
 	Transform.Rotation = FQuat(0.f, 0.f, 0.f, 1.f);
-	Transform.Translation = Origin;
+	Transform.Translation = Location;
 	Transform.Scale3D = FVector(1.f, 1.f, 1.f);
 	NewBrushComponent->K2_SetWorldTransform(Transform, false, nullptr, true);
 	NewBrushComponent->SetMobility(EComponentMobility::Static);
@@ -122,7 +206,7 @@ bool AFortPoiVolume::ReconstructBrushComponent()
 	RootComponent = NewBrushComponent;
 
 	NewBrushComponent->RegisterComponentWithWorld(GetWorld());
-	NewBrushComponent->Bounds.Origin = Origin;
+	NewBrushComponent->Bounds.Origin = FVector(Location.X + LocalOrigin.X, Location.Y + LocalOrigin.Y, Location.Z + LocalOrigin.Z);
 	NewBrushComponent->Bounds.BoxExtent = Extent;
 	NewBrushComponent->Bounds.SphereRadius = sqrtf(Extent.X * Extent.X + Extent.Y * Extent.Y + Extent.Z * Extent.Z);
 
@@ -131,8 +215,14 @@ bool AFortPoiVolume::ReconstructBrushComponent()
 		PoiCollisionComp->K2_AttachToComponent(NewBrushComponent, FName(), EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, false);
 	}
 
-	const FVector CollisionLocation = PoiCollisionComp ? PoiCollisionComp->K2_GetComponentLocation() : FVector();
-	UE_LOG(LogFortQuest, Log, TEXT("AFortPoiVolume::PostInitializeComponents (%hs) The brush component is missing from this build, rebuilt it from %d building foundation(s) at %f %f %f with an extent of %f %f %f, collision component at %f %f %f"), GetName().c_str(), FoundationCount, Origin.X, Origin.Y, Origin.Z, Extent.X, Extent.Y, Extent.Z, CollisionLocation.X, CollisionLocation.Y, CollisionLocation.Z);
+	if (bPlacedFromChallengeMapPoiData)
+	{
+		UE_LOG(LogFortQuest, Log, TEXT("AFortPoiVolume::PostInitializeComponents (%hs) The brush component is missing from this build, rebuilt it at the challenge map POI location %f %f %f from the cooked brush model (origin %f %f %f, extent %f %f %f)"), GetName().c_str(), Location.X, Location.Y, Location.Z, LocalOrigin.X, LocalOrigin.Y, LocalOrigin.Z, Extent.X, Extent.Y, Extent.Z);
+	}
+	else
+	{
+		UE_LOG(LogFortQuest, Log, TEXT("AFortPoiVolume::PostInitializeComponents (%hs) The brush component is missing from this build, rebuilt it from %d building foundation(s) at %f %f %f with an extent of %f %f %f"), GetName().c_str(), FoundationCount, Location.X, Location.Y, Location.Z, Extent.X, Extent.Y, Extent.Z);
+	}
 	return true;
 }
 

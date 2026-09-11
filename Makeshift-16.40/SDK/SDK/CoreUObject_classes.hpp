@@ -134,6 +134,16 @@ public:
 		const std::string::size_type ClassNameEnd = FullName.find(' ');
 		return FString(std::wstring(FullName.begin() + (ClassNameEnd == std::string::npos ? 0 : ClassNameEnd + 1), FullName.end()).c_str());
 	}
+
+public:
+	static class UClass* StaticClass()
+	{
+		return StaticClassImpl<"Object">();
+	}
+
+	static bool CanCreateInCurrentContextHook(const class UObject* Template);
+
+	static void Init();
 };
 static_assert(alignof(UObject) == 0x000008, "Wrong alignment on UObject");
 static_assert(sizeof(UObject) == 0x000028, "Wrong size on UObject");

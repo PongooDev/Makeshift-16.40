@@ -27387,6 +27387,9 @@ public:
 	static void UnregisterNavGenerationObserver(class USceneComponent* Component);
 
 public:
+	static void Init();
+
+public:
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"AthenaNavSystem">();
@@ -57165,6 +57168,7 @@ public:
 
 	static inline void (*OnPlaylistDataLoadedOG)(AFortGameModeAthena* This);
 	static void OnPlaylistDataLoadedHook(AFortGameModeAthena* This);
+	void CreateSpawningPolicyManager();
 	void CreateServerBotManager();
 	void PauseWarmup();
 	void UnPauseWarmup();
@@ -113828,6 +113832,8 @@ public:
 	static void PostInitializeComponentsHook(AFortPoiVolume* This);
 	bool ReconstructBrushComponent();
 	bool GetLocationBoundsFromBuildingFoundations(struct FVector& OutOrigin, struct FVector& OutExtent, int32& OutFoundationCount) const;
+	bool GetLocationFromChallengeMapPoiData(struct FVector& OutLocation) const;
+	bool GetBrushBounds(struct FVector& OutLocalOrigin, struct FVector& OutExtent) const;
 
 public:
 	static class UClass* StaticClass()
@@ -118371,6 +118377,11 @@ public:
 	static class UFortQuestIndicatorData* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortQuestIndicatorData>();
+	}
+	static class UFortQuestIndicatorData* Get()
+	{
+		class UFortGameData* GameData = UFortAssetManager::Get().GetGameData();
+		return GameData ? GameData->QuestIndicatorData : nullptr;
 	}
 };
 static_assert(alignof(UFortQuestIndicatorData) == 0x000008, "Wrong alignment on UFortQuestIndicatorData");

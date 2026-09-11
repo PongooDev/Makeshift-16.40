@@ -428,8 +428,7 @@ bool AFortGameModeAthena::StartWarmupPhaseHook(AFortGameModeAthena* This) {
 		AFortGameplayMutator* Mutator = This->GetMutatorByClass(This, AFortAthenaMutator_Bots::StaticClass());
 		AFortAthenaMutator_Bots* BotMutator = Mutator ? Mutator->Cast<AFortAthenaMutator_Bots>() : nullptr;
 		if (BotMutator && !BotMutator->bSpawningInfosUpdated) {
-			const int32 NumReservationsConsumedWithoutABeacon = 1;
-			BotMutator->NumExpectedPlayers = NumReservationsConsumedWithoutABeacon;
+			BotMutator->NumExpectedPlayers = FMath::Max(This->GetNumPlayers(), 1);
 			BotMutator->InitializeMMRInfos();
 		}
 	}

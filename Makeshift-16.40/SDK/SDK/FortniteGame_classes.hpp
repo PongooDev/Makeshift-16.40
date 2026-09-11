@@ -114387,7 +114387,7 @@ public:
 	TArray<struct FCachedPOIVolumeLocations>      CachedValidPOIVolumeLocations;                     // 0x0430(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
 	TArray<class ABuildingFoundation*>            CachedBuildingFoundations;                         // 0x0440(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_450[0x8];                                      // 0x0450(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
-	bool                                          bCanActivateBotsBrain;                             // 0x0458(0x0001)(Transient, NativeAccessSpecifierPrivate)
+	bool                                          bCanActivateBotsBrain;
 	uint8                                         Pad_459[0x14F];                                    // 0x0459(0x014F)(Fixing Size After Last Property [ Dumper-7 ])
 	class AFortPlayerStartWarmup*                 LastTeamPlayerStart;                               // 0x05A8(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_5B0[0x10];                                     // 0x05B0(0x0010)(Fixing Size After Last Property [ Dumper-7 ])

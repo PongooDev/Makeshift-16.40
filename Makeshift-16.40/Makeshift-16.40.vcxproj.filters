@@ -169,6 +169,9 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\AI\Navigation">
       <UniqueIdentifier>{3b9a1c74-2e58-4d1a-9c07-5f2d8a6b41e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Athena\AI">
+      <UniqueIdentifier>{6c1d4f02-9b83-4a57-8e20-d4f7a1c35b6e}</UniqueIdentifier>
+    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Items">
       <UniqueIdentifier>{e15af958-21e4-4726-bf48-088c2f37b7b7}</UniqueIdentifier>
     </Filter>
@@ -895,6 +898,9 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\FortAIFunctionLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\AI</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\AI\FortAthenaAISpawnerDataComponent_AIBotAffiliation.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Athena\AI</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortIndicatedActorManagementLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private</Filter>

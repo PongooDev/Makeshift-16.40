@@ -24076,6 +24076,12 @@ public:
 	struct FGameplayTagContainer                  FactionTags;                                       // 0x0030(0x0020)(Edit, NativeAccessSpecifierPrivate)
 
 public:
+	void OnSpawned(class APawn* PawnAI) const {
+		void (*Fn)(const UFortAthenaAISpawnerDataComponent_AffiliationBase*, class APawn*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x44CB4AC);
+		Fn(this, PawnAI);
+	}
+
+public:
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"FortAthenaAISpawnerDataComponent_AffiliationBase">();
@@ -63006,6 +63012,8 @@ public:
 
 public:
 	bool GetSquadID(int32* OutSquadId);
+	static void Init();
+	static void OnSpawnedHook(UFortAthenaAISpawnerDataComponent_AIBotAffiliation* This, class APawn* PawnAI);
 
 public:
 	static class UClass* StaticClass()
@@ -114363,6 +114371,10 @@ public:
 
 public:
 	bool IsWeaponSupported(class AFortWeapon* FortWeapon);
+	void AssignTeamAndSquad(class AFortAthenaAIBotController* BotController, const uint8* CustomSquadId) {
+		void (*Fn)(UFortServerBotManagerAthena*, class AFortAthenaAIBotController*, const uint8*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46133E8);
+		Fn(this, BotController, CustomSquadId);
+	}
 	void SetBotMutator(class AFortAthenaMutator_Bots* BotMutator) {
 		void (*Fn)(UFortServerBotManagerAthena*, class AFortAthenaMutator_Bots*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46231D4);
 		Fn(this, BotMutator);

@@ -3867,6 +3867,26 @@ public:
 	uint8                                         Pad_EC[0x4];                                       // 0x00EC(0x0004)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
+	static void DigestAimingSkillSet(class UFortAthenaAIBotAimingSkillSet* SkillSet, class UFortAthenaAIBotAimingDigestedSkillSet* Digested, float Level);
+	static void DigestAttackingSkillSet(class UFortAthenaAIBotAttackingSkillSet* SkillSet, class UFortAthenaAIBotAttackingDigestedSkillSet* Digested, float Level);
+	static void DigestBuildingSkillSet(class UFortAthenaAIBotBuildingSkillSet* SkillSet, class UFortAthenaAIBotBuildingDigestedSkillSet* Digested, float Level);
+	static void DigestDBNOSkillSet(class UFortAthenaAIBotDBNOSkillSet* SkillSet, class UFortAthenaAIBotDBNODigestedSkillSet* Digested, float Level);
+	static void DigestEmoteSkillSet(class UFortAthenaAIBotEmoteSkillSet* SkillSet, class UFortAthenaAIBotEmoteDigestedSkillSet* Digested, float Level);
+	static void DigestEvasiveManeuversSkillSet(class UFortAthenaAIBotEvasiveManeuversSkillSet* SkillSet, class UFortAthenaAIBotEvasiveManeuversDigestedSkillSet* Digested, float Level);
+	static void DigestHarvestSkillSet(class UFortAthenaAIBotHarvestSkillSet* SkillSet, class UFortAthenaAIBotHarvestDigestedSkillSet* Digested, float Level);
+	static void DigestInventorySkillSet(class UFortAthenaAIBotInventorySkillSet* SkillSet, class UFortAthenaAIBotInventoryDigestedSkillSet* Digested, float Level);
+	static void DigestLootingSkillSet(class UFortAthenaAIBotLootingSkillSet* SkillSet, class UFortAthenaAIBotLootingDigestedSkillSet* Digested, float Level);
+	static void DigestMovementSkillSet(class UFortAthenaAIBotMovementSkillSet* SkillSet, class UFortAthenaAIBotMovementDigestedSkillSet* Digested, float Level);
+	static void DigestPerceptionSkillSet(class UFortAthenaAIBotPerceptionSkillSet* SkillSet, class UFortAthenaAIBotPerceptionDigestedSkillSet* Digested, float Level);
+	static void DigestPlayStyleSkillSet(class UFortAthenaAIBotPlayStyleSkillSet* SkillSet, class UFortAthenaAIBotPlayStyleDigestedSkillSet* Digested, float Level);
+	static void DigestReviveSkillSet(class UFortAthenaAIBotReviveSkillSet* SkillSet, class UFortAthenaAIBotReviveDigestedSkillSet* Digested, float Level);
+	static void DigestUnstuckSkillSet(class UFortAthenaAIBotUnstuckSkillSet* SkillSet, class UFortAthenaAIBotUnstuckDigestedSkillSet* Digested, float Level);
+	static void DigestWarmupSkillSet(class UFortAthenaAIBotWarmupSkillSet* SkillSet, class UFortAthenaAIBotWarmupDigestedSkillSet* Digested, float Level);
+	static void GetAIRuntimeParametersClassesHook(void* Provider, TArray<TSubclassOf<class UFortAthenaAIRuntimeParameters>>& OutClasses);
+	static uint32 ExtractHook(void* Provider, class UFortAthenaAIRuntimeParameters* RuntimeParameters, int32 Level, uint32 CRC);
+	static void Init();
+
+public:
 	static class UClass* StaticClass()
 	{
 		return StaticClassImpl<"FortAthenaAISpawnerDataComponent_AIBotSkillset">();

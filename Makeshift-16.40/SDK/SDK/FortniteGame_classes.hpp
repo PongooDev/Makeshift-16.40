@@ -55758,6 +55758,11 @@ public:
 	class UAthenaMarkerComponent* GetMarkerComponent() const;
 	bool IsAnAthenaGameParticipant() const;
 
+	bool RunBehaviorTree(class UBehaviorTree* BTAsset)
+	{
+		return reinterpret_cast<bool (*)(AFortAthenaAIBotController*, class UBehaviorTree*)>(VTable[249])(this, BTAsset);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -114349,7 +114354,9 @@ public:
 	struct FGameplayTagContainer                  SupportedItemTags;                                 // 0x0410(0x0020)(Transient, NativeAccessSpecifierPrivate)
 	TArray<struct FCachedPOIVolumeLocations>      CachedValidPOIVolumeLocations;                     // 0x0430(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
 	TArray<class ABuildingFoundation*>            CachedBuildingFoundations;                         // 0x0440(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_450[0x158];                                    // 0x0450(0x0158)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_450[0x8];                                      // 0x0450(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          bCanActivateBotsBrain;                             // 0x0458(0x0001)(Transient, NativeAccessSpecifierPrivate)
+	uint8                                         Pad_459[0x14F];                                    // 0x0459(0x014F)(Fixing Size After Last Property [ Dumper-7 ])
 	class AFortPlayerStartWarmup*                 LastTeamPlayerStart;                               // 0x05A8(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_5B0[0x10];                                     // 0x05B0(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
 	TMap<int32, class UCacheSafeZoneLocation*>    CacheSafeZoneLocationsMap;                         // 0x05C0(0x0050)(Transient, NativeAccessSpecifierPrivate)
@@ -114371,6 +114378,7 @@ public:
 
 public:
 	bool IsWeaponSupported(class AFortWeapon* FortWeapon);
+	void CheckForBotBrainActivation();
 	void AssignTeamAndSquad(class AFortAthenaAIBotController* BotController, const uint8* CustomSquadId) {
 		void (*Fn)(UFortServerBotManagerAthena*, class AFortAthenaAIBotController*, const uint8*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46133E8);
 		Fn(this, BotController, CustomSquadId);
@@ -114402,6 +114410,7 @@ static_assert(offsetof(UFortServerBotManagerAthena, PlayerBotsRestartLeft) == 0x
 static_assert(offsetof(UFortServerBotManagerAthena, CachedGameMode) == 0x000050, "Member 'UFortServerBotManagerAthena::CachedGameMode' has a wrong offset!");
 static_assert(offsetof(UFortServerBotManagerAthena, CachedGameState) == 0x000058, "Member 'UFortServerBotManagerAthena::CachedGameState' has a wrong offset!");
 static_assert(offsetof(UFortServerBotManagerAthena, CachedBotMutator) == 0x000060, "Member 'UFortServerBotManagerAthena::CachedBotMutator' has a wrong offset!");
+static_assert(offsetof(UFortServerBotManagerAthena, bCanActivateBotsBrain) == 0x000458, "Member 'UFortServerBotManagerAthena::bCanActivateBotsBrain' has a wrong offset!");
 static_assert(offsetof(UFortServerBotManagerAthena, DebugMinimapData) == 0x000098, "Member 'UFortServerBotManagerAthena::DebugMinimapData' has a wrong offset!");
 static_assert(offsetof(UFortServerBotManagerAthena, bBotHostileToHumanPlayersOnly) == 0x0001C0, "Member 'UFortServerBotManagerAthena::bBotHostileToHumanPlayersOnly' has a wrong offset!");
 static_assert(offsetof(UFortServerBotManagerAthena, UseAllBattleBusPOIsSquadRatio) == 0x0001C8, "Member 'UFortServerBotManagerAthena::UseAllBattleBusPOIsSquadRatio' has a wrong offset!");

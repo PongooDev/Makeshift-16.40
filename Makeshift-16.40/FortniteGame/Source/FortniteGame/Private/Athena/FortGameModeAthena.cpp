@@ -417,6 +417,8 @@ void AFortGameModeAthena::CreateServerBotManager() {
 		ServerBotManager->bBotHostileToHumanPlayersOnly = BotMutator->bBotHostileToHumanPlayersOnly;
 	}
 
+	ServerBotManager->CheckForBotBrainActivation();
+
 	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : Created %hs"), ServerBotManager->GetName().c_str());
 }
 

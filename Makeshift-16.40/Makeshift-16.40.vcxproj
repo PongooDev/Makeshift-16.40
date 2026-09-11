@@ -382,6 +382,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Inventory\InventoryManagementLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\AI\FortAIFunctionLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\AI\FortAthenaAISpawnerDataComponent_AIBotAffiliation.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Athena\AI\FortServerBotManagerAthena.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortIndicatedActorManagementLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_IndicatedActorManagement.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Missions\FortMissionLibrary.cpp" />

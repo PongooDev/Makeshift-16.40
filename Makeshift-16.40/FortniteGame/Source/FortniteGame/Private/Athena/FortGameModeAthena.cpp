@@ -410,12 +410,29 @@ void AFortGameModeAthena::CreateServerBotManager() {
 		AthenaAISystem->PlayerBotManager = ServerBotManager;
 	}
 
+	if (ServerBotManager->BattleBusTagQueryPOIList.Num() == 0) {
+		FBattleBusPOI BattleBusPOI{};
+		BattleBusPOI.IsEnabled.Value = 1.0f;
+		BattleBusPOI.POIFilterQuery.QueryTokenStream.Add(0);
+		BattleBusPOI.POIFilterQuery.QueryTokenStream.Add(1);
+		BattleBusPOI.POIFilterQuery.QueryTokenStream.Add(static_cast<uint8>(EGameplayTagQueryExprType::AllTagsMatch));
+		BattleBusPOI.POIFilterQuery.QueryTokenStream.Add(0);
+		ServerBotManager->BattleBusTagQueryPOIList.Add(BattleBusPOI);
+		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateServerBotManager : BattleBusTagQueryPOIList is empty in this build, adding a filter that matches every point of interest so bots can pick a bus drop location"));
+	}
+
 	AFortGameplayMutator* Mutator = GetMutatorByClass(this, AFortAthenaMutator_Bots::StaticClass());
 	AFortAthenaMutator_Bots* BotMutator = Mutator ? Mutator->Cast<AFortAthenaMutator_Bots>() : nullptr;
 	if (BotMutator && !ServerBotManager->CachedBotMutator) {
 		ServerBotManager->SetBotMutator(BotMutator);
 		ServerBotManager->bBotHostileToHumanPlayersOnly = BotMutator->bBotHostileToHumanPlayersOnly;
 	}
+
+	if (ServerBotManager->BattleBusTagQueryPOIList.Num() > 0) {
+		UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %d cached point of interest volume(s), %d of them match the bus drop filter"), ServerBotManager->CachedValidPOIVolumeLocations.Num(), ServerBotManager->BattleBusTagQueryPOIList[0].ValidPOIVolumeList.Num());
+	}
+
+	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %f of the bots will thank the bus driver between %f and %f second(s) after boarding"), ServerBotManager->ThankBusDriverProbability.GetValueAtLevel(0.f), ServerBotManager->ThankBusDriverMinTime.GetValueAtLevel(0.f), ServerBotManager->ThankBusDriverMaxTime.GetValueAtLevel(0.f));
 
 	ServerBotManager->CheckForBotBrainActivation();
 
@@ -449,6 +466,27 @@ void AFortGameModeAthena::OnPlaylistDataLoadedHook(AFortGameModeAthena* This) {
 	This->CreateServerBotManager();
 }
 
+void AFortGameModeAthena::PlaceBotOnTeamHook(AFortGameModeAthena* This, AFortPlayerStateAthena* PlayerState, AFortTeamInfoAthena* TeamInfo, uint8 SquadId) {
+	PlaceBotOnTeamOG(This, PlayerState, TeamInfo, SquadId);
+
+	AFortGameStateAthena* FortGameState = This->GameState ? This->GameState->Cast<AFortGameStateAthena>() : nullptr;
+	if (!FortGameState || !PlayerState) {
+		return;
+	}
+
+	FortGameState->NotifyGameMemberAdded(PlayerState->SquadId, PlayerState->TeamIndex, PlayerState->BotUniqueId);
+
+	TArray<TWeakObjectPtr<AFortPlayerStateAthena>>& SquadMembers = FortGameState->GetSquadMembers(PlayerState->SquadId);
+	for (int32 Index = 0; Index < SquadMembers.Num(); ++Index) {
+		if (SquadMembers[Index].Get() == PlayerState) {
+			UE_LOG(LogAthenaBots, Log, TEXT("AFortGameModeAthena::PlaceBotOnTeam %hs joined team %d squad %d, that squad now has %d member(s)"), PlayerState->GetName().c_str(), PlayerState->TeamIndex, PlayerState->SquadId, SquadMembers.Num());
+			return;
+		}
+	}
+
+	UE_LOG(LogAthenaBots, Warning, TEXT("AFortGameModeAthena::PlaceBotOnTeam %hs was not added to the squad member map of squad %d, it will not be able to pick a bus drop location"), PlayerState->GetName().c_str(), PlayerState->SquadId);
+}
+
 void AFortGameModeAthena::Init() {
 	Memory::HookDetour(ImageBase + 0x4551FC0, FinishWorldInitializationHook, &FinishWorldInitializationOG);
 	Memory::HookDetour(ImageBase + 0x456AE14, ReadyToStartMatchHook);
@@ -459,4 +497,5 @@ void AFortGameModeAthena::Init() {
 	Memory::HookDetour(ImageBase + 0x4566D60, PostLoginHook, &PostLoginOG);
 	Memory::HookDetour(ImageBase + 0x4574D64, SpawnInitialSafeZoneHook);
 	Memory::HookDetour(ImageBase + 0x45799A4, StartNewSafeZonePhaseHook);
+	Memory::HookDetour(ImageBase + 0x4566434, PlaceBotOnTeamHook, &PlaceBotOnTeamOG);
 }

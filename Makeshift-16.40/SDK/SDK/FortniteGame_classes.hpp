@@ -1749,8 +1749,28 @@ public:
 		OnRep_CurrentPlaylistId();
 	}
 
+	int32 GetAircraftIndex(const class APlayerState* PlayerState) const
+	{
+		int32 (*Fn)(const AFortGameStateAthena*, const class APlayerState*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1925C50);
+		return Fn(this, PlayerState);
+	}
+
+	TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>& GetSquadMembers(uint8 SquadId)
+	{
+		TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>* (*Fn)(AFortGameStateAthena*, uint8) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xFEE0B4);
+		return *Fn(this, SquadId);
+	}
+
+	void NotifyGameMemberAdded(uint8 SquadId, uint8 TeamIndex, const struct FUniqueNetIdRepl& MemberUniqueId)
+	{
+		void (*Fn)(AFortGameStateAthena*, uint8, uint8, const struct FUniqueNetIdRepl*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x159C78C);
+		Fn(this, SquadId, TeamIndex, &MemberUniqueId);
+	}
+
 	static void Init();
 	static bool CanUpdateGamePhaseStepHook(AFortGameStateAthena* This);
+	static inline void (*PlacePlayersInAircraftOG)(AFortGameStateAthena* This);
+	static void PlacePlayersInAircraftHook(AFortGameStateAthena* This);
 
 public:
 	static class UClass* StaticClass()
@@ -55727,7 +55747,9 @@ public:
 	bool                                          bForceHolsterWeapon;                               // 0x0AB1(0x0001)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	uint8                                         Pad_AB2[0x6];                                      // 0x0AB2(0x0006)(Fixing Size After Last Property [ Dumper-7 ])
 	class UFortWorldItem*                         PendingEquipWeapon;                                // 0x0AB8(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
-	uint8                                         Pad_AC0[0x30];                                     // 0x0AC0(0x0030)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_AC0[0x18];                                     // 0x0AC0(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
+	struct FTimerHandle                           ThankBusDriverTimerHandle;
+	uint8                                         Pad_AE0[0x10];                                     // 0x0AE0(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
 	class APawn*                                  PlayerToSpectateOnDeath;                           // 0x0AF0(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	TMulticastInlineDelegate<void(class AFortAthenaAIBotController* BotController, class AFortPlayerPawnAthena* BotPawn)> OnPlayerPawnAISpawnedDelegate;                     // 0x0AF8(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, Protected, NativeAccessSpecifierProtected)
 	uint8                                         Pad_B08[0xA8];                                     // 0x0B08(0x00A8)(Fixing Size After Last Property [ Dumper-7 ])
@@ -55756,7 +55778,11 @@ public:
 	class APawn*                                  FinisherPawn;                                      // 0x0E08(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
 	uint8                                         Pad_E10[0x20];                                     // 0x0E10(0x0020)(Fixing Size After Last Property [ Dumper-7 ])
 	class UBehaviorTree*                          BTAssetToRunOnPawnAISpawned;                       // 0x0E30(0x0008)(ZeroConstructor, Transient, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
-	uint8                                         Pad_E38[0x20];                                     // 0x0E38(0x0020)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_E38[0xA];                                      // 0x0E38(0x000A)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         IsInBusKey;
+	uint8                                         HasEverJumpedFromBusKey;
+	uint8                                         HasEverJumpedFromBusAndLandedKey;
+	uint8                                         Pad_E45[0x13];                                     // 0x0E45(0x0013)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
 	void BlueprintOnBehaviorTreeStarted();
@@ -55806,9 +55832,19 @@ public:
 		return reinterpret_cast<bool (*)(AFortAthenaAIBotController*, class UBehaviorTree*)>(VTable[249])(this, BTAsset);
 	}
 
+	void EnterAircraft(class AFortAthenaAircraft* InAircraft);
+
+	bool ExitAircraft()
+	{
+		bool (*Fn)(AFortAthenaAIBotController*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4307BB0);
+		return Fn(this);
+	}
+
 	static void Init();
 	static inline void (*ApplyCharacterCustomizationOG)(AFortAthenaAIBotController* This, const struct FFortAthenaLoadout* OverrideCosmeticLoadout);
 	static void ApplyCharacterCustomizationHook(AFortAthenaAIBotController* This, const struct FFortAthenaLoadout* OverrideCosmeticLoadout);
+	static inline void (*OnGamePhaseStepChangedOG)(AFortAthenaAIBotController* This, const TScriptInterface<class IFortSafeZoneInterface>& SafeZoneInterface, EAthenaGamePhaseStep GamePhaseStep);
+	static void OnGamePhaseStepChangedHook(AFortAthenaAIBotController* This, const TScriptInterface<class IFortSafeZoneInterface>& SafeZoneInterface, EAthenaGamePhaseStep GamePhaseStep);
 
 public:
 	static class UClass* StaticClass()
@@ -55906,6 +55942,10 @@ static_assert(offsetof(AFortAthenaAIBotController, RespawnRuntimeParameters) == 
 static_assert(offsetof(AFortAthenaAIBotController, CurrentBlockingDoor) == 0x000DF0, "Member 'AFortAthenaAIBotController::CurrentBlockingDoor' has a wrong offset!");
 static_assert(offsetof(AFortAthenaAIBotController, FinisherPawn) == 0x000E08, "Member 'AFortAthenaAIBotController::FinisherPawn' has a wrong offset!");
 static_assert(offsetof(AFortAthenaAIBotController, BTAssetToRunOnPawnAISpawned) == 0x000E30, "Member 'AFortAthenaAIBotController::BTAssetToRunOnPawnAISpawned' has a wrong offset!");
+static_assert(offsetof(AFortAthenaAIBotController, ThankBusDriverTimerHandle) == 0x000AD8, "Member 'AFortAthenaAIBotController::ThankBusDriverTimerHandle' has a wrong offset!");
+static_assert(offsetof(AFortAthenaAIBotController, IsInBusKey) == 0x000E42, "Member 'AFortAthenaAIBotController::IsInBusKey' has a wrong offset!");
+static_assert(offsetof(AFortAthenaAIBotController, HasEverJumpedFromBusKey) == 0x000E43, "Member 'AFortAthenaAIBotController::HasEverJumpedFromBusKey' has a wrong offset!");
+static_assert(offsetof(AFortAthenaAIBotController, HasEverJumpedFromBusAndLandedKey) == 0x000E44, "Member 'AFortAthenaAIBotController::HasEverJumpedFromBusAndLandedKey' has a wrong offset!");
 
 // Class FortniteGame.FortAthenaBTContext_SuppressAutomaticAttackCheck
 // 0x0000 (0x0070 - 0x0070)
@@ -57234,6 +57274,8 @@ public:
 	static void OnPlaylistDataLoadedHook(AFortGameModeAthena* This);
 	static inline bool (*StartWarmupPhaseOG)(AFortGameModeAthena* This);
 	static bool StartWarmupPhaseHook(AFortGameModeAthena* This);
+	static inline void (*PlaceBotOnTeamOG)(AFortGameModeAthena* This, class AFortPlayerStateAthena* PlayerState, class AFortTeamInfoAthena* TeamInfo, uint8 SquadId);
+	static void PlaceBotOnTeamHook(AFortGameModeAthena* This, class AFortPlayerStateAthena* PlayerState, class AFortTeamInfoAthena* TeamInfo, uint8 SquadId);
 	void CreateSpawningPolicyManager();
 	void CreateServerBotManager();
 	void PauseWarmup();
@@ -84859,7 +84901,10 @@ class UFortControllerComponent_Aircraft final : public UFortControllerComponent
 public:
 	TMulticastInlineDelegate<void()>              OnAircraftStateChange;                             // 0x00B0(0x0010)(ZeroConstructor, InstancedReference, BlueprintAssignable, NativeAccessSpecifierPublic)
 	class AFortAircraft*                          CurrentAircraft;                                   // 0x00C0(0x0008)(ZeroConstructor, IsPlainOldData, NoDestructor, Protected, HasGetValueTypeHash, NativeAccessSpecifierProtected)
-	uint8                                         Pad_C8[0x88];                                      // 0x00C8(0x0088)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_C8[0x80];                                      // 0x00C8(0x0080)(Fixing Size After Last Property [ Dumper-7 ])
+	bool                                          bHasEnteredAircraft;
+	bool                                          bHasExitedAircraft;
+	uint8                                         Pad_14A[0x6];                                      // 0x014A(0x0006)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
 	void ClientEnterAircraft(class AFortAircraft* InAircraft);
@@ -84867,6 +84912,12 @@ public:
 	void ServerAttemptAircraftJump(const struct FRotator& ClientRotation);
 
 	bool IsInAircraft() const;
+
+	void EnterAircraft(class AFortAircraft* InAircraft)
+	{
+		void (*Fn)(UFortControllerComponent_Aircraft*, class AFortAircraft*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x47EA20C);
+		Fn(this, InAircraft);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -84882,6 +84933,8 @@ static_assert(alignof(UFortControllerComponent_Aircraft) == 0x000008, "Wrong ali
 static_assert(sizeof(UFortControllerComponent_Aircraft) == 0x000150, "Wrong size on UFortControllerComponent_Aircraft");
 static_assert(offsetof(UFortControllerComponent_Aircraft, OnAircraftStateChange) == 0x0000B0, "Member 'UFortControllerComponent_Aircraft::OnAircraftStateChange' has a wrong offset!");
 static_assert(offsetof(UFortControllerComponent_Aircraft, CurrentAircraft) == 0x0000C0, "Member 'UFortControllerComponent_Aircraft::CurrentAircraft' has a wrong offset!");
+static_assert(offsetof(UFortControllerComponent_Aircraft, bHasEnteredAircraft) == 0x000148, "Member 'UFortControllerComponent_Aircraft::bHasEnteredAircraft' has a wrong offset!");
+static_assert(offsetof(UFortControllerComponent_Aircraft, bHasExitedAircraft) == 0x000149, "Member 'UFortControllerComponent_Aircraft::bHasExitedAircraft' has a wrong offset!");
 
 // Class FortniteGame.FortWorkerType
 // 0x00A0 (0x0460 - 0x03C0)
@@ -111635,6 +111688,11 @@ public:
 	bool HasEverSkydivedFromBusAndLanded() const;
 	bool IsPlayerDead() const;
 
+	void SetHasEverSkydivedFromBusAndLanded(bool bNewSkydived)
+	{
+		bHasEverSkydivedFromBusAndLanded = bNewSkydived;
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -114432,6 +114490,10 @@ public:
 public:
 	bool IsWeaponSupported(class AFortWeapon* FortWeapon);
 	void CheckForBotBrainActivation();
+	void PlacePlayerBotsInAircraft(const TArray<class AFortAthenaAircraft*>& Aircrafts);
+	static void Init();
+	static inline void (*CacheValidPOIVolumesOG)(UFortServerBotManagerAthena* This);
+	static void CacheValidPOIVolumesHook(UFortServerBotManagerAthena* This);
 	void AssignTeamAndSquad(class AFortAthenaAIBotController* BotController, const uint8* CustomSquadId) {
 		void (*Fn)(UFortServerBotManagerAthena*, class AFortAthenaAIBotController*, const uint8*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46133E8);
 		Fn(this, BotController, CustomSquadId);

@@ -2217,6 +2217,13 @@ public:
 	struct FVector GetValueAsVector(const class FName& KeyName) const;
 	bool IsVectorValueSet(const class FName& KeyName) const;
 
+	template<class TDataClass>
+	bool SetValue(uint8 KeyID, bool bValue)
+	{
+		bool (*Fn)(UBlackboardComponent*, uint8, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x42B4418);
+		return Fn(this, KeyID, bValue);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{

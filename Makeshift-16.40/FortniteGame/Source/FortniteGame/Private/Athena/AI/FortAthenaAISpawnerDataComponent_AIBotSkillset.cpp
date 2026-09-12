@@ -200,13 +200,13 @@ void UFortAthenaAISpawnerDataComponent_AIBotSkillset::DigestMovementSkillSet(UFo
 	Digested->SlowDownDistance = SkillSet->SlowDownDistance.GetValueAtLevel(Level);
 	Digested->TraversalSpeedEstimation = SkillSet->TraversalSpeedEstimation.GetValueAtLevel(Level);
 	Digested->TraversalSpeedEstimationWithThreat = SkillSet->TraversalSpeedEstimationWithThreat.GetValueAtLevel(Level);
-	Digested->GliderDeployMinAngle = SkillSet->GliderDeployMinAngle.GetValueAtLevel(Level);
-	Digested->GliderDeployMaxAngle = SkillSet->GliderDeployMaxAngle.GetValueAtLevel(Level);
+	Digested->GliderDeployMinAngle = FMath::DegreesToRadians(SkillSet->GliderDeployMinAngle.GetValueAtLevel(Level));
+	Digested->GliderDeployMaxAngle = FMath::DegreesToRadians(SkillSet->GliderDeployMaxAngle.GetValueAtLevel(Level));
 	Digested->GliderNoiseMaxDistance = SkillSet->GliderNoiseMaxDistance.GetValueAtLevel(Level);
 	Digested->GliderNoiseMinDelay = SkillSet->GliderNoiseMinDelay.GetValueAtLevel(Level);
 	Digested->GliderNoiseMaxDelay = SkillSet->GliderNoiseMaxDelay.GetValueAtLevel(Level);
-	Digested->JumpOffMinAngle = SkillSet->JumpOffMinAngle.GetValueAtLevel(Level);
-	Digested->JumpOffMaxAngle = SkillSet->JumpOffMaxAngle.GetValueAtLevel(Level);
+	Digested->JumpOffMinAngle = FMath::DegreesToRadians(SkillSet->JumpOffMinAngle.GetValueAtLevel(Level));
+	Digested->JumpOffMaxAngle = FMath::DegreesToRadians(SkillSet->JumpOffMaxAngle.GetValueAtLevel(Level));
 	Digested->MaxPatrolDistance = SkillSet->MaxPatrolDistance.GetValueAtLevel(Level);
 	Digested->MaxPatrolDistanceRandomDeviation = SkillSet->MaxPatrolDistanceRandomDeviation.GetValueAtLevel(Level);
 	Digested->WobbleProbability = SkillSet->WobblingProbability.GetValueAtLevel(Level);

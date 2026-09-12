@@ -16,7 +16,61 @@ void AFortAthenaAIBotController::ApplyCharacterCustomizationHook(AFortAthenaAIBo
 	}
 }
 
+void AFortAthenaAIBotController::EnterAircraft(AFortAthenaAircraft* InAircraft)
+{
+	UFortControllerComponent_Aircraft* AircraftComponent = FindComponentByClass<UFortControllerComponent_Aircraft>();
+	if (AircraftComponent && !AircraftComponent->CurrentAircraft && !AircraftComponent->bHasExitedAircraft)
+	{
+		AircraftComponent->EnterAircraft(InAircraft);
+	}
+
+	if (CachedBotManager)
+	{
+		UWorld* World = GetWorld();
+		AFortGameStateAthena* GameState = World && World->GameState ? World->GameState->Cast<AFortGameStateAthena>() : nullptr;
+		if (GameState)
+		{
+			if (FMath::FRand() < CachedBotManager->ThankBusDriverProbability.GetValueAtLevel(0.f))
+			{
+				const float ThankBusDriverTime = FMath::FRandRange(CachedBotManager->ThankBusDriverMinTime.GetValueAtLevel(0.f), CachedBotManager->ThankBusDriverMaxTime.GetValueAtLevel(0.f));
+				if (ThankBusDriverTime > 0.f)
+				{
+					ThankBusDriverTimerHandle = UKismetSystemLibrary::K2_SetTimer(this, FString(L"ThankBusDriver"), ThankBusDriverTime, false, 0.f, 0.f);
+				}
+			}
+		}
+	}
+
+	if (Blackboard)
+	{
+		Blackboard->SetValue<UBlackboardKeyType_Bool>(IsInBusKey, true);
+		Blackboard->SetValue<UBlackboardKeyType_Bool>(HasEverJumpedFromBusKey, false);
+
+		if (HasEverJumpedFromBusAndLandedKey != 0xFF && Blackboard)
+		{
+			Blackboard->SetValue<UBlackboardKeyType_Bool>(HasEverJumpedFromBusAndLandedKey, false);
+		}
+
+		AFortPlayerStateAthena* PlayerStateAthena = PlayerState ? PlayerState->Cast<AFortPlayerStateAthena>() : nullptr;
+		if (PlayerStateAthena)
+		{
+			PlayerStateAthena->SetHasEverSkydivedFromBusAndLanded(false);
+		}
+	}
+}
+
+void AFortAthenaAIBotController::OnGamePhaseStepChangedHook(AFortAthenaAIBotController* This, const TScriptInterface<IFortSafeZoneInterface>& SafeZoneInterface, EAthenaGamePhaseStep GamePhaseStep)
+{
+	OnGamePhaseStepChangedOG(This, SafeZoneInterface, GamePhaseStep);
+
+	if (GamePhaseStep != EAthenaGamePhaseStep::BusLocked && GamePhaseStep != EAthenaGamePhaseStep::BusFlying && This->ExitAircraft())
+	{
+		UE_LOG(LogAthenaBots, Log, TEXT("AFortAthenaAIBotController::OnGamePhaseStepChanged %hs was still in the aircraft when the flight ended, dropping it"), This->GetName().c_str());
+	}
+}
+
 void AFortAthenaAIBotController::Init()
 {
 	Memory::HookDetour(ImageBase + 0x4301B24, ApplyCharacterCustomizationHook, &ApplyCharacterCustomizationOG);
+	Memory::HookDetour(ImageBase + 0x4313E8C, OnGamePhaseStepChangedHook, &OnGamePhaseStepChangedOG);
 }

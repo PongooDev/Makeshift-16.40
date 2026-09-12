@@ -84,6 +84,8 @@ DWORD WINAPI Main(LPVOID) {
     AFortAthenaMutator_Bots::Init();
     UFortAthenaAISpawnerDataComponent_AIBotAffiliation::Init();
     UFortAthenaAISpawnerDataComponent_AIBotSkillset::Init();
+    UFortAthenaAISpawnerDataComponent_CosmeticLibrary::Init();
+    AFortAthenaAIBotController::Init();
     AFortAthenaLivingWorldVolume::Init();
     AFortAthenaPatrolPathPointProvider::Init();
     UConversationContextHelpers::Init();

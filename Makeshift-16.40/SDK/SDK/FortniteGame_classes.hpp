@@ -37800,6 +37800,17 @@ public:
 public:
 	class UFortAthenaAIBotCosmeticLibraryData* GetAICosmeticLibraryData() const;
 	int32 GetAICosmeticLibraryDataIndex() const;
+	static void Init();
+	static int32 GetAICosmeticLibraryDataIndexHook(const UFortAthenaAISpawnerDataComponent_CosmeticLibrary* This);
+	static class UFortAthenaAIBotCosmeticLibraryData* GetAICosmeticLibraryDataHook(const UFortAthenaAISpawnerDataComponent_CosmeticLibrary* This);
+	static void GetDancesHook(UFortAthenaAISpawnerDataComponent_CosmeticLibrary* This, TArray<class UAthenaDanceItemDefinition*>* Dances);
+	static void GetLoadoutHook(UFortAthenaAISpawnerDataComponent_CosmeticLibrary* This, struct FFortAthenaLoadout* OutLoadout);
+	static int32 GetRandomEmoteDataTableRowIndex(const TArray<const struct FFortBotCosmeticItemDataTableRow*>& DataTableRows, float TotalWeight);
+	static class UObject* LoadSoftObject(const class FSoftObjectPtr& SoftObject);
+	static class UDataTable* LoadCosmeticDataTable(const TSoftObjectPtr<class UDataTable>& DataTable);
+	static class UFortItemDefinition* PickItemFromDataTable(const TSoftObjectPtr<class UDataTable>& DataTable);
+	static class UFortItemDefinition* PickItemFromPrimaryAssets(const class FName& PrimaryAssetTypeName, TArray<struct FPrimaryAssetId>& CachedPrimaryAssetIds, class UClass* ItemClass);
+	static class UFortItemDefinition* PickCosmeticItem(const TSoftObjectPtr<class UDataTable>& DataTable, const class FName& PrimaryAssetTypeName, TArray<struct FPrimaryAssetId>& CachedPrimaryAssetIds, class UClass* ItemClass);
 
 public:
 	static class UClass* StaticClass()
@@ -55794,6 +55805,10 @@ public:
 	{
 		return reinterpret_cast<bool (*)(AFortAthenaAIBotController*, class UBehaviorTree*)>(VTable[249])(this, BTAsset);
 	}
+
+	static void Init();
+	static inline void (*ApplyCharacterCustomizationOG)(AFortAthenaAIBotController* This, const struct FFortAthenaLoadout* OverrideCosmeticLoadout);
+	static void ApplyCharacterCustomizationHook(AFortAthenaAIBotController* This, const struct FFortAthenaLoadout* OverrideCosmeticLoadout);
 
 public:
 	static class UClass* StaticClass()
@@ -111491,6 +111506,12 @@ public:
 	struct FUniqueNetIdRepl GetUniqueID() const;
 	bool HasStartedPlaying() const;
 	bool IsMeshNetPlayer() const;
+
+	void ApplyCharacterCustomization(class AFortPlayerPawn* Pawn)
+	{
+		void (*Fn)(AFortPlayerState*, class AFortPlayerPawn*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4CD7248);
+		Fn(this, Pawn);
+	}
 
 public:
 	static class UClass* StaticClass()

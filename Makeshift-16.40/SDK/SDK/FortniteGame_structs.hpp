@@ -40507,6 +40507,17 @@ public:
 	struct FPrimaryAssetId                        PrimaryAssetId;                                    // 0x0008(0x0010)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	float                                         Weight;                                            // 0x0018(0x0004)(Edit, BlueprintVisible, BlueprintReadOnly, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_1C[0x4];                                       // 0x001C(0x0004)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	static class UScriptStruct* StaticStruct()
+	{
+		static class UScriptStruct* Struct = nullptr;
+		if (!Struct)
+		{
+			Struct = static_cast<class UScriptStruct*>(UObject::FindObjectImpl("ScriptStruct FortniteGame.FortBotCosmeticItemDataTableRow"));
+		}
+		return Struct;
+	}
 };
 static_assert(alignof(FFortBotCosmeticItemDataTableRow) == 0x000008, "Wrong alignment on FFortBotCosmeticItemDataTableRow");
 static_assert(sizeof(FFortBotCosmeticItemDataTableRow) == 0x000020, "Wrong size on FFortBotCosmeticItemDataTableRow");

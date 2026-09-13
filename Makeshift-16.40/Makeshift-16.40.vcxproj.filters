@@ -923,6 +923,9 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_IndicatedActorManagement.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Components</Filter>
     </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_Aircraft.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Components</Filter>
+    </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Missions\FortMissionLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Missions</Filter>
     </ClCompile>

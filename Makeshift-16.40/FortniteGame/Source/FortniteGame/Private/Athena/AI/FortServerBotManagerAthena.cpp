@@ -109,8 +109,6 @@ void UFortServerBotManagerAthena::OnGamePhaseStepChanged(const TScriptInterface<
 		return;
 	}
 
-	UE_LOG(LogAthenaBots, Log, TEXT("[%hs] Game phase step is now %d"), __FUNCTION__, static_cast<int32>(GamePhaseStep));
-
 	if (GamePhaseStep == EAthenaGamePhaseStep::BusLocked)
 	{
 		PlacePlayerBotsInAircraft(CachedGameState->Aircrafts);

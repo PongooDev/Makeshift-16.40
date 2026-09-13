@@ -1755,6 +1755,12 @@ public:
 		return Fn(this, PlayerState);
 	}
 
+	bool IsAircraftJumpAllowed(class AController* Controller) const
+	{
+		bool (*Fn)(const AFortGameStateAthena*, class AController*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x45905BC);
+		return Fn(this, Controller);
+	}
+
 	TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>& GetSquadMembers(uint8 SquadId)
 	{
 		TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>* (*Fn)(AFortGameStateAthena*, uint8) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xFEE0B4);
@@ -84900,7 +84906,8 @@ public:
 	uint8                                         Pad_C8[0x80];                                      // 0x00C8(0x0080)(Fixing Size After Last Property [ Dumper-7 ])
 	bool                                          bHasEnteredAircraft;
 	bool                                          bHasExitedAircraft;
-	uint8                                         Pad_14A[0x6];                                      // 0x014A(0x0006)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	bool                                          bIsAttemptingAircraftJump;
+	uint8                                         Pad_14B[0x5];                                      // 0x014B(0x0005)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
 public:
 	void ClientEnterAircraft(class AFortAircraft* InAircraft);
@@ -84915,6 +84922,12 @@ public:
 		Fn(this, InAircraft);
 	}
 
+	void ExitAircraft()
+	{
+		void (*Fn)(UFortControllerComponent_Aircraft*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x47EBFE8);
+		Fn(this);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -84924,6 +84937,12 @@ public:
 	{
 		return GetDefaultObjImpl<UFortControllerComponent_Aircraft>();
 	}
+
+public:
+	void ServerAttemptAircraftJump_Implementation(const struct FRotator& ClientRotation);
+
+	static void ServerAttemptAircraftJumpHook(UFortControllerComponent_Aircraft* This, const struct FRotator& ClientRotation);
+	static void Init();
 };
 static_assert(alignof(UFortControllerComponent_Aircraft) == 0x000008, "Wrong alignment on UFortControllerComponent_Aircraft");
 static_assert(sizeof(UFortControllerComponent_Aircraft) == 0x000150, "Wrong size on UFortControllerComponent_Aircraft");
@@ -84931,6 +84950,7 @@ static_assert(offsetof(UFortControllerComponent_Aircraft, OnAircraftStateChange)
 static_assert(offsetof(UFortControllerComponent_Aircraft, CurrentAircraft) == 0x0000C0, "Member 'UFortControllerComponent_Aircraft::CurrentAircraft' has a wrong offset!");
 static_assert(offsetof(UFortControllerComponent_Aircraft, bHasEnteredAircraft) == 0x000148, "Member 'UFortControllerComponent_Aircraft::bHasEnteredAircraft' has a wrong offset!");
 static_assert(offsetof(UFortControllerComponent_Aircraft, bHasExitedAircraft) == 0x000149, "Member 'UFortControllerComponent_Aircraft::bHasExitedAircraft' has a wrong offset!");
+static_assert(offsetof(UFortControllerComponent_Aircraft, bIsAttemptingAircraftJump) == 0x00014A, "Member 'UFortControllerComponent_Aircraft::bIsAttemptingAircraftJump' has a wrong offset!");
 
 // Class FortniteGame.FortWorkerType
 // 0x00A0 (0x0460 - 0x03C0)

@@ -97,6 +97,7 @@ DWORD WINAPI Main(LPVOID) {
     UFortPlayerConversationComponent::Init();
     UFortIndicatedActorManagementLibrary::Init();
     UFortControllerComponent_IndicatedActorManagement::Init();
+    UFortControllerComponent_Aircraft::Init();
     UFortMissionLibrary::Init();
     UNetDriver::Init();
 

@@ -209,8 +209,9 @@ void AFortGameModeAthena::SpawnInitialSafeZone() {
 		return;
 	}
 
-	static_cast<FVector&>(SafeZoneIndicator->NextCenter) = SafeZoneLocations[0];
-	static_cast<FVector&>(SafeZoneIndicator->LastCenter) = SafeZoneLocations[0];
+	const FVector SafeZoneCenter = MapInfo->GetActorLocation();
+	static_cast<FVector&>(SafeZoneIndicator->NextCenter) = SafeZoneCenter;
+	static_cast<FVector&>(SafeZoneIndicator->LastCenter) = SafeZoneCenter;
 	FortGameState->SetSafeZoneIndicator(SafeZoneIndicator);
 	UpdateSafeZoneEventDriven();
 

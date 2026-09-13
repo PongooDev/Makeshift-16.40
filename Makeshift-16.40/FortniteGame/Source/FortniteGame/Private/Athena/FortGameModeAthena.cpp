@@ -405,6 +405,13 @@ void AFortGameModeAthena::CreateServerBotManager() {
 	ServerBotManager->CachedGameState = GameState ? GameState->Cast<AFortGameStateAthena>() : nullptr;
 	ServerBotManager->CachedAIPopulationTracker = UAthenaAISystem::GetAIPopulationTracker(World);
 
+	if (ServerBotManager->CachedGameState) {
+		void (*AddUniqueDynamic)(void*, UObject*, void*, FName) = decltype(AddUniqueDynamic)(ImageBase + 0x377B748);
+		AddUniqueDynamic(&ServerBotManager->CachedGameState->GamePhaseStepChanged, ServerBotManager, nullptr, FName(L"OnGamePhaseStepChanged"));
+	} else {
+		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateServerBotManager : There is no game state to listen to for game phase step changes, bots will not board or leave the battle bus"));
+	}
+
 	UAthenaAISystem* AthenaAISystem = (World && World->AISystem) ? World->AISystem->Cast<UAthenaAISystem>() : nullptr;
 	if (AthenaAISystem) {
 		AthenaAISystem->PlayerBotManager = ServerBotManager;

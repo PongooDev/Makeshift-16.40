@@ -50,11 +50,6 @@ void UFortServerBotManagerAthena::CacheValidPOIVolumesHook(UFortServerBotManager
 	}
 }
 
-void UFortServerBotManagerAthena::Init()
-{
-	Memory::HookDetour(ImageBase + 0x461496C, CacheValidPOIVolumesHook, &CacheValidPOIVolumesOG);
-}
-
 void UFortServerBotManagerAthena::PlacePlayerBotsInAircraft(const TArray<AFortAthenaAircraft*>& Aircrafts)
 {
 	if (!CachedGameState)
@@ -64,7 +59,7 @@ void UFortServerBotManagerAthena::PlacePlayerBotsInAircraft(const TArray<AFortAt
 
 	if (!CachedAIPopulationTracker)
 	{
-		UE_LOG(LogAthenaBots, Error, TEXT("[UFortServerBotManagerAthena::PlacePlayerBotsInAircraft] No CachedAIPopulationTracker present!"));
+		UE_LOG(LogAthenaBots, Error, TEXT("[%hs] No CachedAIPopulationTracker present!"), __FUNCTION__);
 		return;
 	}
 
@@ -85,4 +80,60 @@ void UFortServerBotManagerAthena::PlacePlayerBotsInAircraft(const TArray<AFortAt
 			}
 		}
 	}
+}
+
+void UFortServerBotManagerAthena::ForceAllExitAircraft()
+{
+	if (!CachedAIPopulationTracker)
+	{
+		UE_LOG(LogAthenaBots, Error, TEXT("[%hs] No CachedAIPopulationTracker present!"), __FUNCTION__);
+		return;
+	}
+
+	for (int32 Index = 0; Index < CachedAIPopulationTracker->PlayerBots.Num(); ++Index)
+	{
+		AFortAthenaAIBotController* BotController = CachedAIPopulationTracker->PlayerBots[Index].BotController;
+		if (!BotController)
+		{
+			continue;
+		}
+
+		if (!BotController->PlayerBotPawn)
+		{
+			BotController->ExitAircraft();
+		}
+	}
+}
+
+void UFortServerBotManagerAthena::OnGamePhaseStepChanged(const TScriptInterface<IFortSafeZoneInterface>& SafeZoneInterface, const EAthenaGamePhaseStep GamePhaseStep)
+{
+	if (!CachedGameState)
+	{
+		return;
+	}
+
+	UE_LOG(LogAthenaBots, Log, TEXT("[%hs] Game phase step is now %d"), __FUNCTION__, static_cast<int32>(GamePhaseStep));
+
+	if (GamePhaseStep == EAthenaGamePhaseStep::BusLocked)
+	{
+		PlacePlayerBotsInAircraft(CachedGameState->Aircrafts);
+	}
+	else if (GamePhaseStep != EAthenaGamePhaseStep::BusFlying)
+	{
+		ForceAllExitAircraft();
+	}
+}
+
+DEFINE_FUNCTION(UFortServerBotManagerAthena::execOnGamePhaseStepChanged)
+{
+	P_GET_TINTERFACE_REF(IFortSafeZoneInterface,Z_Param_Out_SafeZoneInterface);
+	P_GET_ENUM(EAthenaGamePhaseStep,Z_Param_GamePhaseStep);
+	P_FINISH;
+	P_THIS_CAST(UFortServerBotManagerAthena)->OnGamePhaseStepChanged(Z_Param_Out_SafeZoneInterface,EAthenaGamePhaseStep(Z_Param_GamePhaseStep));
+}
+
+void UFortServerBotManagerAthena::Init()
+{
+	Memory::HookDetour(ImageBase + 0x461496C, CacheValidPOIVolumesHook, &CacheValidPOIVolumesOG);
+	Memory::HookDetour(ImageBase + 0x5194B50, (void*)&UFortServerBotManagerAthena::execOnGamePhaseStepChanged);
 }

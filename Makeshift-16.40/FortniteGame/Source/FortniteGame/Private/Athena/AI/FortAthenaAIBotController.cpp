@@ -59,18 +59,7 @@ void AFortAthenaAIBotController::EnterAircraft(AFortAthenaAircraft* InAircraft)
 	}
 }
 
-void AFortAthenaAIBotController::OnGamePhaseStepChangedHook(AFortAthenaAIBotController* This, const TScriptInterface<IFortSafeZoneInterface>& SafeZoneInterface, EAthenaGamePhaseStep GamePhaseStep)
-{
-	OnGamePhaseStepChangedOG(This, SafeZoneInterface, GamePhaseStep);
-
-	if (GamePhaseStep != EAthenaGamePhaseStep::BusLocked && GamePhaseStep != EAthenaGamePhaseStep::BusFlying && This->ExitAircraft())
-	{
-		UE_LOG(LogAthenaBots, Log, TEXT("AFortAthenaAIBotController::OnGamePhaseStepChanged %hs was still in the aircraft when the flight ended, dropping it"), This->GetName().c_str());
-	}
-}
-
 void AFortAthenaAIBotController::Init()
 {
 	Memory::HookDetour(ImageBase + 0x4301B24, ApplyCharacterCustomizationHook, &ApplyCharacterCustomizationOG);
-	Memory::HookDetour(ImageBase + 0x4313E8C, OnGamePhaseStepChangedHook, &OnGamePhaseStepChangedOG);
 }

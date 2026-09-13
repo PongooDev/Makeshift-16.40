@@ -267488,32 +267488,6 @@ void UFortServerBotManagerAthena::KillBots(bool bKillPlayers, bool bKillNonePart
 }
 
 
-// Function FortniteGame.FortServerBotManagerAthena.OnGamePhaseStepChanged
-// (Final, Native, Private, HasOutParams)
-// Parameters:
-// TScriptInterface<class IFortSafeZoneInterface>SafeZoneInterface                                      (ConstParm, Parm, OutParm, ZeroConstructor, ReferenceParm, IsPlainOldData, NoDestructor, UObjectWrapper, NativeAccessSpecifierPublic)
-// EAthenaGamePhaseStep                    GamePhaseStep                                          (ConstParm, Parm, ZeroConstructor, IsPlainOldData, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
-
-void UFortServerBotManagerAthena::OnGamePhaseStepChanged(const TScriptInterface<class IFortSafeZoneInterface>& SafeZoneInterface, const EAthenaGamePhaseStep GamePhaseStep)
-{
-	static class UFunction* Func = nullptr;
-
-	if (Func == nullptr)
-		Func = Class->GetFunction("FortServerBotManagerAthena", "OnGamePhaseStepChanged");
-
-	Params::FortServerBotManagerAthena_OnGamePhaseStepChanged Parms{};
-
-	Parms.SafeZoneInterface = SafeZoneInterface;
-	Parms.GamePhaseStep = GamePhaseStep;
-
-	auto Flgs = Func->FunctionFlags;
-	Func->FunctionFlags |= 0x400;
-
-	UObject::ProcessEvent(Func, &Parms);
-
-	Func->FunctionFlags = Flgs;
-}
-
 
 // Function FortniteGame.FortServerBotManagerAthena.SpawnAI
 // (Final, RequiredAPI, Native, Public, HasOutParams, HasDefaults, BlueprintCallable)

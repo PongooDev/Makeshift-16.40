@@ -1769,8 +1769,6 @@ public:
 
 	static void Init();
 	static bool CanUpdateGamePhaseStepHook(AFortGameStateAthena* This);
-	static inline void (*PlacePlayersInAircraftOG)(AFortGameStateAthena* This);
-	static void PlacePlayersInAircraftHook(AFortGameStateAthena* This);
 
 public:
 	static class UClass* StaticClass()
@@ -55843,8 +55841,6 @@ public:
 	static void Init();
 	static inline void (*ApplyCharacterCustomizationOG)(AFortAthenaAIBotController* This, const struct FFortAthenaLoadout* OverrideCosmeticLoadout);
 	static void ApplyCharacterCustomizationHook(AFortAthenaAIBotController* This, const struct FFortAthenaLoadout* OverrideCosmeticLoadout);
-	static inline void (*OnGamePhaseStepChangedOG)(AFortAthenaAIBotController* This, const TScriptInterface<class IFortSafeZoneInterface>& SafeZoneInterface, EAthenaGamePhaseStep GamePhaseStep);
-	static void OnGamePhaseStepChangedHook(AFortAthenaAIBotController* This, const TScriptInterface<class IFortSafeZoneInterface>& SafeZoneInterface, EAthenaGamePhaseStep GamePhaseStep);
 
 public:
 	static class UClass* StaticClass()
@@ -114491,9 +114487,11 @@ public:
 	bool IsWeaponSupported(class AFortWeapon* FortWeapon);
 	void CheckForBotBrainActivation();
 	void PlacePlayerBotsInAircraft(const TArray<class AFortAthenaAircraft*>& Aircrafts);
+	void ForceAllExitAircraft();
 	static void Init();
 	static inline void (*CacheValidPOIVolumesOG)(UFortServerBotManagerAthena* This);
 	static void CacheValidPOIVolumesHook(UFortServerBotManagerAthena* This);
+	DECLARE_FUNCTION(execOnGamePhaseStepChanged);
 	void AssignTeamAndSquad(class AFortAthenaAIBotController* BotController, const uint8* CustomSquadId) {
 		void (*Fn)(UFortServerBotManagerAthena*, class AFortAthenaAIBotController*, const uint8*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x46133E8);
 		Fn(this, BotController, CustomSquadId);

@@ -98,10 +98,7 @@ void UFortServerBotManagerAthena::ForceAllExitAircraft()
 			continue;
 		}
 
-		if (!BotController->PlayerBotPawn)
-		{
-			BotController->ExitAircraft();
-		}
+		BotController->ExitAircraft();
 	}
 }
 

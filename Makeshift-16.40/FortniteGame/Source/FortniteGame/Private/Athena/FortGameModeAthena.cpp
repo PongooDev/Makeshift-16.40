@@ -428,6 +428,17 @@ void AFortGameModeAthena::CreateServerBotManager() {
 		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateServerBotManager : BattleBusTagQueryPOIList is empty in this build, adding a filter that matches every point of interest so bots can pick a bus drop location"));
 	}
 
+	if (ServerBotManager->OnGroundTagQueryPOIList.Num() == 0) {
+		FNavigationPOI NavigationPOI{};
+		NavigationPOI.IsEnabled.Value = 1.0f;
+		NavigationPOI.POIFilterQuery.QueryTokenStream.Add(0);
+		NavigationPOI.POIFilterQuery.QueryTokenStream.Add(1);
+		NavigationPOI.POIFilterQuery.QueryTokenStream.Add(static_cast<uint8>(EGameplayTagQueryExprType::AllTagsMatch));
+		NavigationPOI.POIFilterQuery.QueryTokenStream.Add(0);
+		ServerBotManager->OnGroundTagQueryPOIList.Add(NavigationPOI);
+		UE_LOG(LogFort, Warning, TEXT("AFortGameModeAthena::CreateServerBotManager : OnGroundTagQueryPOIList is empty in this build, adding a filter that matches every point of interest so bots have somewhere to go once they land"));
+	}
+
 	AFortGameplayMutator* Mutator = GetMutatorByClass(this, AFortAthenaMutator_Bots::StaticClass());
 	AFortAthenaMutator_Bots* BotMutator = Mutator ? Mutator->Cast<AFortAthenaMutator_Bots>() : nullptr;
 	if (BotMutator && !ServerBotManager->CachedBotMutator) {
@@ -436,7 +447,7 @@ void AFortGameModeAthena::CreateServerBotManager() {
 	}
 
 	if (ServerBotManager->BattleBusTagQueryPOIList.Num() > 0) {
-		UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %d cached point of interest volume(s), %d of them match the bus drop filter"), ServerBotManager->CachedValidPOIVolumeLocations.Num(), ServerBotManager->BattleBusTagQueryPOIList[0].ValidPOIVolumeList.Num());
+		UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %d cached point of interest volume(s), %d of them match the bus drop filter, %d of them match the on ground filter"), ServerBotManager->CachedValidPOIVolumeLocations.Num(), ServerBotManager->BattleBusTagQueryPOIList[0].ValidPOIVolumeList.Num(), ServerBotManager->OnGroundTagQueryPOIList.Num() > 0 ? ServerBotManager->OnGroundTagQueryPOIList[0].ValidPOIVolumeList.Num() : 0);
 	}
 
 	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %f of the bots will thank the bus driver between %f and %f second(s) after boarding"), ServerBotManager->ThankBusDriverProbability.GetValueAtLevel(0.f), ServerBotManager->ThankBusDriverMinTime.GetValueAtLevel(0.f), ServerBotManager->ThankBusDriverMaxTime.GetValueAtLevel(0.f));

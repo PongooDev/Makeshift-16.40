@@ -447,12 +447,6 @@ void AFortGameModeAthena::CreateServerBotManager() {
 		ServerBotManager->bBotHostileToHumanPlayersOnly = BotMutator->bBotHostileToHumanPlayersOnly;
 	}
 
-	if (ServerBotManager->BattleBusTagQueryPOIList.Num() > 0) {
-		UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %d cached point of interest volume(s), %d of them match the bus drop filter, %d of them match the on ground filter"), ServerBotManager->CachedValidPOIVolumeLocations.Num(), ServerBotManager->BattleBusTagQueryPOIList[0].ValidPOIVolumeList.Num(), ServerBotManager->OnGroundTagQueryPOIList.Num() > 0 ? ServerBotManager->OnGroundTagQueryPOIList[0].ValidPOIVolumeList.Num() : 0);
-	}
-
-	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : %f of the bots will thank the bus driver between %f and %f second(s) after boarding"), ServerBotManager->ThankBusDriverProbability.GetValueAtLevel(0.f), ServerBotManager->ThankBusDriverMinTime.GetValueAtLevel(0.f), ServerBotManager->ThankBusDriverMaxTime.GetValueAtLevel(0.f));
-
 	ServerBotManager->CheckForBotBrainActivation();
 
 	UE_LOG(LogFort, Log, TEXT("AFortGameModeAthena::CreateServerBotManager : Created %hs"), ServerBotManager->GetName().c_str());
@@ -489,16 +483,16 @@ void AFortGameModeAthena::PlaceBotOnTeamHook(AFortGameModeAthena* This, AFortPla
 	PlaceBotOnTeamOG(This, PlayerState, TeamInfo, SquadId);
 
 	AFortGameStateAthena* FortGameState = This->GameState ? This->GameState->Cast<AFortGameStateAthena>() : nullptr;
-	if (!FortGameState || !PlayerState) {
+	AFortAthenaAIBotController* BotController = PlayerState && PlayerState->Owner ? PlayerState->Owner->Cast<AFortAthenaAIBotController>() : nullptr;
+	if (!FortGameState || !BotController) {
 		return;
 	}
 
 	FortGameState->NotifyGameMemberAdded(PlayerState->SquadId, PlayerState->TeamIndex, PlayerState->BotUniqueId);
 
-	TArray<TWeakObjectPtr<AFortPlayerStateAthena>>& SquadMembers = FortGameState->GetSquadMembers(PlayerState->SquadId);
+	const TArray<TWeakObjectPtr<AFortPlayerStateAthena>>& SquadMembers = FortGameState->GetSquadMembers(PlayerState->SquadId);
 	for (int32 Index = 0; Index < SquadMembers.Num(); ++Index) {
 		if (SquadMembers[Index].Get() == PlayerState) {
-			UE_LOG(LogAthenaBots, Log, TEXT("AFortGameModeAthena::PlaceBotOnTeam %hs joined team %d squad %d, that squad now has %d member(s)"), PlayerState->GetName().c_str(), PlayerState->TeamIndex, PlayerState->SquadId, SquadMembers.Num());
 			return;
 		}
 	}

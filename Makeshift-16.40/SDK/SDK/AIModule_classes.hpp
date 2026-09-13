@@ -2220,6 +2220,7 @@ public:
 	template<class TDataClass>
 	bool SetValue(uint8 KeyID, bool bValue)
 	{
+		static_assert(std::is_same_v<TDataClass, UBlackboardKeyType_Bool>, "UBlackboardComponent::SetValue is only bound to the UBlackboardKeyType_Bool instantiation");
 		bool (*Fn)(UBlackboardComponent*, uint8, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x42B4418);
 		return Fn(this, KeyID, bValue);
 	}

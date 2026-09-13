@@ -1761,9 +1761,9 @@ public:
 		return Fn(this, Controller);
 	}
 
-	TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>& GetSquadMembers(uint8 SquadId)
+	const TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>& GetSquadMembers(uint8 SquadId) const
 	{
-		TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>* (*Fn)(AFortGameStateAthena*, uint8) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xFEE0B4);
+		const TArray<TWeakObjectPtr<class AFortPlayerStateAthena>>* (*Fn)(const AFortGameStateAthena*, uint8) = decltype(Fn)(InSDKUtils::GetImageBase() + 0xFEE0B4);
 		return *Fn(this, SquadId);
 	}
 

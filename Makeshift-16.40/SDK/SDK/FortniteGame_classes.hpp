@@ -13310,6 +13310,10 @@ public:
 public:
 	bool CanBeDisassembled() const;
 	class UFortWorldItemDefinition* GetAmmoWorldItemDefinition_BP() const;
+	class UFortWorldItemDefinition* GetAmmoWorldItemDefinition(bool bUnknownFlag) const
+	{
+		return reinterpret_cast<class UFortWorldItemDefinition* (*)(const UFortWorldItemDefinition*, bool)>(VTable[165])(this, bUnknownFlag);
+	}
 	float GetDamageAtLevel(int32 ItemLevel) const;
 	float GetDPSAtLevel(int32 ItemLevel) const;
 	int32 GetInitialAmmo(const int32 ItemLevel) const;
@@ -31357,6 +31361,34 @@ public:
 	void StartAudiovisualIndicator(class UAudioComponent* ForComponent, EFortSoundIndicatorTypes Type, float Interval);
 	void StopAudiovisualIndicator();
 
+	bool IsAlreadySearched() const
+	{
+		return reinterpret_cast<bool (*)(const ABuildingContainer*)>(VTable[467])(this);
+	}
+	void ModifyLootDrops(TArray<struct FFortItemEntry>& LootToDrop, class AFortPlayerController* PlayerController)
+	{
+		reinterpret_cast<void (*)(ABuildingContainer*, TArray<struct FFortItemEntry>*, class AFortPlayerController*)>(VTable[475])(this, &LootToDrop, PlayerController);
+	}
+	void OnPickupSpawn(class AFortPickup* Pickup, const class AFortPlayerController* PlayerController)
+	{
+		reinterpret_cast<void (*)(ABuildingContainer*, class AFortPickup*, const class AFortPlayerController*)>(VTable[476])(this, Pickup, PlayerController);
+	}
+	void SetContainerSearched(class AFortPawn* SearchingPawn)
+	{
+		reinterpret_cast<void (*)(ABuildingContainer*, class AFortPawn*)>(VTable[481])(this, SearchingPawn);
+	}
+
+	bool IsAllowedToSpawnLoot() const
+	{
+		bool (*Fn)(const ABuildingContainer*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x4751714);
+		return Fn(this);
+	}
+	bool ShouldDestroyContainerOnSearch() const
+	{
+		bool (*Fn)(const ABuildingContainer*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1547158);
+		return Fn(this);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -31366,6 +31398,12 @@ public:
 	{
 		return GetDefaultObjImpl<ABuildingContainer>();
 	}
+
+public:
+	bool SpawnLoot(class AFortPlayerPawn* PlayerPawn, const EFortPickupSourceTypeFlag InSourceTypeFlag, const EFortPickupSpawnSource InSpawnSource, const bool bLootFromDestruction);
+
+	static bool SpawnLootHook(ABuildingContainer* This, class AFortPlayerPawn* PlayerPawn, const EFortPickupSourceTypeFlag InSourceTypeFlag, const EFortPickupSpawnSource InSpawnSource, const bool bLootFromDestruction);
+	static void Init();
 };
 static_assert(alignof(ABuildingContainer) == 0x000008, "Wrong alignment on ABuildingContainer");
 static_assert(sizeof(ABuildingContainer) == 0x000D38, "Wrong size on ABuildingContainer");
@@ -85424,6 +85462,14 @@ public:
 	{
 		return GetDefaultObjImpl<UFortControllerComponent_Interaction>();
 	}
+
+public:
+	void ServerNotifyEndLongUse_Implementation(class AActor* ReceivingActor);
+	void ServerNotifyStartLongUse_Implementation(class AActor* ReceivingActor);
+
+	static void ServerNotifyEndLongUseHook(UFortControllerComponent_Interaction* This, class AActor* ReceivingActor);
+	static void ServerNotifyStartLongUseHook(UFortControllerComponent_Interaction* This, class AActor* ReceivingActor);
+	static void Init();
 };
 static_assert(alignof(UFortControllerComponent_Interaction) == 0x000008, "Wrong alignment on UFortControllerComponent_Interaction");
 static_assert(sizeof(UFortControllerComponent_Interaction) == 0x000270, "Wrong size on UFortControllerComponent_Interaction");
@@ -97334,6 +97380,15 @@ public:
 	void GetIconPlacement(const class AActor* SelfActor, const class AActor* ViewingActor, struct FVector* OutLocation, struct FVector* OutExtents) const;
 	bool IconPlacementNeedsUpdate() const;
 	void LocalOnFailedInteract(const class AFortPlayerPawn* InteractingPawn) const;
+
+	void ServerNotifyEndLongUse(class AFortPlayerPawn* InteractingPawn)
+	{
+		reinterpret_cast<void (*)(IFortInteractInterface*, class AFortPlayerPawn*)>(VTable[12])(this, InteractingPawn);
+	}
+	void ServerNotifyStartLongUse(class AFortPlayerPawn* InteractingPawn)
+	{
+		reinterpret_cast<void (*)(IFortInteractInterface*, class AFortPlayerPawn*)>(VTable[13])(this, InteractingPawn);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -128904,6 +128959,15 @@ public:
 	static class UFortWeaponPickupSpawnAmmoData* GetDefaultObj()
 	{
 		return GetDefaultObjImpl<UFortWeaponPickupSpawnAmmoData>();
+	}
+
+public:
+	class AFortPickup* GenerateAmmoPickupForWeaponItemDefinitionFromContainer(class UWorld& InWorld, const class UFortWeaponItemDefinition& WeaponItemDefinition, class ABuildingContainer& Container, const EFortPickupSourceTypeFlag SourceTypeFlag, EFortPickupSpawnSource SpawnSource) const;
+
+	void UpdateAmmoItemEntryStackCount(class UWorld& InWorld, const class UFortAmmoItemDefinition& AmmoItemDefinition, const struct FGameplayTagContainer& WeaponTags, const struct FGameplayTagContainer& SourceTags, struct FFortItemEntry& AmmoItemEntry) const
+	{
+		void (*Fn)(const UFortWeaponPickupSpawnAmmoData*, class UWorld*, const class UFortAmmoItemDefinition*, const struct FGameplayTagContainer*, const struct FGameplayTagContainer*, struct FFortItemEntry*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x49FD970);
+		Fn(this, &InWorld, &AmmoItemDefinition, &WeaponTags, &SourceTags, &AmmoItemEntry);
 	}
 };
 static_assert(alignof(UFortWeaponPickupSpawnAmmoData) == 0x000008, "Wrong alignment on UFortWeaponPickupSpawnAmmoData");

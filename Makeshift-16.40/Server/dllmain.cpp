@@ -98,6 +98,8 @@ DWORD WINAPI Main(LPVOID) {
     UFortIndicatedActorManagementLibrary::Init();
     UFortControllerComponent_IndicatedActorManagement::Init();
     UFortControllerComponent_Aircraft::Init();
+    UFortControllerComponent_Interaction::Init();
+    ABuildingContainer::Init();
     UFortMissionLibrary::Init();
     UNetDriver::Init();
 

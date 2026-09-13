@@ -390,6 +390,9 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortIndicatedActorManagementLibrary.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_IndicatedActorManagement.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_Aircraft.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_Interaction.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Building\BuildingContainer.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortWeaponPickupSpawnAmmoData.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Missions\FortMissionLibrary.cpp" />
     <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationTypes.cpp" />
     <ClCompile Include="Engine\Plugins\Experimental\CommonConversation\Source\CommonConversationRuntime\Private\ConversationContext.cpp" />

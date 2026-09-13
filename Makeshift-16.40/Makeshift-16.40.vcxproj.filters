@@ -199,6 +199,9 @@
     <Filter Include="FortniteGame\Source\FortniteGame\Private\Components">
       <UniqueIdentifier>{f60ddaaa-dcb1-469d-801c-d51803c8ff55}</UniqueIdentifier>
     </Filter>
+    <Filter Include="FortniteGame\Source\FortniteGame\Private\Building">
+      <UniqueIdentifier>{1c183337-22b7-4a2c-95b3-3cb93472e317}</UniqueIdentifier>
+    </Filter>
     <Filter Include="FortniteGame\Source\FortniteGame\Public\Items">
       <UniqueIdentifier>{b8ae0db5-cc63-4dc8-aa5f-118312e93336}</UniqueIdentifier>
     </Filter>
@@ -925,6 +928,15 @@
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_Aircraft.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Components\FortControllerComponent_Interaction.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Building\BuildingContainer.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Building</Filter>
+    </ClCompile>
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Items\FortWeaponPickupSpawnAmmoData.cpp">
+      <Filter>FortniteGame\Source\FortniteGame\Private\Items</Filter>
     </ClCompile>
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Missions\FortMissionLibrary.cpp">
       <Filter>FortniteGame\Source\FortniteGame\Private\Missions</Filter>
